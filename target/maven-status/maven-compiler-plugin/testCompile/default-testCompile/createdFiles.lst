@@ -1,0 +1,7 @@
+service\CommandeServiceTest.class
+service\AuthServiceTest.class
+service\StockServiceTest.class
+service\MedicamentServiceTest.class
+service\UserServiceTest.class
+service\VenteServiceTest.class
+service\ClientServiceTest.class
