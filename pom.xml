@@ -12,9 +12,17 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Version Java utilisée pour compiler -->
         <maven.compiler.release>21</maven.compiler.release>
+
+        <!-- Tests -->
         <junit.version>5.10.2</junit.version>
         <mockito.version>5.12.0</mockito.version>
+
+        <!-- SonarQube -->
+        <sonar.projectKey>pharmacie-corrige</sonar.projectKey>
+        <sonar.projectName>Pharmacie Corrige</sonar.projectName>
     </properties>
 
     <dependencies>
@@ -35,7 +43,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Mockito + JUnit 5 -->
+        <!-- Mockito avec JUnit 5 -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
@@ -43,7 +51,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- MySQL JDBC Driver -->
+        <!-- MySQL JDBC -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
@@ -52,24 +60,34 @@
 
     </dependencies>
 
+
     <build>
         <plugins>
 
-            <!-- Compilation Java -->
+            <!-- Compilation Maven -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
             </plugin>
 
-            <!-- Tests JUnit 5 -->
+
+            <!-- Exécution des tests JUnit -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
                 <configuration>
-                    <argLine>-XX:+EnableDynamicAgentLoading</argLine>
+                    <useModulePath>false</useModulePath>
                 </configuration>
+            </plugin>
+
+
+            <!-- Analyse SonarQube -->
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>4.0.0.4121</version>
             </plugin>
 
         </plugins>
