@@ -6,26 +6,43 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+
+    <!-- Informations projet -->
     <groupId>pharmacie</groupId>
     <artifactId>pharmacie-corrige</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
+
     <properties>
+
+        <!-- Encodage -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!-- Version Java utilisée pour compiler -->
+
+        <!-- Java -->
         <maven.compiler.release>21</maven.compiler.release>
+
 
         <!-- Tests -->
         <junit.version>5.10.2</junit.version>
         <mockito.version>5.12.0</mockito.version>
 
+
         <!-- SonarQube -->
         <sonar.projectKey>pharmacie-corrige</sonar.projectKey>
         <sonar.projectName>Pharmacie Corrige</sonar.projectName>
+
+        <!-- Rapport couverture JaCoCo -->
+        <sonar.coverage.jacoco.xmlReportPaths>
+            target/site/jacoco/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
+
     </properties>
 
+
+
     <dependencies>
+
 
         <!-- JUnit 5 -->
         <dependency>
@@ -35,6 +52,7 @@
             <scope>test</scope>
         </dependency>
 
+
         <!-- Mockito -->
         <dependency>
             <groupId>org.mockito</groupId>
@@ -42,6 +60,7 @@
             <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
+
 
         <!-- Mockito avec JUnit 5 -->
         <dependency>
@@ -51,6 +70,7 @@
             <scope>test</scope>
         </dependency>
 
+
         <!-- MySQL JDBC -->
         <dependency>
             <groupId>com.mysql</groupId>
@@ -58,51 +78,142 @@
             <version>9.4.0</version>
         </dependency>
 
+
     </dependencies>
 
 
+
+
     <build>
+
         <plugins>
 
-            <!-- Compilation Maven -->
+
+            <!-- Compilation Java -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
+
+                <configuration>
+                    <release>21</release>
+                </configuration>
+
             </plugin>
 
 
-            <!-- Exécution des tests JUnit -->
+
+            <!-- Tests JUnit -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
+
                 <configuration>
                     <useModulePath>false</useModulePath>
                 </configuration>
+
             </plugin>
+
+
+
+
+            <!-- Couverture de tests -->
+            <plugin>
+
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+
+
+                <executions>
+
+
+                    <!-- Activation agent JaCoCo -->
+                    <execution>
+                        <id>prepare-agent</id>
+
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+
+                    </execution>
+
+
+
+                    <!-- Génération rapport -->
+                    <execution>
+
+                        <id>report</id>
+
+                        <phase>test</phase>
+
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+
+                    </execution>
+
+
+                </executions>
+
+
+            </plugin>
+
+
+
 
 
             <!-- Analyse SonarQube -->
             <plugin>
+
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>4.0.0.4121</version>
+
             </plugin>
 
+
+
         </plugins>
+
+
     </build>
 
-    <!-- Publication vers Nexus -->
+
+
+
+
+    <!-- Déploiement Nexus -->
+
     <distributionManagement>
+
+
         <repository>
+
             <id>nexus-releases</id>
-            <url>http://172.17.0.3:8081/repository/maven-releases/</url>
+
+            <url>
+                http://172.17.0.3:8081/repository/maven-releases/
+            </url>
+
         </repository>
+
+
+
         <snapshotRepository>
+
             <id>nexus-snapshots</id>
-            <url>http://172.17.0.3:8081/repository/maven-snapshots/</url>
+
+            <url>
+                http://172.17.0.3:8081/repository/maven-snapshots/
+            </url>
+
         </snapshotRepository>
+
+
     </distributionManagement>
+
+
 
 </project>
