@@ -12,7 +12,8 @@ import utils.DBConnection;
 
 public class StockHistoriqueDAO {
 
-    private static final Logger LOGGER = Logger.getLogger(StockHistoriqueDAO.class.getName());
+    private static final Logger LOGGER =
+            Logger.getLogger(StockHistoriqueDAO.class.getName());
 
     private static final String ID_MEDICAMENT = "id_medicament";
     private static final String QUANTITE = "quantite";
@@ -32,12 +33,10 @@ public class StockHistoriqueDAO {
 
             ps.executeUpdate();
 
-            LOGGER.info(
-                    String.format(
-                            "Historique stock enregistré : idMed=%d qte=%d",
-                            idMed,
-                            quantite
-                    )
+            LOGGER.log(
+                    Level.INFO,
+                    "Historique stock enregistré : idMed={0} qte={1}",
+                    new Object[]{idMed, quantite}
             );
 
         } catch (SQLException e) {
@@ -59,19 +58,18 @@ public class StockHistoriqueDAO {
              Statement st = c.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
 
-
             while (rs.next()) {
 
-                LOGGER.info(
-                        String.format(
-                                "Med=%d | Qte=%d | Date=%s",
+                LOGGER.log(
+                        Level.INFO,
+                        "Med={0} | Qte={1} | Date={2}",
+                        new Object[]{
                                 rs.getInt(ID_MEDICAMENT),
                                 rs.getInt(QUANTITE),
                                 rs.getTimestamp(DATE_MODIFICATION)
-                        )
+                        }
                 );
             }
-
 
         } catch (SQLException e) {
 

@@ -16,16 +16,16 @@ class UserServiceTest {
     @Mock
     private UserDAO userDAO;
 
-    private UserService userService;
-
     @BeforeEach
     void setUp() {
-        setUserService(new UserService(userDAO));
+        new UserService(userDAO);
     }
 
     @Test
     void consulterProfil_loginExistant_doitAppelerLeDao() {
-        when(userDAO.getProfil("mahbouba")).thenReturn(new String[]{"Ben Salah", "Mahbouba"});
+
+        when(userDAO.getProfil("mahbouba"))
+                .thenReturn(new String[]{"Ben Salah", "Mahbouba"});
 
         UserService.consulterProfil("mahbouba");
 
@@ -34,18 +34,12 @@ class UserServiceTest {
 
     @Test
     void consulterProfil_loginInconnu_neDoitPasPlanter() {
-        when(userDAO.getProfil("inconnu")).thenReturn(null);
+
+        when(userDAO.getProfil("inconnu"))
+                .thenReturn(null);
 
         UserService.consulterProfil("inconnu");
 
         verify(userDAO).getProfil("inconnu");
     }
-
-	public UserService getUserService() {
-		return userService;
-	}
-
-	public void setUserService(UserService userService) {
-		this.userService = userService;
-	}
 }

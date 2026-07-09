@@ -12,14 +12,8 @@ import utils.DBConnection;
 
 public class VenteDAO {
 
-    private static final Logger LOGGER = Logger.getLogger(VenteDAO.class.getName());
-
-    private static final String VENTE_ID = "Vente ID=";
-    private static final String PHARMACIEN_ID = ", Pharmacie ID=";
-    private static final String CLIENT_ID = ", Client ID=";
-    private static final String MEDICAMENT_ID = ", Médicament ID=";
-    private static final String QTE = ", Qte=";
-    private static final String DATE = ", Date=";
+    private static final Logger LOGGER =
+            Logger.getLogger(VenteDAO.class.getName());
 
     private static final String COL_VENTE_ID = "id_vente";
     private static final String COL_PHARMACIEN_ID = "id_pharmacien";
@@ -32,10 +26,16 @@ public class VenteDAO {
             "Aucune vente trouvée pour ce médicament.";
 
 
-    public void enregistrerVente(int idPh, int idCl, int idMed, int qte) {
+    public void enregistrerVente(
+            int idPh,
+            int idCl,
+            int idMed,
+            int qte) {
 
-        String sql = "INSERT INTO Vente(id_pharmacien, id_client, id_medicament, quantite, date_vente) "
-                + "VALUES(?,?,?,?,?)";
+        String sql =
+                "INSERT INTO Vente"
+                + "(id_pharmacien, id_client, id_medicament, quantite, date_vente)"
+                + " VALUES(?,?,?,?,?)";
 
         try (Connection c = DBConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -48,11 +48,10 @@ public class VenteDAO {
 
             int rows = ps.executeUpdate();
 
-            LOGGER.info(
-                    String.format(
-                            "%d vente(s) enregistrée(s).",
-                            rows
-                    )
+            LOGGER.log(
+                    Level.INFO,
+                    "{0} vente(s) enregistrée(s).",
+                    rows
             );
 
         } catch (SQLException e) {
@@ -68,7 +67,8 @@ public class VenteDAO {
 
     public void annulerVente(int idVente) {
 
-        String sql = "DELETE FROM vente WHERE id_vente = ?";
+        String sql =
+                "DELETE FROM vente WHERE id_vente = ?";
 
         try (Connection c = DBConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -77,11 +77,10 @@ public class VenteDAO {
 
             int rows = ps.executeUpdate();
 
-            LOGGER.info(
-                    String.format(
-                            "%d vente(s) annulée(s).",
-                            rows
-                    )
+            LOGGER.log(
+                    Level.INFO,
+                    "{0} vente(s) annulée(s).",
+                    rows
             );
 
         } catch (SQLException e) {
@@ -97,7 +96,8 @@ public class VenteDAO {
 
     public void ventesParMedicament(int idMed) {
 
-        String sql = "SELECT * FROM vente WHERE id_medicament = ?";
+        String sql =
+                "SELECT * FROM vente WHERE id_medicament = ?";
 
         afficherVentes(sql, idMed);
     }
@@ -105,21 +105,33 @@ public class VenteDAO {
 
     public void ventesParClient(int idClient) {
 
-        String sql = "SELECT * FROM vente WHERE id_client = ?";
+        String sql =
+                "SELECT * FROM vente WHERE id_client = ?";
 
         afficherVentes(sql, idClient);
     }
 
 
-    public void ventesParPeriode(String dateDebut, String dateFin) {
+    public void ventesParPeriode(
+            String dateDebut,
+            String dateFin) {
 
-        String sql = "SELECT * FROM vente WHERE date_vente BETWEEN ? AND ?";
+        String sql =
+                "SELECT * FROM vente "
+                + "WHERE date_vente BETWEEN ? AND ?";
 
         try (Connection c = DBConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
 
-            ps.setDate(1, java.sql.Date.valueOf(dateDebut));
-            ps.setDate(2, java.sql.Date.valueOf(dateFin));
+            ps.setDate(
+                    1,
+                    java.sql.Date.valueOf(dateDebut)
+            );
+
+            ps.setDate(
+                    2,
+                    java.sql.Date.valueOf(dateFin)
+            );
 
             afficherResultat(ps);
 
@@ -134,7 +146,9 @@ public class VenteDAO {
     }
 
 
-    private void afficherVentes(String sql, int id) {
+    private void afficherVentes(
+            String sql,
+            int id) {
 
         try (Connection c = DBConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -154,7 +168,8 @@ public class VenteDAO {
     }
 
 
-    private void afficherResultat(PreparedStatement ps) throws SQLException {
+    private void afficherResultat(
+            PreparedStatement ps) throws SQLException {
 
         boolean trouve = false;
 
@@ -164,28 +179,24 @@ public class VenteDAO {
 
                 trouve = true;
 
-                LOGGER.info(
-                        String.format(
-                                "%s%d%s%d%s%d%s%d%s%d%s%s",
-                                VENTE_ID,
+                LOGGER.log(
+                        Level.INFO,
+                        "Vente ID={0}, Pharmacien ID={1}, "
+                        + "Client ID={2}, Médicament ID={3}, "
+                        + "Qte={4}, Date={5}",
+                        new Object[]{
                                 rs.getInt(COL_VENTE_ID),
-                                PHARMACIEN_ID,
                                 rs.getInt(COL_PHARMACIEN_ID),
-                                CLIENT_ID,
                                 rs.getInt(COL_CLIENT_ID),
-                                MEDICAMENT_ID,
                                 rs.getInt(COL_MEDICAMENT_ID),
-                                QTE,
                                 rs.getInt(COL_QUANTITE),
-                                DATE + rs.getDate(COL_DATE)
-                        )
+                                rs.getDate(COL_DATE)
+                        }
                 );
             }
         }
 
-
         if (!trouve) {
-
             LOGGER.info(AUCUNE_VENTE);
         }
     }

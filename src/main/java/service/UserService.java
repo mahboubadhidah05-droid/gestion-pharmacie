@@ -1,8 +1,6 @@
 package service;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import dao.UserDAO;
 
 public class UserService {
@@ -23,17 +21,10 @@ public class UserService {
         if (profil != null && profil.length >= 2) {
 
             LOGGER.info("=== Profil Utilisateur ===");
-
-            LOGGER.log(Level.INFO,
-                    "Nom : {0}",
-                    profil[0]);
-
-            LOGGER.log(Level.INFO,
-                    "Prénom : {0}",
-                    profil[1]);
+            LOGGER.info(String.format("Nom : %s", profil[0]));
+            LOGGER.info(String.format("Prénom : %s", profil[1]));
 
         } else {
-
             LOGGER.warning("Utilisateur introuvable !");
         }
     }

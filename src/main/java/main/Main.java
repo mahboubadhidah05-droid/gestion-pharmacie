@@ -8,7 +8,6 @@ import dao.CommandeDAO;
 import dao.MedicamentDAO;
 import dao.StockHistoriqueDAO;
 import dao.VenteDAO;
-
 import service.AuthService;
 import service.ClientService;
 import service.CommandeService;
@@ -179,7 +178,8 @@ public class Main {
 
                 case 6:
 
-                    UserService.consulterProfil(loginConnecte);
+				String login = null;
+				UserService.consulterProfil(login);
 
                     break;
 
