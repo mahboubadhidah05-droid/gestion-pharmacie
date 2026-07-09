@@ -26,16 +26,21 @@ public class Main {
     private static final String CHOIX_MSG = "Choix : ";
 
     private static final Scanner sc = new Scanner(System.in);
+
     private static String loginConnecte;
+
+    private static void afficher(String message) {
+        LOGGER.info(message);
+    }
 
     public static void main(String[] args) {
 
-        LOGGER.info("=== APPLICATION GESTION PHARMACIE ===");
+        afficher("=== APPLICATION GESTION PHARMACIE ===");
 
-        LOGGER.info("Login : ");
+        afficher("Login : ");
         loginConnecte = sc.nextLine();
 
-        LOGGER.info("Mot de passe : ");
+        afficher("Mot de passe : ");
         String pwd = sc.nextLine();
 
         String role = AuthService.login(loginConnecte, pwd);
@@ -43,20 +48,21 @@ public class Main {
         switch (role) {
 
             case "PHARMACIEN":
-                LOGGER.info("Connecté : Pharmacien");
+                afficher("Connecté : Pharmacien");
                 menuPharmacien();
                 break;
 
             case "GESTIONNAIRE":
-                LOGGER.info("Connecté : Gestionnaire");
+                afficher("Connecté : Gestionnaire");
                 menuGestionnaire();
                 break;
 
             default:
-                LOGGER.warning("Accès refusé !");
+                afficher("Accès refusé !");
+                break;
         }
 
-        LOGGER.info("Fin de l'application.");
+        afficher("Fin de l'application.");
         sc.close();
     }
 
@@ -83,35 +89,36 @@ public class Main {
 
         do {
 
-            LOGGER.info("\n=== Menu Pharmacien ===");
-            LOGGER.info("1- Enregistrer une vente");
-            LOGGER.info("2- Consulter ventes par médicament");
-            LOGGER.info("3- Consulter ventes par client");
-            LOGGER.info("4- Consulter ventes par période");
-            LOGGER.info("5- Annuler une vente");
-            LOGGER.info("6- Consulter profil utilisateur");
-            LOGGER.info("7- Créer un client");
-            LOGGER.info("0- Déconnexion");
+            afficher("\n=== Menu Pharmacien ===");
+            afficher("1- Enregistrer une vente");
+            afficher("2- Consulter ventes par médicament");
+            afficher("3- Consulter ventes par client");
+            afficher("4- Consulter ventes par période");
+            afficher("5- Annuler une vente");
+            afficher("6- Consulter profil utilisateur");
+            afficher("7- Créer un client");
+            afficher("0- Déconnexion");
 
-            LOGGER.info(CHOIX_MSG);
+            afficher(CHOIX_MSG);
 
             choix = sc.nextInt();
             sc.nextLine();
+
 
             switch (choix) {
 
                 case 1:
 
-                    LOGGER.info("ID Pharmacien : ");
+                    afficher("ID Pharmacien : ");
                     int idPh = sc.nextInt();
 
-                    LOGGER.info(ID_CLIENT_MSG);
+                    afficher(ID_CLIENT_MSG);
                     int idCl = sc.nextInt();
 
-                    LOGGER.info(ID_MEDICAMENT_MSG);
+                    afficher(ID_MEDICAMENT_MSG);
                     int idMed = sc.nextInt();
 
-                    LOGGER.info("Quantité : ");
+                    afficher("Quantité : ");
                     int qte = sc.nextInt();
 
                     sc.nextLine();
@@ -121,11 +128,9 @@ public class Main {
                     medDAO.stockCritique(idMed);
 
                     break;
-
-
                 case 2:
 
-                    LOGGER.info(ID_MEDICAMENT_MSG);
+                    afficher(ID_MEDICAMENT_MSG);
                     idMed = sc.nextInt();
                     sc.nextLine();
 
@@ -136,7 +141,7 @@ public class Main {
 
                 case 3:
 
-                    LOGGER.info(ID_CLIENT_MSG);
+                    afficher(ID_CLIENT_MSG);
                     int idClient = sc.nextInt();
                     sc.nextLine();
 
@@ -147,10 +152,10 @@ public class Main {
 
                 case 4:
 
-                    LOGGER.info("Date début : ");
+                    afficher("Date début : ");
                     String d1 = sc.next();
 
-                    LOGGER.info("Date fin : ");
+                    afficher("Date fin : ");
                     String d2 = sc.next();
 
                     sc.nextLine();
@@ -162,7 +167,7 @@ public class Main {
 
                 case 5:
 
-                    LOGGER.info("ID Vente : ");
+                    afficher("ID Vente : ");
                     int idVente = sc.nextInt();
 
                     sc.nextLine();
@@ -181,17 +186,18 @@ public class Main {
 
                 case 7:
 
-                    LOGGER.info("Nom : ");
+                    afficher("Nom : ");
                     String nom = sc.nextLine();
 
-                    LOGGER.info("Prénom : ");
+                    afficher("Prénom : ");
                     String prenom = sc.nextLine();
 
-                    LOGGER.info("Email : ");
+                    afficher("Email : ");
                     String email = sc.nextLine();
 
-                    LOGGER.info("Adresse : ");
+                    afficher("Adresse : ");
                     String adresse = sc.nextLine();
+
 
                     clientService.creerClient(
                             nom,
@@ -205,35 +211,42 @@ public class Main {
 
                 case 0:
 
-                    LOGGER.info("Déconnexion Pharmacien...");
+                    afficher("Déconnexion Pharmacien...");
 
                     break;
 
 
                 default:
 
-                    LOGGER.warning("Choix invalide");
+                    afficher("Choix invalide");
 
             }
+
 
         } while (choix != 0);
 
     }
 
 
+
     private static void menuGestionnaire() {
+
 
         MedicamentDAO medDAO = new MedicamentDAO();
 
         StockHistoriqueDAO histDAO = new StockHistoriqueDAO();
 
+
         MedicamentService medService =
                 new MedicamentService(medDAO, histDAO);
+
 
         StockService stService =
                 new StockService(medDAO, histDAO);
 
+
         CommandeDAO commandeDAO = new CommandeDAO();
+
 
         CommandeService cmdService =
                 new CommandeService(
@@ -242,7 +255,9 @@ public class Main {
                         histDAO
                 );
 
+
         VenteDAO venteDAO = new VenteDAO();
+
 
         VenteService vservice =
                 new VenteService(
@@ -254,46 +269,54 @@ public class Main {
 
         int choix;
 
+
         do {
 
-            LOGGER.info("\n=== Menu Gestionnaire ===");
-            LOGGER.info("1- Ajouter un médicament");
-            LOGGER.info("2- Mettre à jour le stock");
-            LOGGER.info("3- Consulter stock critique");
-            LOGGER.info("4- Créer une commande");
-            LOGGER.info("5- Consulter historique stock");
-            LOGGER.info("6- Consulter ventes par médicament");
-            LOGGER.info("7- Consulter ventes par client");
-            LOGGER.info("8- Consulter ventes par période");
-            LOGGER.info("9- Consulter profil utilisateur");
-            LOGGER.info("0- Déconnexion");
 
-            LOGGER.info(CHOIX_MSG);
+            afficher("\n=== Menu Gestionnaire ===");
+
+            afficher("1- Ajouter un médicament");
+            afficher("2- Mettre à jour le stock");
+            afficher("3- Consulter stock critique");
+            afficher("4- Créer une commande");
+            afficher("5- Consulter historique stock");
+            afficher("6- Consulter ventes par médicament");
+            afficher("7- Consulter ventes par client");
+            afficher("8- Consulter ventes par période");
+            afficher("9- Consulter profil utilisateur");
+            afficher("0- Déconnexion");
+
+
+            afficher(CHOIX_MSG);
+
 
             choix = sc.nextInt();
             sc.nextLine();
 
 
+
             switch (choix) {
+
 
                 case 1:
 
-                    LOGGER.info("Nom : ");
+                    afficher("Nom : ");
                     String nom = sc.next();
 
-                    LOGGER.info("Dosage : ");
+                    afficher("Dosage : ");
                     String dosage = sc.next();
 
-                    LOGGER.info("Stock initial : ");
+                    afficher("Stock initial : ");
                     int stock = sc.nextInt();
 
-                    LOGGER.info("Prix : ");
+                    afficher("Prix : ");
                     double prix = sc.nextDouble();
 
-                    LOGGER.info("Seuil critique : ");
+                    afficher("Seuil critique : ");
                     int seuil = sc.nextInt();
 
                     sc.nextLine();
+
 
                     medService.ajouter(
                             nom,
@@ -303,49 +326,59 @@ public class Main {
                             seuil
                     );
 
+
                     break;
-
-
                 case 2:
 
-                    LOGGER.info(ID_MEDICAMENT_MSG);
+                    afficher(ID_MEDICAMENT_MSG);
+
                     int idMed = sc.nextInt();
 
-                    LOGGER.info("Nouvelle quantité : ");
+                    afficher("Nouvelle quantité : ");
+
                     int qte = sc.nextInt();
 
                     sc.nextLine();
+
 
                     stService.ajouterStock(idMed, qte);
 
                     break;
 
 
+
                 case 3:
 
-                    LOGGER.info(ID_MEDICAMENT_MSG);
+                    afficher(ID_MEDICAMENT_MSG);
 
                     idMed = sc.nextInt();
 
                     sc.nextLine();
+
 
                     medDAO.stockCritique(idMed);
 
                     break;
 
 
+
                 case 4:
 
-                    LOGGER.info("ID Gestionnaire : ");
+                    afficher("ID Gestionnaire : ");
+
                     int idGest = sc.nextInt();
 
-                    LOGGER.info(ID_MEDICAMENT_MSG);
+                    afficher(ID_MEDICAMENT_MSG);
+
                     idMed = sc.nextInt();
 
-                    LOGGER.info("Quantité : ");
+
+                    afficher("Quantité : ");
+
                     qte = sc.nextInt();
 
                     sc.nextLine();
+
 
                     cmdService.creerCommande(
                             idGest,
@@ -353,7 +386,9 @@ public class Main {
                             qte
                     );
 
+
                     break;
+
 
 
                 case 5:
@@ -363,47 +398,56 @@ public class Main {
                     break;
 
 
+
                 case 6:
 
-                    LOGGER.info(ID_MEDICAMENT_MSG);
+                    afficher(ID_MEDICAMENT_MSG);
 
                     idMed = sc.nextInt();
 
                     sc.nextLine();
+
 
                     vservice.ventesParMedicament(idMed);
 
                     break;
 
 
+
                 case 7:
 
-                    LOGGER.info(ID_CLIENT_MSG);
+                    afficher(ID_CLIENT_MSG);
 
                     int idClient = sc.nextInt();
 
                     sc.nextLine();
+
 
                     vservice.ventesParClient(idClient);
 
                     break;
 
 
+
                 case 8:
 
-                    LOGGER.info("Date début : ");
+                    afficher("Date début : ");
 
                     String d1 = sc.next();
 
-                    LOGGER.info("Date fin : ");
+
+                    afficher("Date fin : ");
 
                     String d2 = sc.next();
 
+
                     sc.nextLine();
+
 
                     vservice.ventesParPeriode(d1, d2);
 
                     break;
+
 
 
                 case 9:
@@ -413,19 +457,24 @@ public class Main {
                     break;
 
 
+
                 case 0:
 
-                    LOGGER.info("Déconnexion Gestionnaire...");
+                    afficher("Déconnexion Gestionnaire...");
 
                     break;
 
 
+
                 default:
 
-                    LOGGER.warning("Choix invalide");
+                    afficher("Choix invalide");
+
             }
 
+
         } while (choix != 0);
+
 
     }
 
