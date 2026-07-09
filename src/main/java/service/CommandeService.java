@@ -1,8 +1,8 @@
 package service;
 
-import First_project.CommandeDAO;
-import First_project.MedicamentDAO;
-import First_project.StockHistoriqueDAO;
+import dao.CommandeDAO;
+import dao.MedicamentDAO;
+import dao.StockHistoriqueDAO;
 
 public class CommandeService {
 

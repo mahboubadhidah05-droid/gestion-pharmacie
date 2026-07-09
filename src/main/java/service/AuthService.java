@@ -1,6 +1,6 @@
 package service;
 
-import First_project.UtilisateurDAO;
+import dao.UtilisateurDAO;
 
 /**
  * Adaptation nécessaire dans votre code appelant :
@@ -9,13 +9,17 @@ import First_project.UtilisateurDAO;
  */
 public class AuthService {
 
-    private final UtilisateurDAO dao;
+    private static UtilisateurDAO dao = new UtilisateurDAO();
 
     public AuthService(UtilisateurDAO dao) {
-        this.dao = dao;
+        AuthService.dao = dao;
     }
 
-    public String login(String login, String pwd) {
-        return dao.getRole(login, pwd);
+    public static String login(String login, String pwd) {
+        return getDao().getRole(login, pwd);
     }
+
+	public static UtilisateurDAO getDao() {
+		return dao;
+	}
 }

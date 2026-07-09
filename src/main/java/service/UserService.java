@@ -1,16 +1,16 @@
 package service;
 
-import First_project.UserDAO;
+import dao.UserDAO;
 
 public class UserService {
 
-    private final UserDAO dao;
+    private static UserDAO dao = new UserDAO();
 
     public UserService(UserDAO dao) {
-        this.dao = dao;
+        UserService.dao = dao;
     }
 
-    public void consulterProfil(String login) {
+    public static void consulterProfil(String login) {
         String[] profil = dao.getProfil(login);
         if (profil != null) {
             System.out.println("\n=== Profil Utilisateur ===");

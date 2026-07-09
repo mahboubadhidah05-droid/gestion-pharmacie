@@ -1,11 +1,12 @@
 package service;
 
-import First_project.UserDAO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import dao.UserDAO;
 
 import static org.mockito.Mockito.*;
 
@@ -19,14 +20,14 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userDAO);
+        setUserService(new UserService(userDAO));
     }
 
     @Test
     void consulterProfil_loginExistant_doitAppelerLeDao() {
         when(userDAO.getProfil("mahbouba")).thenReturn(new String[]{"Ben Salah", "Mahbouba"});
 
-        userService.consulterProfil("mahbouba");
+        UserService.consulterProfil("mahbouba");
 
         verify(userDAO).getProfil("mahbouba");
     }
@@ -35,8 +36,16 @@ class UserServiceTest {
     void consulterProfil_loginInconnu_neDoitPasPlanter() {
         when(userDAO.getProfil("inconnu")).thenReturn(null);
 
-        userService.consulterProfil("inconnu");
+        UserService.consulterProfil("inconnu");
 
         verify(userDAO).getProfil("inconnu");
     }
+
+	public UserService getUserService() {
+		return userService;
+	}
+
+	public void setUserService(UserService userService) {
+		this.userService = userService;
+	}
 }

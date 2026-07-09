@@ -1,7 +1,7 @@
 package service;
 
-import First_project.MedicamentDAO;
-import First_project.StockHistoriqueDAO;
+import dao.MedicamentDAO;
+import dao.StockHistoriqueDAO;
 
 public class MedicamentService {
 

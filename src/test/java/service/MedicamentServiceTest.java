@@ -1,12 +1,14 @@
 package service;
 
-import First_project.MedicamentDAO;
-import First_project.StockHistoriqueDAO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import dao.MedicamentDAO;
+import dao.StockHistoriqueDAO;
+
 import org.mockito.MockedStatic;
 
 import static org.mockito.Mockito.*;

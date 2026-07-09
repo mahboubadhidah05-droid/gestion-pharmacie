@@ -1,6 +1,6 @@
 package service;
 
-import First_project.ClientDAO;
+import dao.ClientDAO;
 
 /**
  * Adaptation nécessaire dans votre code appelant :
