@@ -2,19 +2,19 @@ package service;
 
 import dao.UtilisateurDAO;
 
-public final class AuthService {
+public class AuthService {
 
-    private static final UtilisateurDAO DAO = new UtilisateurDAO();
+    private static UtilisateurDAO dao = new UtilisateurDAO();
 
-    private AuthService() {
-        // Classe utilitaire : empêche l'instanciation
+    public AuthService(UtilisateurDAO dao) {
+        AuthService.dao = dao;
     }
 
     public static String login(String login, String pwd) {
-        return DAO.getRole(login, pwd);
+        return dao.getRole(login, pwd);
     }
 
     public static UtilisateurDAO getDao() {
-        return DAO;
+        return dao;
     }
 }
