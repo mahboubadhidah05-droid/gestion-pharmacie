@@ -1,24 +1,33 @@
 package service;
 
+import java.util.logging.Logger;
+
 import dao.UserDAO;
 
-public class UserService {
+public final class UserService {
 
-    private static UserDAO dao = new UserDAO();
+    private static final Logger LOGGER = Logger.getLogger(UserService.class.getName());
 
-    public UserService(UserDAO dao) {
-        UserService.dao = dao;
+    private static final UserDAO DAO = new UserDAO();
+
+    private UserService() {
+        throw new IllegalStateException("Utility class");
     }
 
     public static void consulterProfil(String login) {
-        String[] profil = dao.getProfil(login);
-        if (profil != null) {
-            System.out.println("\n=== Profil Utilisateur ===");
-            System.out.println("Nom : " + profil[0]);
-            System.out.println("Prénom : " + profil[1]);
-            System.out.println("=========================\n");
+
+        String[] profil = DAO.getProfil(login);
+
+        if (profil != null && profil.length >= 2) {
+
+            LOGGER.info("\n=== Profil Utilisateur ===");
+            LOGGER.info("Nom : " + profil[0]);
+            LOGGER.info("Prénom : " + profil[1]);
+            LOGGER.info("=========================\n");
+
         } else {
-            System.out.println("Utilisateur introuvable !");
+
+            LOGGER.warning("Utilisateur introuvable !");
         }
     }
 }

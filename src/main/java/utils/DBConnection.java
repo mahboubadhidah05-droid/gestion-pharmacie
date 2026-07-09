@@ -4,24 +4,37 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-/**
- * Classe utilitaire responsable de la connexion à la base de données MySQL
- * via JDBC.
- */
-public class DBConnection {
+public final class DBConnection {
 
-    // URL de la base de données
-    private static final String URL = "jdbc:mysql://127.0.0.1:3306/pharmacie";
-    // Nom d'utilisateur MySQL
-    private static final String USER = "root";
-    // Mot de passe MySQL
-    private static final String PASSWORD = "douaa";
+    private static final String URL =
+            System.getenv().getOrDefault(
+                    "DB_URL",
+                    "jdbc:mysql://127.0.0.1:3306/pharmacie"
+            );
 
-    /**
-     * Méthode qui retourne une connexion JDBC prête à l'emploi.
-     */
+    private static final String USER =
+            System.getenv().getOrDefault(
+                    "DB_USER",
+                    "root"
+            );
+
+    private static final String PASSWORD =
+            System.getenv("DB_PASSWORD");
+
+    private DBConnection() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
+
+        if (PASSWORD == null || PASSWORD.isBlank()) {
+            throw new SQLException("Database password not configured");
+        }
+
+        return DriverManager.getConnection(
+                URL,
+                USER,
+                PASSWORD
+        );
     }
 }
-   
