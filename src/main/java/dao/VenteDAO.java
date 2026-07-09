@@ -20,6 +20,7 @@ public class VenteDAO {
     private static final String MEDICAMENT_ID = ", Médicament ID=";
     private static final String QTE = ", Qte=";
     private static final String DATE = ", Date=";
+
     private static final String COL_VENTE_ID = "id_vente";
     private static final String COL_PHARMACIEN_ID = "id_pharmacien";
     private static final String COL_CLIENT_ID = "id_client";
@@ -33,7 +34,8 @@ public class VenteDAO {
 
     public void enregistrerVente(int idPh, int idCl, int idMed, int qte) {
 
-        String sql = "INSERT INTO Vente(id_pharmacien , id_client, id_medicament, quantite, date_vente) VALUES(?,?,?,?,?)";
+        String sql = "INSERT INTO Vente(id_pharmacien, id_client, id_medicament, quantite, date_vente) "
+                + "VALUES(?,?,?,?,?)";
 
         try (Connection c = DBConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -46,13 +48,20 @@ public class VenteDAO {
 
             int rows = ps.executeUpdate();
 
-            LOGGER.info(rows + " vente(s) enregistrée(s).");
+            LOGGER.info(
+                    String.format(
+                            "%d vente(s) enregistrée(s).",
+                            rows
+                    )
+            );
 
         } catch (SQLException e) {
 
-            LOGGER.log(Level.SEVERE,
+            LOGGER.log(
+                    Level.SEVERE,
                     "Erreur lors de l'enregistrement de la vente",
-                    e);
+                    e
+            );
         }
     }
 
@@ -68,13 +77,20 @@ public class VenteDAO {
 
             int rows = ps.executeUpdate();
 
-            LOGGER.info(rows + " vente(s) annulée(s).");
+            LOGGER.info(
+                    String.format(
+                            "%d vente(s) annulée(s).",
+                            rows
+                    )
+            );
 
         } catch (SQLException e) {
 
-            LOGGER.log(Level.SEVERE,
+            LOGGER.log(
+                    Level.SEVERE,
                     "Erreur lors de l'annulation de la vente",
-                    e);
+                    e
+            );
         }
     }
 
@@ -109,9 +125,11 @@ public class VenteDAO {
 
         } catch (SQLException e) {
 
-            LOGGER.log(Level.SEVERE,
+            LOGGER.log(
+                    Level.SEVERE,
                     "Erreur lors de la recherche des ventes par période",
-                    e);
+                    e
+            );
         }
     }
 
@@ -127,9 +145,11 @@ public class VenteDAO {
 
         } catch (SQLException e) {
 
-            LOGGER.log(Level.SEVERE,
+            LOGGER.log(
+                    Level.SEVERE,
                     "Erreur lors de la récupération des ventes",
-                    e);
+                    e
+            );
         }
     }
 
@@ -145,17 +165,27 @@ public class VenteDAO {
                 trouve = true;
 
                 LOGGER.info(
-                        VENTE_ID + rs.getInt(COL_VENTE_ID)
-                                + PHARMACIEN_ID + rs.getInt(COL_PHARMACIEN_ID)
-                                + CLIENT_ID + rs.getInt(COL_CLIENT_ID)
-                                + MEDICAMENT_ID + rs.getInt(COL_MEDICAMENT_ID)
-                                + QTE + rs.getInt(COL_QUANTITE)
-                                + DATE + rs.getDate(COL_DATE)
+                        String.format(
+                                "%s%d%s%d%s%d%s%d%s%d%s%s",
+                                VENTE_ID,
+                                rs.getInt(COL_VENTE_ID),
+                                PHARMACIEN_ID,
+                                rs.getInt(COL_PHARMACIEN_ID),
+                                CLIENT_ID,
+                                rs.getInt(COL_CLIENT_ID),
+                                MEDICAMENT_ID,
+                                rs.getInt(COL_MEDICAMENT_ID),
+                                QTE,
+                                rs.getInt(COL_QUANTITE),
+                                DATE + rs.getDate(COL_DATE)
+                        )
                 );
             }
         }
 
+
         if (!trouve) {
+
             LOGGER.info(AUCUNE_VENTE);
         }
     }

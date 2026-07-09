@@ -1,5 +1,6 @@
 package service;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import dao.MedicamentDAO;
@@ -8,13 +9,17 @@ import dao.VenteDAO;
 
 public class VenteService {
 
-    private static final Logger LOGGER = Logger.getLogger(VenteService.class.getName());
+    private static final Logger LOGGER =
+            Logger.getLogger(VenteService.class.getName());
 
     private final MedicamentDAO medDAO;
     private final VenteDAO venteDAO;
     private final StockHistoriqueDAO histDAO;
 
-    public VenteService(MedicamentDAO medDAO, VenteDAO venteDAO, StockHistoriqueDAO histDAO) {
+    public VenteService(MedicamentDAO medDAO,
+                        VenteDAO venteDAO,
+                        StockHistoriqueDAO histDAO) {
+
         this.medDAO = medDAO;
         this.venteDAO = venteDAO;
         this.histDAO = histDAO;
@@ -32,11 +37,15 @@ public class VenteService {
 
             histDAO.ajouterHistorique(idMed, -qte);
 
-            LOGGER.info("Vente enregistrée et stock mis à jour. Médicament ID=" + idMed);
+            LOGGER.log(Level.INFO,
+                    "Vente enregistrée et stock mis à jour. Médicament ID={0}",
+                    idMed);
 
         } else {
 
-            LOGGER.warning("Stock insuffisant pour le médicament ID=" + idMed);
+            LOGGER.log(Level.WARNING,
+                    "Stock insuffisant pour le médicament ID={0}",
+                    idMed);
         }
     }
 

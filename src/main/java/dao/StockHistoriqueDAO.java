@@ -14,8 +14,10 @@ public class StockHistoriqueDAO {
 
     private static final Logger LOGGER = Logger.getLogger(StockHistoriqueDAO.class.getName());
 
+    private static final String ID_MEDICAMENT = "id_medicament";
+    private static final String QUANTITE = "quantite";
+    private static final String DATE_MODIFICATION = "date_modification";
 
-    // Cette méthode est utilisée dans TOUS les cas
     public void ajouterHistorique(int idMed, int quantite) {
 
         String sql = "INSERT INTO stock_historique "
@@ -30,19 +32,25 @@ public class StockHistoriqueDAO {
 
             ps.executeUpdate();
 
-            LOGGER.info("Historique stock enregistré : idMed="
-                    + idMed + " qte=" + quantite);
+            LOGGER.info(
+                    String.format(
+                            "Historique stock enregistré : idMed=%d qte=%d",
+                            idMed,
+                            quantite
+                    )
+            );
 
         } catch (SQLException e) {
 
-            LOGGER.log(Level.SEVERE,
+            LOGGER.log(
+                    Level.SEVERE,
                     "Erreur lors de l'enregistrement de l'historique stock",
-                    e);
+                    e
+            );
         }
     }
 
 
-    // Affichage historique
     public void afficherHistorique() {
 
         String sql = "SELECT * FROM stock_historique";
@@ -51,20 +59,27 @@ public class StockHistoriqueDAO {
              Statement st = c.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
 
+
             while (rs.next()) {
 
                 LOGGER.info(
-                        "Med=" + rs.getInt("id_medicament")
-                                + " | Qte=" + rs.getInt("quantite")
-                                + " | Date=" + rs.getTimestamp("date_modification")
+                        String.format(
+                                "Med=%d | Qte=%d | Date=%s",
+                                rs.getInt(ID_MEDICAMENT),
+                                rs.getInt(QUANTITE),
+                                rs.getTimestamp(DATE_MODIFICATION)
+                        )
                 );
             }
 
+
         } catch (SQLException e) {
 
-            LOGGER.log(Level.SEVERE,
+            LOGGER.log(
+                    Level.SEVERE,
                     "Erreur lors de l'affichage de l'historique stock",
-                    e);
+                    e
+            );
         }
     }
 }

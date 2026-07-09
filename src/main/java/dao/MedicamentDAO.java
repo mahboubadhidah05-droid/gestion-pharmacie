@@ -13,6 +13,8 @@ public class MedicamentDAO {
 
     private static final Logger LOGGER = Logger.getLogger(MedicamentDAO.class.getName());
 
+    private static final String STOCK_COLUMN = "stock";
+
     public void ajouterMedicament(String nom, String dosage, int stock, double prix, int seuil) {
 
         String sql = "INSERT INTO Medicament(nom, dosage, stock, prix, seuil_critique) VALUES(?,?,?,?,?)";
@@ -49,7 +51,8 @@ public class MedicamentDAO {
             try (ResultSet rs = ps.executeQuery()) {
 
                 if (rs.next()) {
-                    return rs.getInt("stock");
+
+                    return rs.getInt(STOCK_COLUMN);
                 }
             }
 
@@ -83,10 +86,6 @@ public class MedicamentDAO {
     }
 
 
-    /**
-     * Vérifie si le médicament est en stock critique.
-     * Retourne le message d'alerte si le stock est critique, sinon null.
-     */
     public String stockCritique(int idMed) {
 
         String sql = "SELECT * FROM Medicament WHERE id_medicament = ? AND stock <= seuil_critique";
@@ -94,22 +93,29 @@ public class MedicamentDAO {
         try (Connection c = DBConnection.getConnection();
              PreparedStatement pst = c.prepareStatement(sql)) {
 
+
             pst.setInt(1, idMed);
 
             try (ResultSet rs = pst.executeQuery()) {
 
                 if (rs.next()) {
 
-                    return "Médicament en stock critique : "
-                            + rs.getString("nom")
-                            + " (ID "
-                            + rs.getInt("id_medicament")
-                            + ") | Stock actuel = "
-                            + rs.getInt("stock");
+                    return String.format(
+                            "Médicament en stock critique : %s (ID %d) | Stock actuel = %d",
+                            rs.getString("nom"),
+                            rs.getInt("id_medicament"),
+                            rs.getInt(STOCK_COLUMN)
+                    );
 
                 } else {
 
-                    LOGGER.info("Le médicament ID " + idMed + " n'est pas en stock critique.");
+                    LOGGER.info(
+                            String.format(
+                                    "Le médicament ID %d n'est pas en stock critique.",
+                                    idMed
+                            )
+                    );
+
                     return null;
                 }
             }
@@ -117,6 +123,7 @@ public class MedicamentDAO {
         } catch (SQLException e) {
 
             LOGGER.log(Level.SEVERE, "Erreur lors de la vérification du stock critique", e);
+
             return null;
         }
     }
@@ -128,23 +135,29 @@ public class MedicamentDAO {
 
         int id = -1;
 
+
         try (Connection c = DBConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
+
 
             ps.setString(1, nom);
             ps.setString(2, dosage);
 
+
             try (ResultSet rs = ps.executeQuery()) {
 
                 if (rs.next()) {
+
                     id = rs.getInt("id_medicament");
                 }
             }
+
 
         } catch (SQLException e) {
 
             LOGGER.log(Level.SEVERE, "Erreur lors de la recherche du médicament", e);
         }
+
 
         return id;
     }
