@@ -43,6 +43,7 @@ public class MedicamentDAO {
             LOGGER.info("Médicament ajouté avec succès");
 
         } catch (SQLException e) {
+
             LOGGER.log(
                     Level.SEVERE,
                     "Erreur lors de l'ajout du médicament",
@@ -50,7 +51,6 @@ public class MedicamentDAO {
             );
         }
     }
-
 
     public int getStock(int idMed) {
 
@@ -80,10 +80,10 @@ public class MedicamentDAO {
         return -1;
     }
 
-
     public void updateStock(int idMed, int qte) {
 
-        String sql = "UPDATE Medicament SET stock=? WHERE id_medicament=?";
+        String sql =
+                "UPDATE Medicament SET stock=? WHERE id_medicament=?";
 
         try (Connection c = DBConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -104,7 +104,6 @@ public class MedicamentDAO {
             );
         }
     }
-
 
     public String stockCritique(int idMed) {
 
@@ -132,7 +131,7 @@ public class MedicamentDAO {
 
                 LOGGER.log(
                         Level.INFO,
-                        "Le médicament ID {0} n'est pas en stock critique.",
+                        "Le médicament ID {0} n''est pas en stock critique.",
                         idMed
                 );
 
@@ -150,7 +149,6 @@ public class MedicamentDAO {
             return null;
         }
     }
-
 
     public int getIdMedicamentParNomEtDosage(
             String nom,

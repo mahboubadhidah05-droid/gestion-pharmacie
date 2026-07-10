@@ -8,23 +8,34 @@ public class UserService {
     private static final Logger LOGGER =
             Logger.getLogger(UserService.class.getName());
 
-    private static UserDAO dao = new UserDAO();
+    private final UserDAO dao;
 
     public UserService(UserDAO dao) {
-        UserService.dao = dao;
+        this.dao = dao;
     }
 
-    public static void consulterProfil(String login) {
+    public void consulterProfil(String login) {
 
         String[] profil = dao.getProfil(login);
 
         if (profil != null && profil.length >= 2) {
 
             LOGGER.info("=== Profil Utilisateur ===");
-            LOGGER.info(String.format("Nom : %s", profil[0]));
-            LOGGER.info(String.format("Prénom : %s", profil[1]));
+
+            LOGGER.log(
+                    java.util.logging.Level.INFO,
+                    "Nom : {0}",
+                    profil[0]
+            );
+
+            LOGGER.log(
+                    java.util.logging.Level.INFO,
+                    "Prénom : {0}",
+                    profil[1]
+            );
 
         } else {
+
             LOGGER.warning("Utilisateur introuvable !");
         }
     }

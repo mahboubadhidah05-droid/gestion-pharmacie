@@ -21,41 +21,39 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        setAuthService(new AuthService(utilisateurDAO));
+        authService = new AuthService(utilisateurDAO);
     }
 
     @Test
     void login_pharmacien_doitRetournerRolePharmacien() {
-        when(utilisateurDAO.getRole("phar1", "motdepasse")).thenReturn("PHARMACIEN");
 
-        String role = AuthService.login("phar1", "motdepasse");
+        when(utilisateurDAO.getRole("phar1", "motdepasse"))
+                .thenReturn("PHARMACIEN");
+
+        String role = authService.login("phar1", "motdepasse");
 
         assertEquals("PHARMACIEN", role);
     }
 
     @Test
     void login_gestionnaire_doitRetournerRoleGestionnaire() {
-        when(utilisateurDAO.getRole("gest1", "motdepasse")).thenReturn("GESTIONNAIRE");
 
-        String role = AuthService.login("gest1", "motdepasse");
+        when(utilisateurDAO.getRole("gest1", "motdepasse"))
+                .thenReturn("GESTIONNAIRE");
+
+        String role = authService.login("gest1", "motdepasse");
 
         assertEquals("GESTIONNAIRE", role);
     }
 
     @Test
     void login_identifiantsInvalides_doitRetournerEchec() {
-        when(utilisateurDAO.getRole("inconnu", "faux")).thenReturn("ECHEC");
 
-        String role = AuthService.login("inconnu", "faux");
+        when(utilisateurDAO.getRole("inconnu", "faux"))
+                .thenReturn("ECHEC");
+
+        String role = authService.login("inconnu", "faux");
 
         assertEquals("ECHEC", role);
     }
-
-	public AuthService getAuthService() {
-		return authService;
-	}
-
-	public void setAuthService(AuthService authService) {
-		this.authService = authService;
-	}
 }

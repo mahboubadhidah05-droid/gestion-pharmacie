@@ -4,17 +4,17 @@ import dao.UtilisateurDAO;
 
 public class AuthService {
 
-    private static UtilisateurDAO dao = new UtilisateurDAO();
+    private final UtilisateurDAO dao;
 
     public AuthService(UtilisateurDAO dao) {
-        AuthService.dao = dao;
+        this.dao = dao;
     }
 
-    public static String login(String login, String pwd) {
+    public String login(String login, String pwd) {
         return dao.getRole(login, pwd);
     }
 
-    public static UtilisateurDAO getDao() {
+    public UtilisateurDAO getDao() {
         return dao;
     }
 }

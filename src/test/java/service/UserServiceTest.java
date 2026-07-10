@@ -16,9 +16,11 @@ class UserServiceTest {
     @Mock
     private UserDAO userDAO;
 
+    private UserService userService;
+
     @BeforeEach
     void setUp() {
-        new UserService(userDAO);
+        userService = new UserService(userDAO);
     }
 
     @Test
@@ -27,7 +29,7 @@ class UserServiceTest {
         when(userDAO.getProfil("mahbouba"))
                 .thenReturn(new String[]{"Ben Salah", "Mahbouba"});
 
-        UserService.consulterProfil("mahbouba");
+        userService.consulterProfil("mahbouba");
 
         verify(userDAO).getProfil("mahbouba");
     }
@@ -38,7 +40,7 @@ class UserServiceTest {
         when(userDAO.getProfil("inconnu"))
                 .thenReturn(null);
 
-        UserService.consulterProfil("inconnu");
+        userService.consulterProfil("inconnu");
 
         verify(userDAO).getProfil("inconnu");
     }

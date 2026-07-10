@@ -58,7 +58,7 @@ public class VenteDAO {
 
             LOGGER.log(
                     Level.SEVERE,
-                    "Erreur lors de l'enregistrement de la vente",
+                    "Erreur lors de l''enregistrement de la vente",
                     e
             );
         }
@@ -87,7 +87,7 @@ public class VenteDAO {
 
             LOGGER.log(
                     Level.SEVERE,
-                    "Erreur lors de l'annulation de la vente",
+                    "Erreur lors de l''annulation de la vente",
                     e
             );
         }
