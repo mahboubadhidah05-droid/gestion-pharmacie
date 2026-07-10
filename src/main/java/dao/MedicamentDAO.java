@@ -18,6 +18,7 @@ public class MedicamentDAO {
     private static final String ID_COLUMN = "id_medicament";
     private static final String NOM_COLUMN = "nom";
     private static final String TABLE_MEDICAMENT = "Medicament";
+    private static final String WHERE_CLAUSE = " WHERE ";
 
     public void ajouterMedicament(
             String nom,
@@ -55,7 +56,7 @@ public class MedicamentDAO {
 
         String sql = "SELECT " + STOCK_COLUMN
                 + " FROM " + TABLE_MEDICAMENT
-                + " WHERE " + ID_COLUMN + " = ?";
+                + WHERE_CLAUSE + ID_COLUMN + " = ?";
 
         try (Connection c = DBConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -81,7 +82,7 @@ public class MedicamentDAO {
     public void updateStock(int idMed, int qte) {
 
         String sql = "UPDATE " + TABLE_MEDICAMENT
-                + " SET " + STOCK_COLUMN + "=? WHERE " + ID_COLUMN + "=?";
+                + " SET " + STOCK_COLUMN + "=?" + WHERE_CLAUSE + ID_COLUMN + "=?";
 
         try (Connection c = DBConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -104,7 +105,7 @@ public class MedicamentDAO {
     public String stockCritique(int idMed) {
 
         String sql = "SELECT * FROM " + TABLE_MEDICAMENT
-                + " WHERE " + ID_COLUMN + " = ? "
+                + WHERE_CLAUSE + ID_COLUMN + " = ? "
                 + "AND " + STOCK_COLUMN + " <= seuil_critique";
 
         try (Connection c = DBConnection.getConnection();
@@ -145,7 +146,7 @@ public class MedicamentDAO {
 
         String sql = "SELECT " + ID_COLUMN
                 + " FROM " + TABLE_MEDICAMENT
-                + " WHERE " + NOM_COLUMN + "=? AND dosage=?";
+                + WHERE_CLAUSE + NOM_COLUMN + "=? AND dosage=?";
 
         try (Connection c = DBConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
