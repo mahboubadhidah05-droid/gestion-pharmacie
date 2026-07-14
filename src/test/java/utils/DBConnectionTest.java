@@ -1,14 +1,5 @@
 package utils;
 
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -19,75 +10,128 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
-/**
- * Tests unitaires pour {@link DBConnection}.
- *
- * IMPORTANT : pour que testGetConnection_Succes passe, la variable
- * d'environnement DB_PASSWORD doit être définie AVANT le lancement des tests
- * (PASSWORD est un static final chargé une seule fois par la JVM). Ajouter
- * dans le pom.xml :
- *
- * <plugin>
- *   <groupId>org.apache.maven.plugins</groupId>
- *   <artifactId>maven-surefire-plugin</artifactId>
- *   <configuration>
- *     <environmentVariables>
- *       <DB_PASSWORD>test-password-ci</DB_PASSWORD>
- *     </environmentVariables>
- *   </configuration>
- * </plugin>
- *
- * Ce n'est pas un vrai secret, uniquement une valeur factice utilisée pour
- * que la classe passe la validation pendant les tests.
- */
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+
+
 class DBConnectionTest {
 
+
     @Test
-    void testConstructeurPrive_LeveIllegalStateException() throws NoSuchMethodException {
-        Constructor<DBConnection> constructor = DBConnection.class.getDeclaredConstructor();
+    void constructeurPrive_leveException()
+            throws Exception {
+
+        Constructor<DBConnection> constructor =
+                DBConnection.class.getDeclaredConstructor();
+
         constructor.setAccessible(true);
 
+
         InvocationTargetException exception =
-                assertThrows(InvocationTargetException.class, constructor::newInstance);
+                assertThrows(
+                        InvocationTargetException.class,
+                        constructor::newInstance
+                );
 
-        assertInstanceOf(IllegalStateException.class, exception.getCause());
-        assertEquals("Utility class", exception.getCause().getMessage());
+
+        assertInstanceOf(
+                IllegalStateException.class,
+                exception.getCause()
+        );
+
+
+        assertEquals(
+                "Utility class",
+                exception.getCause().getMessage()
+        );
     }
 
+
     @Test
-    void testValidatePassword_Null_LeveSQLException() {
+    void validatePassword_null_leveSQLException() {
+
         SQLException exception =
-                assertThrows(SQLException.class, () -> DBConnection.validatePassword(null));
+                assertThrows(
+                        SQLException.class,
+                        () -> DBConnection.validatePassword(null)
+                );
 
-        assertEquals("Database password not configured", exception.getMessage());
+
+        assertEquals(
+                "Database password not configured",
+                exception.getMessage()
+        );
     }
 
+
     @Test
-    void testValidatePassword_Vide_LeveSQLException() {
+    void validatePassword_vide_leveSQLException() {
+
         SQLException exception =
-                assertThrows(SQLException.class, () -> DBConnection.validatePassword("   "));
+                assertThrows(
+                        SQLException.class,
+                        () -> DBConnection.validatePassword("   ")
+                );
 
-        assertEquals("Database password not configured", exception.getMessage());
+
+        assertEquals(
+                "Database password not configured",
+                exception.getMessage()
+        );
     }
 
+
     @Test
-    void testValidatePassword_Valide_NeLeveRien() {
-        assertDoesNotThrow(() -> DBConnection.validatePassword("motDePasseValide"));
+    void validatePassword_valide_neLevePasException() {
+
+        assertDoesNotThrow(() ->
+                DBConnection.validatePassword(
+                        "motDePasseValide"
+                )
+        );
     }
 
-    @Test
-    void testGetConnection_Succes() throws SQLException {
-        Connection mockConnection = mock(Connection.class);
 
-        try (MockedStatic<DriverManager> mockedDriverManager = mockStatic(DriverManager.class)) {
-            mockedDriverManager.when(() ->
-                    DriverManager.getConnection(anyString(), anyString(), anyString())
+    @Test
+    void getConnection_succes_retourneConnexion()
+            throws SQLException {
+
+
+        Connection mockConnection =
+                mock(Connection.class);
+
+
+        try (MockedStatic<DriverManager> mockedDriver =
+                     mockStatic(DriverManager.class)) {
+
+
+            mockedDriver.when(() ->
+                    DriverManager.getConnection(
+                            anyString(),
+                            anyString(),
+                            anyString()
+                    )
             ).thenReturn(mockConnection);
 
-            Connection result = DBConnection.getConnection();
+
+
+            Connection result =
+                    DBConnection.getConnection();
+
+
 
             assertNotNull(result);
-            assertSame(mockConnection, result);
+
+            assertSame(
+                    mockConnection,
+                    result
+            );
         }
     }
 }

@@ -15,12 +15,25 @@ public class VenteDAO {
     private static final Logger LOGGER =
             Logger.getLogger(VenteDAO.class.getName());
 
-    private static final String COL_VENTE_ID = "id_vente";
-    private static final String COL_PHARMACIEN_ID = "id_pharmacien";
-    private static final String COL_CLIENT_ID = "id_client";
-    private static final String COL_MEDICAMENT_ID = "id_medicament";
-    private static final String COL_QUANTITE = "quantite";
-    private static final String COL_DATE = "date_vente";
+    private static final String TABLE_VENTE = "Vente";
+
+    private static final String COL_VENTE_ID =
+            "id_vente";
+
+    private static final String COL_PHARMACIEN_ID =
+            "id_pharmacien";
+
+    private static final String COL_CLIENT_ID =
+            "id_client";
+
+    private static final String COL_MEDICAMENT_ID =
+            "id_medicament";
+
+    private static final String COL_QUANTITE =
+            "quantite";
+
+    private static final String COL_DATE =
+            "date_vente";
 
     private static final String AUCUNE_VENTE =
             "Aucune vente trouvée pour ce médicament.";
@@ -32,33 +45,43 @@ public class VenteDAO {
             int idMed,
             int qte) {
 
+
         String sql =
-                "INSERT INTO Vente"
-                + "(id_pharmacien, id_client, id_medicament, quantite, date_vente)"
+                "INSERT INTO " + TABLE_VENTE +
+                " (id_pharmacien,id_client,id_medicament,quantite,date_vente)"
                 + " VALUES(?,?,?,?,?)";
 
-        try (Connection c = DBConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+
+        try (Connection connection =
+                     DBConnection.getConnection();
+
+             PreparedStatement ps =
+                     connection.prepareStatement(sql)) {
+
 
             ps.setInt(1, idPh);
             ps.setInt(2, idCl);
             ps.setInt(3, idMed);
             ps.setInt(4, qte);
-            ps.setDate(5, new java.sql.Date(new Date().getTime()));
 
-            int rows = ps.executeUpdate();
+            ps.setDate(
+                    5,
+                    new java.sql.Date(new Date().getTime())
+            );
+
 
             LOGGER.log(
                     Level.INFO,
                     "{0} vente(s) enregistrée(s).",
-                    rows
+                    ps.executeUpdate()
             );
+
 
         } catch (SQLException e) {
 
             LOGGER.log(
                     Level.SEVERE,
-                    "Erreur lors de l''enregistrement de la vente",
+                    "Erreur lors de l'enregistrement de la vente",
                     e
             );
         }
@@ -67,48 +90,33 @@ public class VenteDAO {
 
     public void annulerVente(int idVente) {
 
+
         String sql =
-                "DELETE FROM vente WHERE id_vente = ?";
+                "DELETE FROM vente WHERE id_vente=?";
 
-        try (Connection c = DBConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
 
-            ps.setInt(1, idVente);
-
-            int rows = ps.executeUpdate();
-
-            LOGGER.log(
-                    Level.INFO,
-                    "{0} vente(s) annulée(s).",
-                    rows
-            );
-
-        } catch (SQLException e) {
-
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de l''annulation de la vente",
-                    e
-            );
-        }
+        executerModification(
+                sql,
+                idVente
+        );
     }
 
 
     public void ventesParMedicament(int idMed) {
 
-        String sql =
-                "SELECT * FROM vente WHERE id_medicament = ?";
-
-        afficherVentes(sql, idMed);
+        afficherVentes(
+                "SELECT * FROM vente WHERE id_medicament=?",
+                idMed
+        );
     }
 
 
     public void ventesParClient(int idClient) {
 
-        String sql =
-                "SELECT * FROM vente WHERE id_client = ?";
-
-        afficherVentes(sql, idClient);
+        afficherVentes(
+                "SELECT * FROM vente WHERE id_client=?",
+                idClient
+        );
     }
 
 
@@ -116,12 +124,18 @@ public class VenteDAO {
             String dateDebut,
             String dateFin) {
 
+
         String sql =
                 "SELECT * FROM vente "
                 + "WHERE date_vente BETWEEN ? AND ?";
 
-        try (Connection c = DBConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+
+        try (Connection connection =
+                     DBConnection.getConnection();
+
+             PreparedStatement ps =
+                     connection.prepareStatement(sql)) {
+
 
             ps.setDate(
                     1,
@@ -133,7 +147,9 @@ public class VenteDAO {
                     java.sql.Date.valueOf(dateFin)
             );
 
+
             afficherResultat(ps);
+
 
         } catch (SQLException e) {
 
@@ -150,12 +166,18 @@ public class VenteDAO {
             String sql,
             int id) {
 
-        try (Connection c = DBConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+
+        try (Connection connection =
+                     DBConnection.getConnection();
+
+             PreparedStatement ps =
+                     connection.prepareStatement(sql)) {
+
 
             ps.setInt(1, id);
 
             afficherResultat(ps);
+
 
         } catch (SQLException e) {
 
@@ -168,12 +190,50 @@ public class VenteDAO {
     }
 
 
+    private void executerModification(
+            String sql,
+            int id) {
+
+
+        try (Connection connection =
+                     DBConnection.getConnection();
+
+             PreparedStatement ps =
+                     connection.prepareStatement(sql)) {
+
+
+            ps.setInt(1, id);
+
+
+            LOGGER.log(
+                    Level.INFO,
+                    "{0} vente(s) modifiée(s).",
+                    ps.executeUpdate()
+            );
+
+
+        } catch (SQLException e) {
+
+            LOGGER.log(
+                    Level.SEVERE,
+                    "Erreur lors de la modification de la vente",
+                    e
+            );
+        }
+    }
+
+
     private void afficherResultat(
-            PreparedStatement ps) throws SQLException {
+            PreparedStatement ps)
+            throws SQLException {
+
 
         boolean trouve = false;
 
-        try (ResultSet rs = ps.executeQuery()) {
+
+        try (ResultSet rs =
+                     ps.executeQuery()) {
+
 
             while (rs.next()) {
 
@@ -181,9 +241,8 @@ public class VenteDAO {
 
                 LOGGER.log(
                         Level.INFO,
-                        "Vente ID={0}, Pharmacien ID={1}, "
-                        + "Client ID={2}, Médicament ID={3}, "
-                        + "Qte={4}, Date={5}",
+                        "Vente ID={0}, Pharmacien ID={1}, Client ID={2}, "
+                        + "Médicament ID={3}, Qte={4}, Date={5}",
                         new Object[]{
                                 rs.getInt(COL_VENTE_ID),
                                 rs.getInt(COL_PHARMACIEN_ID),
@@ -195,6 +254,7 @@ public class VenteDAO {
                 );
             }
         }
+
 
         if (!trouve) {
             LOGGER.info(AUCUNE_VENTE);

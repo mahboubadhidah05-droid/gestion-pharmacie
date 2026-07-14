@@ -11,54 +11,44 @@ import utils.DBConnection;
 
 public class UserDAO {
 
-    private static final Logger LOGGER = Logger.getLogger(UserDAO.class.getName());
+    private static final Logger LOGGER =
+            Logger.getLogger(UserDAO.class.getName());
 
-    /**
-     * Récupère les informations de l'utilisateur selon le login.
-     * Retourne un tableau de String : [nom, prenom]
-     */
+    private static final String NOM_COLUMN = "nom";
+    private static final String PRENOM_COLUMN = "prenom";
+
+    private static final String SQL_PHARMACIEN =
+            "SELECT nom, prenom FROM Pharmacien WHERE login=?";
+
+    private static final String SQL_GESTIONNAIRE =
+            "SELECT nom, prenom FROM Gestionnaire WHERE login=?";
+
+
     public String[] getProfil(String login) {
 
-        try (Connection c = DBConnection.getConnection()) {
+        try (Connection connection =
+                     DBConnection.getConnection()) {
 
-            // Vérifier si l'utilisateur est Pharmacien
-            String sqlPh = "SELECT nom, prenom FROM Pharmacien WHERE login=?";
 
-            try (PreparedStatement ps = c.prepareStatement(sqlPh)) {
+            String[] profil =
+                    rechercherProfil(
+                            connection,
+                            SQL_PHARMACIEN,
+                            login
+                    );
 
-                ps.setString(1, login);
 
-                try (ResultSet rs = ps.executeQuery()) {
-
-                    if (rs.next()) {
-
-                        return new String[]{
-                                rs.getString("nom"),
-                                rs.getString("prenom")
-                        };
-                    }
-                }
+            if (profil.length > 0) {
+                return profil;
             }
 
 
-            // Vérifier si l'utilisateur est Gestionnaire
-            String sqlGest = "SELECT nom, prenom FROM Gestionnaire WHERE login=?";
+            return rechercherProfil(
+                    connection,
+                    SQL_GESTIONNAIRE,
+                    login
+            );
 
-            try (PreparedStatement ps = c.prepareStatement(sqlGest)) {
-
-                ps.setString(1, login);
-
-                try (ResultSet rs = ps.executeQuery()) {
-
-                    if (rs.next()) {
-
-                        return new String[]{
-                                rs.getString("nom"),
-                                rs.getString("prenom")
-                        };
-                    }
-                }
-            }
 
         } catch (SQLException e) {
 
@@ -68,6 +58,40 @@ public class UserDAO {
                     e
             );
         }
+
+
+        return new String[0];
+    }
+
+
+    private String[] rechercherProfil(
+            Connection connection,
+            String sql,
+            String login)
+            throws SQLException {
+
+
+        try (PreparedStatement ps =
+                     connection.prepareStatement(sql)) {
+
+
+            ps.setString(1, login);
+
+
+            try (ResultSet rs =
+                         ps.executeQuery()) {
+
+
+                if (rs.next()) {
+
+                    return new String[]{
+                            rs.getString(NOM_COLUMN),
+                            rs.getString(PRENOM_COLUMN)
+                    };
+                }
+            }
+        }
+
 
         return new String[0];
     }

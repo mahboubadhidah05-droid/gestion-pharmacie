@@ -1,8 +1,12 @@
 package dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.sql.*;
+
 import utils.DBConnection;
 
 /**
@@ -10,40 +14,90 @@ import utils.DBConnection;
  */
 public class UtilisateurDAO {
 
+    private static final Logger LOGGER =
+            Logger.getLogger(UtilisateurDAO.class.getName());
+
+    private static final String ROLE_PHARMACIEN =
+            "PHARMACIEN";
+
+    private static final String ROLE_GESTIONNAIRE =
+            "GESTIONNAIRE";
+
+    private static final String ROLE_ECHEC =
+            "ECHEC";
+
+    private static final String SQL_PHARMACIEN =
+            "SELECT * FROM pharmacien WHERE login=? AND pwd=?";
+
+    private static final String SQL_GESTIONNAIRE =
+            "SELECT * FROM gestionnaire WHERE login=? AND pwd=?";
+
+
     /**
      * Vérifie le login et le mot de passe et retourne le rôle.
      */
-	private static final Logger LOGGER = Logger.getLogger(UtilisateurDAO.class.getName());
     public String getRole(String login, String pwd) {
-        try (Connection c = DBConnection.getConnection()) {
 
-            // Vérification pharmacien
-            String sqlPh = "SELECT * FROM pharmacien WHERE login=? AND pwd=?";
-            try (PreparedStatement ps = c.prepareStatement(sqlPh)) {
-                ps.setString(1, login);
-                ps.setString(2, pwd);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        return "PHARMACIEN";
-                    }
-                }
+        try (Connection connection =
+                     DBConnection.getConnection()) {
+
+
+            if (verifierUtilisateur(
+                    connection,
+                    SQL_PHARMACIEN,
+                    login,
+                    pwd)) {
+
+                return ROLE_PHARMACIEN;
             }
 
-            // Vérification gestionnaire
-            String sqlGest = "SELECT * FROM gestionnaire WHERE login=? AND pwd=?";
-            try (PreparedStatement ps = c.prepareStatement(sqlGest)) {
-                ps.setString(1, login);
-                ps.setString(2, pwd);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        return "GESTIONNAIRE";
-                    }
-                }
+
+            if (verifierUtilisateur(
+                    connection,
+                    SQL_GESTIONNAIRE,
+                    login,
+                    pwd)) {
+
+                return ROLE_GESTIONNAIRE;
             }
 
-        } catch (Exception e) {
-        	 LOGGER.log(Level.SEVERE, "Erreur lors de la verification du role", e);
+
+        } catch (SQLException e) {
+
+            LOGGER.log(
+                    Level.SEVERE,
+                    "Erreur lors de la verification du role",
+                    e
+            );
         }
-        return "ECHEC";
+
+
+        return ROLE_ECHEC;
+    }
+
+
+    private boolean verifierUtilisateur(
+            Connection connection,
+            String sql,
+            String login,
+            String pwd)
+            throws SQLException {
+
+
+        try (PreparedStatement ps =
+                     connection.prepareStatement(sql)) {
+
+
+            ps.setString(1, login);
+            ps.setString(2, pwd);
+
+
+            try (ResultSet rs =
+                         ps.executeQuery()) {
+
+
+                return rs.next();
+            }
+        }
     }
 }

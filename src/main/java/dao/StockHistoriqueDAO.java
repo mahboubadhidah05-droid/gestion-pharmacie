@@ -15,29 +15,63 @@ public class StockHistoriqueDAO {
     private static final Logger LOGGER =
             Logger.getLogger(StockHistoriqueDAO.class.getName());
 
-    private static final String ID_MEDICAMENT = "id_medicament";
-    private static final String QUANTITE = "quantite";
-    private static final String DATE_MODIFICATION = "date_modification";
 
-    public void ajouterHistorique(int idMed, int quantite) {
+    private static final String ID_MEDICAMENT =
+            "id_medicament";
 
-        String sql = "INSERT INTO stock_historique "
-                + "(id_medicament, quantite, date_modification) "
-                + "VALUES (?, ?, NOW())";
+    private static final String QUANTITE =
+            "quantite";
 
-        try (Connection c = DBConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+    private static final String DATE_MODIFICATION =
+            "date_modification";
 
-            ps.setInt(1, idMed);
-            ps.setInt(2, quantite);
 
-            ps.executeUpdate();
+    private static final String INSERT_HISTORIQUE =
+            "INSERT INTO stock_historique "
+            + "(id_medicament, quantite, date_modification) "
+            + "VALUES (?, ?, NOW())";
+
+
+    private static final String SELECT_HISTORIQUE =
+            "SELECT * FROM stock_historique";
+
+
+    public void ajouterHistorique(
+            int idMedicament,
+            int quantite) {
+
+
+        try (Connection connection =
+                     DBConnection.getConnection();
+
+             PreparedStatement statement =
+                     connection.prepareStatement(
+                             INSERT_HISTORIQUE)) {
+
+
+            statement.setInt(
+                    1,
+                    idMedicament
+            );
+
+            statement.setInt(
+                    2,
+                    quantite
+            );
+
+
+            statement.executeUpdate();
+
 
             LOGGER.log(
                     Level.INFO,
                     "Historique stock enregistré : idMed={0} qte={1}",
-                    new Object[]{idMed, quantite}
+                    new Object[]{
+                            idMedicament,
+                            quantite
+                    }
             );
+
 
         } catch (SQLException e) {
 
@@ -52,24 +86,37 @@ public class StockHistoriqueDAO {
 
     public void afficherHistorique() {
 
-        String sql = "SELECT * FROM stock_historique";
 
-        try (Connection c = DBConnection.getConnection();
-             Statement st = c.createStatement();
-             ResultSet rs = st.executeQuery(sql)) {
+        try (Connection connection =
+                     DBConnection.getConnection();
 
-            while (rs.next()) {
+             Statement statement =
+                     connection.createStatement();
+
+             ResultSet resultSet =
+                     statement.executeQuery(
+                             SELECT_HISTORIQUE)) {
+
+
+            while (resultSet.next()) {
 
                 LOGGER.log(
                         Level.INFO,
                         "Med={0} | Qte={1} | Date={2}",
                         new Object[]{
-                                rs.getInt(ID_MEDICAMENT),
-                                rs.getInt(QUANTITE),
-                                rs.getTimestamp(DATE_MODIFICATION)
+                                resultSet.getInt(
+                                        ID_MEDICAMENT
+                                ),
+                                resultSet.getInt(
+                                        QUANTITE
+                                ),
+                                resultSet.getTimestamp(
+                                        DATE_MODIFICATION
+                                )
                         }
                 );
             }
+
 
         } catch (SQLException e) {
 

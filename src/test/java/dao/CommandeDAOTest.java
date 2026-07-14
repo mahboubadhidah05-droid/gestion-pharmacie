@@ -1,32 +1,32 @@
 package dao;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import utils.DBConnection;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Tests unitaires pour {@link CommandeDAO}.
- *
- * Note : creerCommande() n'attrape que SQLException ; on suppose donc que
- * DBConnection.getConnection() déclare "throws SQLException".
- */
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import utils.DBConnection;
+
 @ExtendWith(MockitoExtension.class)
 class CommandeDAOTest {
+
+    private static final int ID_GESTIONNAIRE = 1;
+    private static final int ID_MEDICAMENT = 10;
+    private static final int QUANTITE = 25;
+
 
     @Mock
     private Connection connection;
@@ -34,59 +34,147 @@ class CommandeDAOTest {
     @Mock
     private PreparedStatement preparedStatement;
 
+
     private CommandeDAO commandeDAO;
+
 
     @BeforeEach
     void setUp() {
         commandeDAO = new CommandeDAO();
     }
 
-    @Test
-    void testCreerCommande_Nominal() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
-            when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-
-            commandeDAO.creerCommande(1, 10, 25);
-
-            verify(preparedStatement).setInt(1, 1);
-            verify(preparedStatement).setInt(2, 10);
-            verify(preparedStatement).setInt(3, 25);
-            verify(preparedStatement).executeUpdate();
-        }
-    }
 
     @Test
-    void testCreerCommande_SQLException_NePasPropager() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
-            when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-            when(preparedStatement.executeUpdate()).thenThrow(new SQLException("Erreur SQL simulée"));
+    void creerCommande_casNominal_executeInsertion()
+            throws SQLException {
 
-            assertDoesNotThrow(() -> commandeDAO.creerCommande(1, 10, 25));
+        try (MockedStatic<DBConnection> mockedDb =
+                     mockStatic(DBConnection.class)) {
 
-            verify(preparedStatement).executeUpdate();
-        }
-    }
 
-    @Test
-    void testCreerCommande_ErreurConnexion_NePasPropager() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
             mockedDb.when(DBConnection::getConnection)
-                    .thenThrow(new SQLException("Connexion impossible"));
+                    .thenReturn(connection);
 
-            assertDoesNotThrow(() -> commandeDAO.creerCommande(1, 10, 25));
+
+            when(connection.prepareStatement(anyString()))
+                    .thenReturn(preparedStatement);
+
+
+            commandeDAO.creerCommande(
+                    ID_GESTIONNAIRE,
+                    ID_MEDICAMENT,
+                    QUANTITE
+            );
+
+
+            verify(preparedStatement)
+                    .setInt(1, ID_GESTIONNAIRE);
+
+            verify(preparedStatement)
+                    .setInt(2, ID_MEDICAMENT);
+
+            verify(preparedStatement)
+                    .setInt(3, QUANTITE);
+
+            verify(preparedStatement)
+                    .executeUpdate();
         }
     }
 
-    @Test
-    void testCreerCommande_PrepareStatementLeveErreur() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
-            when(connection.prepareStatement(anyString()))
-                    .thenThrow(new SQLException("Erreur préparation requête"));
 
-            assertDoesNotThrow(() -> commandeDAO.creerCommande(1, 10, 25));
+    @Test
+    void creerCommande_erreurConnexion_nePropagePasException()
+            throws SQLException {
+
+        try (MockedStatic<DBConnection> mockedDb =
+                     mockStatic(DBConnection.class)) {
+
+
+            mockedDb.when(DBConnection::getConnection)
+                    .thenThrow(
+                            new SQLException(
+                                    "Erreur connexion"
+                            )
+                    );
+
+
+            assertDoesNotThrow(() ->
+                    commandeDAO.creerCommande(
+                            ID_GESTIONNAIRE,
+                            ID_MEDICAMENT,
+                            QUANTITE
+                    )
+            );
+        }
+    }
+
+
+    @Test
+    void creerCommande_erreurPreparation_nePropagePasException()
+            throws SQLException {
+
+        try (MockedStatic<DBConnection> mockedDb =
+                     mockStatic(DBConnection.class)) {
+
+
+            mockedDb.when(DBConnection::getConnection)
+                    .thenReturn(connection);
+
+
+            when(connection.prepareStatement(anyString()))
+                    .thenThrow(
+                            new SQLException(
+                                    "Erreur préparation"
+                            )
+                    );
+
+
+            assertDoesNotThrow(() ->
+                    commandeDAO.creerCommande(
+                            ID_GESTIONNAIRE,
+                            ID_MEDICAMENT,
+                            QUANTITE
+                    )
+            );
+        }
+    }
+
+
+    @Test
+    void creerCommande_executionSQL_EchoueNePropagePasException()
+            throws SQLException {
+
+        try (MockedStatic<DBConnection> mockedDb =
+                     mockStatic(DBConnection.class)) {
+
+
+            mockedDb.when(DBConnection::getConnection)
+                    .thenReturn(connection);
+
+
+            when(connection.prepareStatement(anyString()))
+                    .thenReturn(preparedStatement);
+
+
+            when(preparedStatement.executeUpdate())
+                    .thenThrow(
+                            new SQLException(
+                                    "Erreur SQL"
+                            )
+                    );
+
+
+            assertDoesNotThrow(() ->
+                    commandeDAO.creerCommande(
+                            ID_GESTIONNAIRE,
+                            ID_MEDICAMENT,
+                            QUANTITE
+                    )
+            );
+
+
+            verify(preparedStatement)
+                    .executeUpdate();
         }
     }
 }
