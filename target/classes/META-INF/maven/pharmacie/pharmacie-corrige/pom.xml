@@ -36,6 +36,11 @@
         <sonar.coverage.jacoco.xmlReportPaths>
             target/site/jacoco/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
+          <!-- Exclusion de la classe d'orchestration CLI (I/O console, -->
+    <!-- pas de logique métier propre, déjà couverte indirectement -->
+    <!-- via les tests des couches Service/DAO) -->
+    <sonar.coverage.exclusions>**/main/Main.java</sonar.coverage.exclusions>
+
 
     </properties>
 
