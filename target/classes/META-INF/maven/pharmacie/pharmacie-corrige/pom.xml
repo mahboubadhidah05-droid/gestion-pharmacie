@@ -100,20 +100,26 @@
                 </configuration>
 
             </plugin>
+            
 
 
 
-            <!-- Tests JUnit -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
+            
+           <!-- Tests JUnit -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>3.2.5</version>
 
-                <configuration>
-                    <useModulePath>false</useModulePath>
-                </configuration>
+    <configuration>
+        <useModulePath>false</useModulePath>
 
-            </plugin>
+        <environmentVariables>
+            <DB_PASSWORD>test-password-ci</DB_PASSWORD>
+        </environmentVariables>
+    </configuration>
+
+</plugin>
 
 
 
