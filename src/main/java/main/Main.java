@@ -1,6 +1,7 @@
 package main;
 
 import java.util.Scanner;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import dao.ClientDAO;
@@ -57,7 +58,7 @@ public class Main {
      try {
          role = authService.login(loginConnecte, pwd);   // au lieu de AuthService.login(...)
      } catch (Exception e) {
-         e.printStackTrace();}
+    	 LOGGER.log(Level.SEVERE, "Erreur lors de la connexion", e);}
 
         switch (role) {
 
