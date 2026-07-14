@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import utils.DBConnection;
 
 public class VenteDAO {
@@ -14,95 +15,140 @@ public class VenteDAO {
     private static final Logger LOGGER =
             Logger.getLogger(VenteDAO.class.getName());
 
-    private static final String TABLE_VENTE = "vente";
-    private static final String COL_VENTE_ID = "id_vente";
-    private static final String COL_PHARMACIEN_ID = "id_pharmacien";
-    private static final String COL_CLIENT_ID = "id_client";
-    private static final String COL_MEDICAMENT_ID = "id_medicament";
-    private static final String COL_QUANTITE = "quantite";
-    private static final String COL_DATE = "date_vente";
+    private static final String TABLE_VENTE = "Vente";
+
+    private static final String COL_VENTE_ID =
+            "id_vente";
+
+    private static final String COL_PHARMACIEN_ID =
+            "id_pharmacien";
+
+    private static final String COL_CLIENT_ID =
+            "id_client";
+
+    private static final String COL_MEDICAMENT_ID =
+            "id_medicament";
+
+    private static final String COL_QUANTITE =
+            "quantite";
+
+    private static final String COL_DATE =
+            "date_vente";
+
     private static final String AUCUNE_VENTE =
             "Aucune vente trouvée pour ce médicament.";
+
 
     public void enregistrerVente(
             int idPh,
             int idCl,
             int idMed,
             int qte) {
+
+
         String sql =
-                "INSERT INTO " + TABLE_VENTE
-                + " (" + COL_PHARMACIEN_ID + "," + COL_CLIENT_ID + ","
-                + COL_MEDICAMENT_ID + "," + COL_QUANTITE + "," + COL_DATE + ")"
+                "INSERT INTO " + TABLE_VENTE +
+                " (id_pharmacien,id_client,id_medicament,quantite,date_vente)"
                 + " VALUES(?,?,?,?,?)";
+
+
         try (Connection connection =
                      DBConnection.getConnection();
+
              PreparedStatement ps =
                      connection.prepareStatement(sql)) {
+
+
             ps.setInt(1, idPh);
             ps.setInt(2, idCl);
             ps.setInt(3, idMed);
             ps.setInt(4, qte);
+
             ps.setDate(
                     5,
                     new java.sql.Date(new Date().getTime())
             );
+
+
             LOGGER.log(
                     Level.INFO,
                     "{0} vente(s) enregistrée(s).",
                     ps.executeUpdate()
             );
+
+
         } catch (SQLException e) {
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de l'enregistrement de la vente",
-                    e
-            );
+
+        	 LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de l'enregistrement de la vente");
         }
     }
 
+
     public void annulerVente(int idVente) {
+
+
         String sql =
-                "DELETE FROM " + TABLE_VENTE
-                + " WHERE " + COL_VENTE_ID + "=?";
-        executerModification(sql, idVente);
+                "DELETE FROM vente WHERE id_vente=?";
+
+
+        executerModification(
+                sql,
+                idVente
+        );
     }
 
+
     public void ventesParMedicament(int idMed) {
+
         afficherVentes(
-                "SELECT * FROM " + TABLE_VENTE
-                + " WHERE " + COL_MEDICAMENT_ID + "=?",
+                "SELECT * FROM vente WHERE id_medicament=?",
                 idMed
         );
     }
 
+
     public void ventesParClient(int idClient) {
+
         afficherVentes(
-                "SELECT * FROM " + TABLE_VENTE
-                + " WHERE " + COL_CLIENT_ID + "=?",
+                "SELECT * FROM vente WHERE id_client=?",
                 idClient
         );
     }
 
+
     public void ventesParPeriode(
             String dateDebut,
             String dateFin) {
+
+
         String sql =
-                "SELECT * FROM " + TABLE_VENTE
-                + " WHERE " + COL_DATE + " BETWEEN ? AND ?";
+                "SELECT * FROM vente "
+                + "WHERE date_vente BETWEEN ? AND ?";
+
+
         try (Connection connection =
                      DBConnection.getConnection();
+
              PreparedStatement ps =
                      connection.prepareStatement(sql)) {
+
+
             ps.setDate(
                     1,
                     java.sql.Date.valueOf(dateDebut)
             );
+
             ps.setDate(
                     2,
                     java.sql.Date.valueOf(dateFin)
             );
+
+
             afficherResultat(ps);
+
+
         } catch (SQLException e) {
+
             LOGGER.log(
                     Level.SEVERE,
                     "Erreur lors de la recherche des ventes par période",
@@ -111,16 +157,26 @@ public class VenteDAO {
         }
     }
 
+
     private void afficherVentes(
             String sql,
             int id) {
+
+
         try (Connection connection =
                      DBConnection.getConnection();
+
              PreparedStatement ps =
                      connection.prepareStatement(sql)) {
+
+
             ps.setInt(1, id);
+
             afficherResultat(ps);
+
+
         } catch (SQLException e) {
+
             LOGGER.log(
                     Level.SEVERE,
                     "Erreur lors de la récupération des ventes",
@@ -129,20 +185,31 @@ public class VenteDAO {
         }
     }
 
+
     private void executerModification(
             String sql,
             int id) {
+
+
         try (Connection connection =
                      DBConnection.getConnection();
+
              PreparedStatement ps =
                      connection.prepareStatement(sql)) {
+
+
             ps.setInt(1, id);
+
+
             LOGGER.log(
                     Level.INFO,
                     "{0} vente(s) modifiée(s).",
                     ps.executeUpdate()
             );
+
+
         } catch (SQLException e) {
+
             LOGGER.log(
                     Level.SEVERE,
                     "Erreur lors de la modification de la vente",
@@ -151,14 +218,23 @@ public class VenteDAO {
         }
     }
 
+
     private void afficherResultat(
             PreparedStatement ps)
             throws SQLException {
+
+
         boolean trouve = false;
+
+
         try (ResultSet rs =
                      ps.executeQuery()) {
+
+
             while (rs.next()) {
+
                 trouve = true;
+
                 LOGGER.log(
                         Level.INFO,
                         "Vente ID={0}, Pharmacien ID={1}, Client ID={2}, "
@@ -174,6 +250,8 @@ public class VenteDAO {
                 );
             }
         }
+
+
         if (!trouve) {
             LOGGER.info(AUCUNE_VENTE);
         }
