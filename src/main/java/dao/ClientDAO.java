@@ -40,11 +40,7 @@ public class ClientDAO {
 
         } catch (SQLException e) {
 
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de l'ajout du client",
-                    e
-            );
+        	  LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de l'ajout du client");
         }
     }
 }

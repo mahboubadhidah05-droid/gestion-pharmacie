@@ -70,11 +70,7 @@ public class MedicamentDAO {
 
         } catch (SQLException e) {
 
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de l'ajout du médicament",
-                    e
-            );
+        	LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de l'ajout du médicament");
         }
     }
 
