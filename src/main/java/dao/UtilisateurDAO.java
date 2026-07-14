@@ -1,5 +1,7 @@
 package dao;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.sql.*;
 import utils.DBConnection;
 
@@ -11,6 +13,7 @@ public class UtilisateurDAO {
     /**
      * Vérifie le login et le mot de passe et retourne le rôle.
      */
+	private static final Logger LOGGER = Logger.getLogger(UtilisateurDAO.class.getName());
     public String getRole(String login, String pwd) {
         try (Connection c = DBConnection.getConnection()) {
 
@@ -39,7 +42,7 @@ public class UtilisateurDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+        	 LOGGER.log(Level.SEVERE, "Erreur lors de la verification du role", e);
         }
         return "ECHEC";
     }
