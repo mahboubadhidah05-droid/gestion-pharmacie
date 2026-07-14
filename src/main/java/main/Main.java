@@ -28,6 +28,13 @@ public class Main {
     private static final String ID_CLIENT_MSG = "ID Client : ";
     private static final String ID_MEDICAMENT_MSG = "ID Médicament : ";
     private static final String CHOIX_MSG = "Choix : ";
+    private static final String DATE_DEBUT_MSG = "Date début : ";
+    private static final String DATE_FIN_MSG =  "Date fin : ";
+    private static final String QUANTITE_MSG = "Quantité : " ;
+    private static final String NOM_MSG = "Nom : " ;
+    private static final String PRENOM_MSG = "Prénom : " ;
+    private static final String EMAIL_MSG = "Email : ";
+    private static final String ADRESSE_MSG = "Adresse : ";
 
     private static final Scanner sc = new Scanner(System.in);
 
@@ -35,6 +42,35 @@ public class Main {
 
     private static void afficher(String message) {
         LOGGER.info(message);
+    }
+    private static int lireEntier(final String message) {
+        afficher(message);
+        int valeur = sc.nextInt();
+        sc.nextLine();
+        return valeur;
+    }
+    private static String lireTexte(final String message) {
+        afficher(message);
+        return sc.nextLine();
+    }
+    private static String lireDate(final String message) {
+        afficher(message);
+        return sc.next();
+    }
+    private static double lireDouble(final String message) {
+        afficher(message);
+        double valeur = sc.nextDouble();
+        sc.nextLine();
+        return valeur;
+    }
+    private static void consulterVentesParPeriode(final VenteService service) {
+        String debut = lireDate(DATE_DEBUT_MSG);
+        String fin = lireDate( DATE_FIN_MSG);
+        sc.nextLine();
+        service.ventesParPeriode(debut, fin);
+    }
+    private static void consulterProfil(final UserService service) {
+        service.consulterProfil(loginConnecte);
     }
 
 
@@ -140,169 +176,104 @@ public class Main {
             sc.nextLine();
 
 
-
             switch (choix) {
 
-
-                case 1:
-
-                    afficher("ID Pharmacien : ");
-                    int idPh = sc.nextInt();
-
-
-                    afficher(ID_CLIENT_MSG);
-                    int idCl = sc.nextInt();
-
-
-                    afficher(ID_MEDICAMENT_MSG);
-                    int idMed = sc.nextInt();
-
-
-                    afficher("Quantité : ");
-                    int qte = sc.nextInt();
-
-
-                    sc.nextLine();
-
-
-                    vservice.vendre(
-                            idPh,
-                            idCl,
-                            idMed,
-                            qte
-                    );
-
-
-                    medDAO.stockCritique(idMed);
-
-                    break;
-                case 2:
-
-                    afficher(ID_MEDICAMENT_MSG);
-
-                    int idMed1 = sc.nextInt();
-
-                    sc.nextLine();
-
-
-                    vservice.ventesParMedicament(idMed1);
-
-                    break;
-
-
-
-                case 3:
-
-                    afficher(ID_CLIENT_MSG);
-
-                    int idClient = sc.nextInt();
-
-                    sc.nextLine();
-
-
-                    vservice.ventesParClient(idClient);
-
-                    break;
-
-
-
-                case 4:
-
-                    afficher("Date début : ");
-
-                    String dateDebut = sc.next();
-
-
-                    afficher("Date fin : ");
-
-                    String dateFin = sc.next();
-
-
-                    sc.nextLine();
-
-
-                    vservice.ventesParPeriode(
-                            dateDebut,
-                            dateFin
-                    );
-
-                    break;
-
-
-
-                case 5:
-
-                    afficher("ID Vente : ");
-
-                    int idVente = sc.nextInt();
-
-                    sc.nextLine();
-
-
-                    vservice.annulerVente(idVente);
-
-                    break;
-
-
-
-                case 6:
-
-                    userService.consulterProfil(
-                            loginConnecte
-                    );
-
-                    break;
-
-
-
-                case 7:
-
-                    afficher("Nom : ");
-                    String nom = sc.nextLine();
-
-
-                    afficher("Prénom : ");
-                    String prenom = sc.nextLine();
-
-
-                    afficher("Email : ");
-                    String email = sc.nextLine();
-
-
-                    afficher("Adresse : ");
-                    String adresse = sc.nextLine();
-
-
-
-                    clientService.creerClient(
-                            nom,
-                            prenom,
-                            email,
-                            adresse
-                    );
-
-                    break;
-
-
-
-                case 0:
-
-                    afficher(
-                            "Déconnexion Pharmacien..."
-                    );
-
-                    break;
-
-
-
-                default:
-
-                    afficher(
-                            "Choix invalide"
-                    );
+            case 1: {
+                final int idPh = lireEntier("ID Pharmacien : ");
+                final int idCl = lireEntier(ID_CLIENT_MSG);
+                final int idMed = lireEntier(ID_MEDICAMENT_MSG);
+                final int qte = lireEntier(QUANTITE_MSG);
+
+                vservice.vendre(
+                        idPh,
+                        idCl,
+                        idMed,
+                        qte
+                );
+
+                medDAO.stockCritique(idMed);
+
+                break;
             }
 
 
+            case 2: {
+                final int idMed = lireEntier(ID_MEDICAMENT_MSG);
+
+                vservice.ventesParMedicament(idMed);
+
+                break;
+            }
+
+
+            case 3: {
+                final int idClient = lireEntier(ID_CLIENT_MSG);
+
+                vservice.ventesParClient(idClient);
+
+                break;
+            }
+
+
+            case 4: {
+
+                consulterVentesParPeriode(vservice);
+
+                break;
+            }
+
+
+            case 5: {
+                final int idVente = lireEntier("ID Vente : ");
+
+                vservice.annulerVente(idVente);
+
+                break;
+            }
+
+
+            case 6: {
+
+                consulterProfil(userService);
+
+                break;
+            }
+
+
+            case 7: {
+
+                final String nom = lireTexte(NOM_MSG);
+                final String prenom = lireTexte(PRENOM_MSG);
+                final String email = lireTexte(EMAIL_MSG);
+                final String adresse = lireTexte(ADRESSE_MSG);
+
+                clientService.creerClient(
+                        nom,
+                        prenom,
+                        email,
+                        adresse
+                );
+
+                break;
+            }
+
+
+            case 0: {
+
+                afficher("Déconnexion Pharmacien...");
+
+                break;
+            }
+
+
+            default: {
+
+                afficher("Choix invalide");
+
+                break;
+            }
+        }
+            
         } while (choix != 0);
 
     }
@@ -409,213 +380,132 @@ public class Main {
 
             switch (choix) {
 
+            case 1: {
 
-                case 1:
+                final String nom = lireTexte(NOM_MSG);
+                final String dosage = lireTexte("Dosage : ");
 
-                    afficher("Nom : ");
+                final int stock = lireEntier("Stock initial : ");
+                final double prix = lireDouble("Prix : ");
+                final int seuil = lireEntier("Seuil critique : ");
 
-                    String nom = sc.next();
+                medService.ajouter(
+                        nom,
+                        dosage,
+                        stock,
+                        prix,
+                        seuil
+                );
 
+                break;
+            }
 
-                    afficher("Dosage : ");
 
-                    String dosage = sc.next();
+            case 2: {
 
+                final int idMed = lireEntier(ID_MEDICAMENT_MSG);
+                final int qte = lireEntier("Nouvelle quantité : ");
 
-                    afficher("Stock initial : ");
+                stService.ajouterStock(
+                        idMed,
+                        qte
+                );
 
-                    int stock = sc.nextInt();
+                break;
+            }
 
 
-                    afficher("Prix : ");
+            case 3: {
 
-                    double prix = sc.nextDouble();
+                final int idMed = lireEntier(ID_MEDICAMENT_MSG);
 
+                medDAO.stockCritique(idMed);
 
-                    afficher("Seuil critique : ");
+                break;
+            }
 
-                    int seuil = sc.nextInt();
 
+            case 4: {
 
-                    sc.nextLine();
+                final int idGest = lireEntier("ID Gestionnaire : ");
+                final int idMed = lireEntier(ID_MEDICAMENT_MSG);
+                final int qte = lireEntier(QUANTITE_MSG);
 
+                cmdService.creerCommande(
+                        idGest,
+                        idMed,
+                        qte
+                );
 
+                break;
+            }
 
-                    medService.ajouter(
-                            nom,
-                            dosage,
-                            stock,
-                            prix,
-                            seuil
-                    );
 
+            case 5: {
 
-                    break;
-                             case 2:
+                histDAO.afficherHistorique();
 
-                        afficher(ID_MEDICAMENT_MSG);
+                break;
+            }
 
-                        int idMed = sc.nextInt();
 
+            case 6: {
 
-                        afficher("Nouvelle quantité : ");
+                final int idMed = lireEntier(ID_MEDICAMENT_MSG);
 
-                        int qte = sc.nextInt();
+                vservice.ventesParMedicament(idMed);
 
+                break;
+            }
 
-                        sc.nextLine();
 
+            case 7: {
 
-                        stService.ajouterStock(
-                                idMed,
-                                qte
-                        );
+                final int idClient = lireEntier(ID_CLIENT_MSG);
 
-                        break;
+                vservice.ventesParClient(idClient);
 
+                break;
+            }
 
 
-                    case 3:
+            case 8: {
 
-                        afficher(ID_MEDICAMENT_MSG);
+                final String dateDebut = lireDate(DATE_DEBUT_MSG);
+                final String dateFin = lireDate( DATE_FIN_MSG);
 
-                        idMed = sc.nextInt();
+                vservice.ventesParPeriode(
+                        dateDebut,
+                        dateFin
+                );
 
-                        sc.nextLine();
+                break;
+            }
 
 
-                        medDAO.stockCritique(idMed);
+            case 9: {
 
-                        break;
+                consulterProfil(userService);
 
+                break;
+            }
 
 
-                    case 4:
+            case 0: {
 
-                        afficher("ID Gestionnaire : ");
+                afficher("Déconnexion Gestionnaire...");
 
-                        int idGest = sc.nextInt();
+                break;
+            }
 
 
-                        afficher(ID_MEDICAMENT_MSG);
+            default: {
 
-                        idMed = sc.nextInt();
+                afficher("Choix invalide");
 
-
-
-                        afficher("Quantité : ");
-
-                        qte = sc.nextInt();
-
-
-                        sc.nextLine();
-
-
-
-                        cmdService.creerCommande(
-                                idGest,
-                                idMed,
-                                qte
-                        );
-
-                        break;
-
-
-
-                    case 5:
-
-                        histDAO.afficherHistorique();
-
-                        break;
-
-
-
-                    case 6:
-
-                        afficher(ID_MEDICAMENT_MSG);
-
-                        idMed = sc.nextInt();
-
-                        sc.nextLine();
-
-
-                        vservice.ventesParMedicament(
-                                idMed
-                        );
-
-                        break;
-
-
-
-                    case 7:
-
-                        afficher(ID_CLIENT_MSG);
-
-                        int idClient = sc.nextInt();
-
-                        sc.nextLine();
-
-
-                        vservice.ventesParClient(
-                                idClient
-                        );
-
-                        break;
-
-
-
-                    case 8:
-
-                        afficher("Date début : ");
-
-                        String dateDebut = sc.next();
-
-
-
-                        afficher("Date fin : ");
-
-                        String dateFin = sc.next();
-
-
-                        sc.nextLine();
-
-
-
-                        vservice.ventesParPeriode(
-                                dateDebut,
-                                dateFin
-                        );
-
-                        break;
-
-
-
-                    case 9:
-
-                        userService.consulterProfil(
-                                loginConnecte
-                        );
-
-                        break;
-
-
-
-                    case 0:
-
-                        afficher(
-                                "Déconnexion Gestionnaire..."
-                        );
-
-                        break;
-
-
-
-                    default:
-
-                        afficher(
-                                "Choix invalide"
-                        );
-                }
+                break;
+            }
+        }
 
 
             } while (choix != 0);
