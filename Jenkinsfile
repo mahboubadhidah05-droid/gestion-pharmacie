@@ -79,7 +79,7 @@ EOF
         sh '''
             docker rm -f pharmacie-app || true
 
-            docker run -it \
+            docker run -d \
             --name pharmacie-app \
             --network pharmacie-net \
             -e DB_URL="jdbc:mysql://mysql-container:3306/pharmacie" \
