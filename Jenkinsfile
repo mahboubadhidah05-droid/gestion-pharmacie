@@ -64,20 +64,46 @@ EOF
         }
 
 
-        stage('Docker Build') {
-            steps {
-                sh '''
-                    docker build \
-                    -t pharmacie-app:latest .
-                '''
-            }
-        }
+   stage('Docker Build') {
+    steps {
+        sh '''
+            docker build -t pharmacie-app:latest .
+        '''
+    }
+}
 
 
-   stage('Docker Image Verification') {
+stage('Docker Image Verification') {
     steps {
         sh '''
             docker images | grep pharmacie-app
+        '''
+    }
+}
+
+
+stage('Deploy Application') {
+    steps {
+        sh '''
+            docker rm -f pharmacie-app || true
+
+            docker run -d \
+            --name pharmacie-app \
+            --network pharmacie-net \
+            -e DB_URL="jdbc:mysql://mysql-container:3306/pharmacie" \
+            -e DB_USER="root" \
+            -e DB_PASSWORD="douaa" \
+            pharmacie-app:latest
+        '''
+    }
+}
+
+
+stage('Verify Deployment') {
+    steps {
+        sh '''
+            docker ps
+            docker logs --tail 50 pharmacie-app
         '''
     }
 }
