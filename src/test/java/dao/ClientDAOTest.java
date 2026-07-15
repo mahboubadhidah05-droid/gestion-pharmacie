@@ -1,6 +1,8 @@
 package dao;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
@@ -8,8 +10,8 @@ import static org.mockito.Mockito.when;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,12 +29,17 @@ class ClientDAOTest {
     private static final String PRENOM = "Amine";
     private static final String EMAIL = "amine.trabelsi@mail.com";
     private static final String ADRESSE = "Ariana";
+    private static final int ID_INVALIDE = -1;
+    private static final int ID_GENERE = 7;
 
     @Mock
     private Connection connection;
 
     @Mock
     private PreparedStatement preparedStatement;
+
+    @Mock
+    private ResultSet generatedKeys;
 
     private ClientDAO clientDAO;
 
@@ -53,17 +60,28 @@ class ClientDAOTest {
             mockedDb.when(DBConnection::getConnection)
                     .thenReturn(connection);
 
-            when(connection.prepareStatement(anyString()))
+            when(connection.prepareStatement(anyString(), anyInt()))
                     .thenReturn(preparedStatement);
 
+            when(preparedStatement.getGeneratedKeys())
+                    .thenReturn(generatedKeys);
 
-            clientDAO.ajouterClient(
+            when(generatedKeys.next())
+                    .thenReturn(true);
+
+            when(generatedKeys.getInt(1))
+                    .thenReturn(ID_GENERE);
+
+
+            int idResultat = clientDAO.ajouterClient(
                     NOM,
                     PRENOM,
                     EMAIL,
                     ADRESSE
             );
 
+
+            assertEquals(ID_GENERE, idResultat);
 
             verify(preparedStatement)
                     .setString(1, NOM);
@@ -99,7 +117,7 @@ class ClientDAOTest {
                     );
 
 
-            assertDoesNotThrow(() ->
+            int idResultat = assertDoesNotThrow(() ->
                     clientDAO.ajouterClient(
                             NOM,
                             PRENOM,
@@ -107,6 +125,8 @@ class ClientDAOTest {
                             ADRESSE
                     )
             );
+
+            assertEquals(ID_INVALIDE, idResultat);
         }
     }
 
@@ -123,7 +143,7 @@ class ClientDAOTest {
                     .thenReturn(connection);
 
 
-            when(connection.prepareStatement(anyString()))
+            when(connection.prepareStatement(anyString(), anyInt()))
                     .thenThrow(
                             new SQLException(
                                     "Erreur préparation"
@@ -131,7 +151,7 @@ class ClientDAOTest {
                     );
 
 
-            assertDoesNotThrow(() ->
+            int idResultat = assertDoesNotThrow(() ->
                     clientDAO.ajouterClient(
                             NOM,
                             PRENOM,
@@ -139,6 +159,8 @@ class ClientDAOTest {
                             ADRESSE
                     )
             );
+
+            assertEquals(ID_INVALIDE, idResultat);
         }
     }
 
@@ -155,7 +177,7 @@ class ClientDAOTest {
                     .thenReturn(connection);
 
 
-            when(connection.prepareStatement(anyString()))
+            when(connection.prepareStatement(anyString(), anyInt()))
                     .thenReturn(preparedStatement);
 
 
@@ -167,7 +189,7 @@ class ClientDAOTest {
                     );
 
 
-            assertDoesNotThrow(() ->
+            int idResultat = assertDoesNotThrow(() ->
                     clientDAO.ajouterClient(
                             NOM,
                             PRENOM,
@@ -176,6 +198,7 @@ class ClientDAOTest {
                     )
             );
 
+            assertEquals(ID_INVALIDE, idResultat);
 
             verify(preparedStatement)
                     .executeUpdate();

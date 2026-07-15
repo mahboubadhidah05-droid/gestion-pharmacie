@@ -9,7 +9,7 @@ public final class DBConnection {
     private static final String URL =
             System.getenv().getOrDefault(
                     "DB_URL",
-                    "jdbc:mysql://127.0.0.1:3306/pharmacie"
+                    "jdbc:mysql://mysql-container:3306/pharmacie"
             );
 
     private static final String USER =
@@ -19,18 +19,27 @@ public final class DBConnection {
             );
 
     private static final String PASSWORD =
-            System.getenv("DB_PASSWORD");
-
+            System.getenv().getOrDefault(
+                    "DB_PASSWORD",
+                    "douaa"
+            );
 
     private DBConnection() {
         throw new IllegalStateException("Utility class");
     }
 
-
-    public static Connection getConnection()
-            throws SQLException {
+    public static Connection getConnection() throws SQLException {
 
         validatePassword(PASSWORD);
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new SQLException(
+                    "Driver MySQL introuvable",
+                    e
+            );
+        }
 
         return DriverManager.getConnection(
                 URL,
@@ -39,12 +48,10 @@ public final class DBConnection {
         );
     }
 
-
     static void validatePassword(String password)
             throws SQLException {
 
         if (password == null || password.isBlank()) {
-
             throw new SQLException(
                     "Database password not configured"
             );

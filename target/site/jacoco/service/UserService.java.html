@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pharmacie-corrige</a> &gt; <a href="index.source.html" class="el_package">service</a> &gt; <span class="el_source">UserService.java</span></div><h1>UserService.java</h1><pre class="source lang-java linenums">package service;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import dao.UserDAO;
+
+public class UserService {
+
+<span class="fc" id="L10">    private static final Logger LOGGER =</span>
+<span class="fc" id="L11">            Logger.getLogger(UserService.class.getName());</span>
+
+    private static final String TITRE_PROFIL =
+            &quot;=== Profil Utilisateur ===&quot;;
+
+    private static final String UTILISATEUR_INEXISTANT =
+            &quot;Utilisateur introuvable !&quot;;
+
+
+    private final UserDAO dao;
+
+
+<span class="fc" id="L23">    public UserService(UserDAO dao) {</span>
+<span class="fc" id="L24">        this.dao = dao;</span>
+<span class="fc" id="L25">    }</span>
+
+
+    public void consulterProfil(String login) {
+
+<span class="fc" id="L30">        String[] profil =</span>
+<span class="fc" id="L31">                dao.getProfil(login);</span>
+
+
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        if (profilValide(profil)) {</span>
+
+<span class="fc" id="L36">            afficherProfil(profil);</span>
+
+        } else {
+
+<span class="fc" id="L40">            LOGGER.warning(UTILISATEUR_INEXISTANT);</span>
+        }
+<span class="fc" id="L42">    }</span>
+
+
+    private boolean profilValide(String[] profil) {
+
+<span class="pc bpc" id="L47" title="1 of 4 branches missed.">        return profil != null</span>
+                &amp;&amp; profil.length &gt;= 2;
+    }
+
+
+    private void afficherProfil(String[] profil) {
+
+<span class="fc" id="L54">        LOGGER.info(TITRE_PROFIL);</span>
+
+
+<span class="fc" id="L57">        LOGGER.log(</span>
+                Level.INFO,
+                &quot;Nom : {0}&quot;,
+                profil[0]
+        );
+
+
+<span class="fc" id="L64">        LOGGER.log(</span>
+                Level.INFO,
+                &quot;Prénom : {0}&quot;,
+                profil[1]
+        );
+<span class="fc" id="L69">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

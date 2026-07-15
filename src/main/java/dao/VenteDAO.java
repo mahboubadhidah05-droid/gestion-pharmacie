@@ -15,7 +15,7 @@ public class VenteDAO {
     private static final Logger LOGGER =
             Logger.getLogger(VenteDAO.class.getName());
 
-    private static final String TABLE_VENTE = "Vente";
+    private static final String TABLE_VENTE = "vente";
 
     private static final String COL_VENTE_ID =
             "id_vente";
@@ -39,25 +39,22 @@ public class VenteDAO {
             "Aucune vente trouvée pour ce médicament.";
 
 
-    public void enregistrerVente(
+    public boolean enregistrerVente(
             int idPh,
             int idCl,
             int idMed,
             int qte) {
-
 
         String sql =
                 "INSERT INTO " + TABLE_VENTE +
                 " (id_pharmacien,id_client,id_medicament,quantite,date_vente)"
                 + " VALUES(?,?,?,?,?)";
 
-
         try (Connection connection =
                      DBConnection.getConnection();
 
              PreparedStatement ps =
                      connection.prepareStatement(sql)) {
-
 
             ps.setInt(1, idPh);
             ps.setInt(2, idCl);
@@ -69,29 +66,29 @@ public class VenteDAO {
                     new java.sql.Date(new Date().getTime())
             );
 
+            int lignesAffectees = ps.executeUpdate();
 
             LOGGER.log(
                     Level.INFO,
                     "{0} vente(s) enregistrée(s).",
-                    ps.executeUpdate()
+                    lignesAffectees
             );
 
+            return lignesAffectees > 0;
 
         } catch (SQLException e) {
-
-        	 LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de l'enregistrement de la vente");
+            LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de l'enregistrement de la vente");
+            return false;
         }
     }
 
 
-    public void annulerVente(int idVente) {
-
+    public boolean annulerVente(int idVente) {
 
         String sql =
                 "DELETE FROM vente WHERE id_vente=?";
 
-
-        executerModification(
+        return executerModification(
                 sql,
                 idVente
         );
@@ -120,11 +117,20 @@ public class VenteDAO {
             String dateDebut,
             String dateFin) {
 
-
         String sql =
                 "SELECT * FROM vente "
                 + "WHERE date_vente BETWEEN ? AND ?";
 
+        java.sql.Date debut;
+        java.sql.Date fin;
+
+        try {
+            debut = java.sql.Date.valueOf(dateDebut);
+            fin = java.sql.Date.valueOf(dateFin);
+        } catch (IllegalArgumentException e) {
+            LOGGER.log(Level.WARNING, "Format de date invalide : {0} / {1}", new Object[]{dateDebut, dateFin});
+            return;
+        }
 
         try (Connection connection =
                      DBConnection.getConnection();
@@ -132,23 +138,12 @@ public class VenteDAO {
              PreparedStatement ps =
                      connection.prepareStatement(sql)) {
 
-
-            ps.setDate(
-                    1,
-                    java.sql.Date.valueOf(dateDebut)
-            );
-
-            ps.setDate(
-                    2,
-                    java.sql.Date.valueOf(dateFin)
-            );
-
+            ps.setDate(1, debut);
+            ps.setDate(2, fin);
 
             afficherResultat(ps);
 
-
         } catch (SQLException e) {
-
             LOGGER.log(
                     Level.SEVERE,
                     "Erreur lors de la recherche des ventes par période",
@@ -156,7 +151,6 @@ public class VenteDAO {
             );
         }
     }
-
 
     private void afficherVentes(
             String sql,
@@ -186,10 +180,9 @@ public class VenteDAO {
     }
 
 
-    private void executerModification(
+    private boolean executerModification(
             String sql,
             int id) {
-
 
         try (Connection connection =
                      DBConnection.getConnection();
@@ -197,24 +190,21 @@ public class VenteDAO {
              PreparedStatement ps =
                      connection.prepareStatement(sql)) {
 
-
             ps.setInt(1, id);
 
+            int lignesAffectees = ps.executeUpdate();
 
             LOGGER.log(
                     Level.INFO,
                     "{0} vente(s) modifiée(s).",
-                    ps.executeUpdate()
+                    lignesAffectees
             );
 
+            return lignesAffectees > 0;
 
         } catch (SQLException e) {
-
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de la modification de la vente",
-                    e
-            );
+            LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de la modification de la vente");
+            return false;
         }
     }
 

@@ -18,10 +18,10 @@ public class UserDAO {
     private static final String PRENOM_COLUMN = "prenom";
 
     private static final String SQL_PHARMACIEN =
-            "SELECT nom, prenom FROM Pharmacien WHERE login=?";
+            "SELECT nom, prenom FROM pharmacien WHERE login=?";
 
     private static final String SQL_GESTIONNAIRE =
-            "SELECT nom, prenom FROM Gestionnaire WHERE login=?";
+            "SELECT nom, prenom FROM gestionnaire WHERE login=?";
 
 
     public String[] getProfil(String login) {

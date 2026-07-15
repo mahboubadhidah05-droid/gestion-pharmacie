@@ -129,7 +129,7 @@ class UserDAOTest {
                         String sql =
                                 invocation.getArgument(0);
 
-                        if (sql.contains("Pharmacien")) {
+                        if (sql.contains("pharmacien")) {
                             return psPharmacien;
                         }
 
@@ -199,7 +199,7 @@ class UserDAOTest {
                         String sql =
                                 invocation.getArgument(0);
 
-                        if (sql.contains("Pharmacien")) {
+                        if (sql.contains("pharmacien")) {
                             return psPharmacien;
                         }
 

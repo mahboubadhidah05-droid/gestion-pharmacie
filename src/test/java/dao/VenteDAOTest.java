@@ -16,6 +16,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
@@ -91,10 +93,24 @@ class VenteDAOTest {
             when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
             when(preparedStatement.executeUpdate()).thenReturn(1);
 
-            venteDAO.annulerVente(5);
+            boolean resultat = venteDAO.annulerVente(5);
 
+            assertTrue(resultat);
             verify(preparedStatement).setInt(1, 5);
             verify(preparedStatement).executeUpdate();
+        }
+    }
+
+    @Test
+    void testAnnulerVente_AucuneLigneAffectee() throws SQLException {
+        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
+            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
+            when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
+            when(preparedStatement.executeUpdate()).thenReturn(0);
+
+            boolean resultat = venteDAO.annulerVente(999);
+
+            assertFalse(resultat);
         }
     }
 
@@ -105,7 +121,9 @@ class VenteDAOTest {
             when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
             when(preparedStatement.executeUpdate()).thenThrow(new SQLException("Erreur SQL simulée"));
 
-            assertDoesNotThrow(() -> venteDAO.annulerVente(5));
+            boolean resultat = assertDoesNotThrow(() -> venteDAO.annulerVente(5));
+
+            assertFalse(resultat);
         }
     }
 
@@ -238,21 +256,13 @@ class VenteDAOTest {
         }
     }
 
-    /**
-     * Point d'attention (non un bug à corriger dans ce lot de tests, mais à
-     * documenter) : ventesParPeriode() appelle java.sql.Date.valueOf(dateDebut)
-     * AVANT d'entrer dans un contexte protégé par catch(SQLException). Un format
-     * de date invalide lève une IllegalArgumentException qui n'est PAS interceptée
-     * par le catch(SQLException) existant et se propage donc à l'appelant.
-     */
     @Test
-    void testVentesParPeriode_FormatDateInvalide_SePropage() {
+    void testVentesParPeriode_FormatDateInvalide_NePropagePlus() {
         try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
             mockedDb.when(DBConnection::getConnection).thenReturn(connection);
 
-            org.junit.jupiter.api.Assertions.assertThrows(
-                    IllegalArgumentException.class,
-                    () -> venteDAO.ventesParPeriode("date-invalide", "2026-07-14"));
+            assertDoesNotThrow(() ->
+                    venteDAO.ventesParPeriode("date-invalide", "2026-07-14"));
         }
     }
 }

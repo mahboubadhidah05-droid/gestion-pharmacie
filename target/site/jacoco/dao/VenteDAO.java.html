@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>VenteDAO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pharmacie-corrige</a> &gt; <a href="index.source.html" class="el_package">dao</a> &gt; <span class="el_source">VenteDAO.java</span></div><h1>VenteDAO.java</h1><pre class="source lang-java linenums">package dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import utils.DBConnection;
+
+<span class="fc" id="L13">public class VenteDAO {</span>
+
+<span class="fc" id="L15">    private static final Logger LOGGER =</span>
+<span class="fc" id="L16">            Logger.getLogger(VenteDAO.class.getName());</span>
+
+    private static final String TABLE_VENTE = &quot;vente&quot;;
+
+    private static final String COL_VENTE_ID =
+            &quot;id_vente&quot;;
+
+    private static final String COL_PHARMACIEN_ID =
+            &quot;id_pharmacien&quot;;
+
+    private static final String COL_CLIENT_ID =
+            &quot;id_client&quot;;
+
+    private static final String COL_MEDICAMENT_ID =
+            &quot;id_medicament&quot;;
+
+    private static final String COL_QUANTITE =
+            &quot;quantite&quot;;
+
+    private static final String COL_DATE =
+            &quot;date_vente&quot;;
+
+    private static final String AUCUNE_VENTE =
+            &quot;Aucune vente trouvée pour ce médicament.&quot;;
+
+
+    public boolean enregistrerVente(
+            int idPh,
+            int idCl,
+            int idMed,
+            int qte) {
+
+<span class="fc" id="L48">        String sql =</span>
+                &quot;INSERT INTO &quot; + TABLE_VENTE +
+                &quot; (id_pharmacien,id_client,id_medicament,quantite,date_vente)&quot;
+                + &quot; VALUES(?,?,?,?,?)&quot;;
+
+        try (Connection connection =
+<span class="fc" id="L54">                     DBConnection.getConnection();</span>
+
+<span class="fc" id="L56">             PreparedStatement ps =</span>
+<span class="fc" id="L57">                     connection.prepareStatement(sql)) {</span>
+
+<span class="fc" id="L59">            ps.setInt(1, idPh);</span>
+<span class="fc" id="L60">            ps.setInt(2, idCl);</span>
+<span class="fc" id="L61">            ps.setInt(3, idMed);</span>
+<span class="fc" id="L62">            ps.setInt(4, qte);</span>
+
+<span class="fc" id="L64">            ps.setDate(</span>
+                    5,
+<span class="fc" id="L66">                    new java.sql.Date(new Date().getTime())</span>
+            );
+
+<span class="fc" id="L69">            int lignesAffectees = ps.executeUpdate();</span>
+
+<span class="fc" id="L71">            LOGGER.log(</span>
+                    Level.INFO,
+                    &quot;{0} vente(s) enregistrée(s).&quot;,
+<span class="fc" id="L74">                    lignesAffectees</span>
+            );
+
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">            return lignesAffectees &gt; 0;</span>
+
+<span class="fc" id="L79">        } catch (SQLException e) {</span>
+<span class="fc" id="L80">            LOGGER.log(Level.SEVERE, e, () -&gt; &quot;Erreur lors de l'enregistrement de la vente&quot;);</span>
+<span class="fc" id="L81">            return false;</span>
+        }
+    }
+
+
+    public boolean annulerVente(int idVente) {
+
+<span class="fc" id="L88">        String sql =</span>
+                &quot;DELETE FROM vente WHERE id_vente=?&quot;;
+
+<span class="fc" id="L91">        return executerModification(</span>
+                sql,
+                idVente
+        );
+    }
+
+
+    public void ventesParMedicament(int idMed) {
+
+<span class="fc" id="L100">        afficherVentes(</span>
+                &quot;SELECT * FROM vente WHERE id_medicament=?&quot;,
+                idMed
+        );
+<span class="fc" id="L104">    }</span>
+
+
+    public void ventesParClient(int idClient) {
+
+<span class="fc" id="L109">        afficherVentes(</span>
+                &quot;SELECT * FROM vente WHERE id_client=?&quot;,
+                idClient
+        );
+<span class="fc" id="L113">    }</span>
+
+
+    public void ventesParPeriode(
+            String dateDebut,
+            String dateFin) {
+
+<span class="fc" id="L120">        String sql =</span>
+                &quot;SELECT * FROM vente &quot;
+                + &quot;WHERE date_vente BETWEEN ? AND ?&quot;;
+
+        java.sql.Date debut;
+        java.sql.Date fin;
+
+        try {
+<span class="fc" id="L128">            debut = java.sql.Date.valueOf(dateDebut);</span>
+<span class="fc" id="L129">            fin = java.sql.Date.valueOf(dateFin);</span>
+<span class="fc" id="L130">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L131">            LOGGER.log(Level.WARNING, &quot;Format de date invalide : {0} / {1}&quot;, new Object[]{dateDebut, dateFin});</span>
+<span class="fc" id="L132">            return;</span>
+<span class="fc" id="L133">        }</span>
+
+        try (Connection connection =
+<span class="fc" id="L136">                     DBConnection.getConnection();</span>
+
+<span class="fc" id="L138">             PreparedStatement ps =</span>
+<span class="fc" id="L139">                     connection.prepareStatement(sql)) {</span>
+
+<span class="fc" id="L141">            ps.setDate(1, debut);</span>
+<span class="fc" id="L142">            ps.setDate(2, fin);</span>
+
+<span class="fc" id="L144">            afficherResultat(ps);</span>
+
+<span class="fc" id="L146">        } catch (SQLException e) {</span>
+<span class="fc" id="L147">            LOGGER.log(</span>
+                    Level.SEVERE,
+                    &quot;Erreur lors de la recherche des ventes par période&quot;,
+                    e
+            );
+<span class="fc" id="L152">        }</span>
+<span class="fc" id="L153">    }</span>
+
+    private void afficherVentes(
+            String sql,
+            int id) {
+
+
+        try (Connection connection =
+<span class="fc" id="L161">                     DBConnection.getConnection();</span>
+
+<span class="fc" id="L163">             PreparedStatement ps =</span>
+<span class="fc" id="L164">                     connection.prepareStatement(sql)) {</span>
+
+
+<span class="fc" id="L167">            ps.setInt(1, id);</span>
+
+<span class="fc" id="L169">            afficherResultat(ps);</span>
+
+
+<span class="fc" id="L172">        } catch (SQLException e) {</span>
+
+<span class="fc" id="L174">            LOGGER.log(</span>
+                    Level.SEVERE,
+                    &quot;Erreur lors de la récupération des ventes&quot;,
+                    e
+            );
+<span class="fc" id="L179">        }</span>
+<span class="fc" id="L180">    }</span>
+
+
+    private boolean executerModification(
+            String sql,
+            int id) {
+
+        try (Connection connection =
+<span class="fc" id="L188">                     DBConnection.getConnection();</span>
+
+<span class="fc" id="L190">             PreparedStatement ps =</span>
+<span class="fc" id="L191">                     connection.prepareStatement(sql)) {</span>
+
+<span class="fc" id="L193">            ps.setInt(1, id);</span>
+
+<span class="fc" id="L195">            int lignesAffectees = ps.executeUpdate();</span>
+
+<span class="fc" id="L197">            LOGGER.log(</span>
+                    Level.INFO,
+                    &quot;{0} vente(s) modifiée(s).&quot;,
+<span class="fc" id="L200">                    lignesAffectees</span>
+            );
+
+<span class="fc bfc" id="L203" title="All 2 branches covered.">            return lignesAffectees &gt; 0;</span>
+
+<span class="fc" id="L205">        } catch (SQLException e) {</span>
+<span class="fc" id="L206">            LOGGER.log(Level.SEVERE, e, () -&gt; &quot;Erreur lors de la modification de la vente&quot;);</span>
+<span class="fc" id="L207">            return false;</span>
+        }
+    }
+
+
+    private void afficherResultat(
+            PreparedStatement ps)
+            throws SQLException {
+
+
+<span class="fc" id="L217">        boolean trouve = false;</span>
+
+
+<span class="fc" id="L220">        try (ResultSet rs =</span>
+<span class="fc" id="L221">                     ps.executeQuery()) {</span>
+
+
+<span class="fc bfc" id="L224" title="All 2 branches covered.">            while (rs.next()) {</span>
+
+<span class="fc" id="L226">                trouve = true;</span>
+
+<span class="fc" id="L228">                LOGGER.log(</span>
+                        Level.INFO,
+                        &quot;Vente ID={0}, Pharmacien ID={1}, Client ID={2}, &quot;
+                        + &quot;Médicament ID={3}, Qte={4}, Date={5}&quot;,
+                        new Object[]{
+<span class="fc" id="L233">                                rs.getInt(COL_VENTE_ID),</span>
+<span class="fc" id="L234">                                rs.getInt(COL_PHARMACIEN_ID),</span>
+<span class="fc" id="L235">                                rs.getInt(COL_CLIENT_ID),</span>
+<span class="fc" id="L236">                                rs.getInt(COL_MEDICAMENT_ID),</span>
+<span class="fc" id="L237">                                rs.getInt(COL_QUANTITE),</span>
+<span class="fc" id="L238">                                rs.getDate(COL_DATE)</span>
+                        }
+                );
+            }
+        }
+
+
+<span class="fc bfc" id="L245" title="All 2 branches covered.">        if (!trouve) {</span>
+<span class="fc" id="L246">            LOGGER.info(AUCUNE_VENTE);</span>
+        }
+<span class="fc" id="L248">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

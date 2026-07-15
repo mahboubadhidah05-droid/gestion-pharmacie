@@ -1,7 +1,15 @@
 service\CommandeServiceTest.class
 service\AuthServiceTest.class
-service\StockServiceTest.class
 service\MedicamentServiceTest.class
-service\UserServiceTest.class
+dao\ClientDAOTest.class
+dao\VenteDAOTest.class
 service\VenteServiceTest.class
+dao\UserDAOTest.class
+dao\StockHistoriqueDAOTest.class
+service\StockServiceTest.class
+utils\DBConnectionTest.class
+service\UserServiceTest.class
 service\ClientServiceTest.class
+dao\CommandeDAOTest.class
+dao\MedicamentDAOTest.class
+dao\UtilisateurDAOTest.class

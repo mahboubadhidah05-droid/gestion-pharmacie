@@ -16,7 +16,7 @@ public class MedicamentDAO {
 
 
     private static final String TABLE_MEDICAMENT =
-            "Medicament";
+            "medicament";
 
     private static final String COL_ID =
             "id_medicament";

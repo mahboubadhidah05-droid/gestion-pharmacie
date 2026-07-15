@@ -162,7 +162,7 @@ public class Main {
             afficher("1- Enregistrer une vente");
             afficher("2- Consulter ventes par médicament");
             afficher("3- Consulter ventes par client");
-            afficher("4- Consulter ventes par période");
+            afficher("4- Consulter ventes par période (format date : AAAA-MM-JJ)");
             afficher("5- Annuler une vente");
             afficher("6- Consulter profil utilisateur");
             afficher("7- Créer un client");
@@ -180,18 +180,31 @@ public class Main {
 
             case 1: {
                 final int idPh = lireEntier("ID Pharmacien : ");
-                final int idCl = lireEntier(ID_CLIENT_MSG);
+                int idCl = lireEntier(ID_CLIENT_MSG);
+
+                if (!clientDAO.existeClient(idCl)) {
+
+                    afficher("Client introuvable. Merci de saisir ses informations :");
+
+                    final String nom = lireTexte(NOM_MSG);
+                    final String prenom = lireTexte(PRENOM_MSG);
+                    final String email = lireTexte(EMAIL_MSG);
+                    final String adresse = lireTexte(ADRESSE_MSG);
+
+                    idCl = clientDAO.ajouterClient(nom, prenom, email, adresse);
+
+                    if (idCl == -1) {
+                        afficher("Erreur lors de la création du client. Vente annulée.");
+                        break;
+                    }
+
+                    afficher("Client créé avec succès, ID=" + idCl);
+                }
+
                 final int idMed = lireEntier(ID_MEDICAMENT_MSG);
                 final int qte = lireEntier(QUANTITE_MSG);
 
-                vservice.vendre(
-                        idPh,
-                        idCl,
-                        idMed,
-                        qte
-                );
-
-                medDAO.stockCritique(idMed);
+                vservice.vendre(idPh, idCl, idMed, qte);
 
                 break;
             }
@@ -222,11 +235,16 @@ public class Main {
                 break;
             }
 
-
             case 5: {
                 final int idVente = lireEntier("ID Vente : ");
 
-                vservice.annulerVente(idVente);
+                boolean annulee = vservice.annulerVente(idVente);
+
+                if (annulee) {
+                    afficher("Vente annulée avec succès.");
+                } else {
+                    afficher("Aucune vente trouvée avec cet ID. Annulation impossible.");
+                }
 
                 break;
             }

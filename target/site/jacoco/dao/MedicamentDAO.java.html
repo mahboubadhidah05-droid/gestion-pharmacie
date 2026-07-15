@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MedicamentDAO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pharmacie-corrige</a> &gt; <a href="index.source.html" class="el_package">dao</a> &gt; <span class="el_source">MedicamentDAO.java</span></div><h1>MedicamentDAO.java</h1><pre class="source lang-java linenums">package dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import utils.DBConnection;
+
+<span class="fc" id="L12">public class MedicamentDAO {</span>
+
+<span class="fc" id="L14">    private static final Logger LOGGER =</span>
+<span class="fc" id="L15">            Logger.getLogger(MedicamentDAO.class.getName());</span>
+
+
+    private static final String TABLE_MEDICAMENT =
+            &quot;medicament&quot;;
+
+    private static final String COL_ID =
+            &quot;id_medicament&quot;;
+
+    private static final String COL_NOM =
+            &quot;nom&quot;;
+
+    private static final String COL_STOCK =
+            &quot;stock&quot;;
+
+    private static final String WHERE_ID =
+            &quot; WHERE &quot; + COL_ID + &quot; = ?&quot;;
+
+
+
+    public void ajouterMedicament(
+            String nom,
+            String dosage,
+            int stock,
+            double prix,
+            int seuil) {
+
+
+<span class="fc" id="L43">        String sql =</span>
+                &quot;INSERT INTO &quot;
+                + TABLE_MEDICAMENT
+                + &quot; (nom, dosage, stock, prix, seuil_critique)&quot;
+                + &quot; VALUES(?,?,?,?,?)&quot;;
+
+
+        try (Connection connection =
+<span class="fc" id="L51">                     DBConnection.getConnection();</span>
+
+<span class="fc" id="L53">             PreparedStatement statement =</span>
+<span class="fc" id="L54">                     connection.prepareStatement(sql)) {</span>
+
+
+<span class="fc" id="L57">            statement.setString(1, nom);</span>
+<span class="fc" id="L58">            statement.setString(2, dosage);</span>
+<span class="fc" id="L59">            statement.setInt(3, stock);</span>
+<span class="fc" id="L60">            statement.setDouble(4, prix);</span>
+<span class="fc" id="L61">            statement.setInt(5, seuil);</span>
+
+<span class="fc" id="L63">            statement.executeUpdate();</span>
+
+
+<span class="fc" id="L66">            LOGGER.info(</span>
+                    &quot;Médicament ajouté avec succès&quot;
+            );
+
+
+<span class="fc" id="L71">        } catch (SQLException e) {</span>
+
+<span class="fc" id="L73">        	LOGGER.log(Level.SEVERE, e, () -&gt; &quot;Erreur lors de l'ajout du médicament&quot;);</span>
+<span class="fc" id="L74">        }</span>
+<span class="fc" id="L75">    }</span>
+
+
+
+    public int getStock(int idMed) {
+
+
+<span class="fc" id="L82">        String sql =</span>
+                &quot;SELECT &quot;
+                + COL_STOCK
+                + &quot; FROM &quot;
+                + TABLE_MEDICAMENT
+                + WHERE_ID;
+
+
+        try (Connection connection =
+<span class="fc" id="L91">                     DBConnection.getConnection();</span>
+
+<span class="fc" id="L93">             PreparedStatement statement =</span>
+<span class="fc" id="L94">                     connection.prepareStatement(sql)) {</span>
+
+
+<span class="fc" id="L97">            statement.setInt(1, idMed);</span>
+
+
+<span class="fc" id="L100">            try (ResultSet result =</span>
+<span class="fc" id="L101">                         statement.executeQuery()) {</span>
+
+
+<span class="fc bfc" id="L104" title="All 2 branches covered.">                if (result.next()) {</span>
+
+<span class="fc" id="L106">                    return result.getInt(</span>
+                            COL_STOCK
+                    );
+                }
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">            }</span>
+
+
+<span class="pc bpc" id="L113" title="2 of 4 branches missed.">        } catch (SQLException e) {</span>
+
+<span class="fc" id="L115">            LOGGER.log(</span>
+                    Level.SEVERE,
+                    &quot;Erreur lors de la récupération du stock&quot;,
+                    e
+            );
+<span class="fc" id="L120">        }</span>
+
+
+<span class="fc" id="L123">        return -1;</span>
+    }
+
+
+
+    public void updateStock(
+            int idMed,
+            int quantite) {
+
+
+<span class="fc" id="L133">        String sql =</span>
+                &quot;UPDATE &quot;
+                + TABLE_MEDICAMENT
+                + &quot; SET &quot;
+                + COL_STOCK
+                + &quot;=?&quot;
+                + WHERE_ID;
+
+
+
+        try (Connection connection =
+<span class="fc" id="L144">                     DBConnection.getConnection();</span>
+
+<span class="fc" id="L146">             PreparedStatement statement =</span>
+<span class="fc" id="L147">                     connection.prepareStatement(sql)) {</span>
+
+
+<span class="fc" id="L150">            statement.setInt(1, quantite);</span>
+<span class="fc" id="L151">            statement.setInt(2, idMed);</span>
+
+<span class="fc" id="L153">            statement.executeUpdate();</span>
+
+
+<span class="fc" id="L156">            LOGGER.info(</span>
+                    &quot;Stock mis à jour avec succès&quot;
+            );
+
+
+<span class="fc" id="L161">        } catch (SQLException e) {</span>
+
+<span class="fc" id="L163">            LOGGER.log(</span>
+                    Level.SEVERE,
+                    &quot;Erreur lors de la mise à jour du stock&quot;,
+                    e
+            );
+<span class="fc" id="L168">        }</span>
+<span class="fc" id="L169">    }</span>
+
+
+
+    public String stockCritique(int idMed) {
+
+
+<span class="fc" id="L176">        String sql =</span>
+                &quot;SELECT * FROM &quot;
+                + TABLE_MEDICAMENT
+                + WHERE_ID
+                + &quot; AND &quot;
+                + COL_STOCK
+                + &quot; &lt;= seuil_critique&quot;;
+
+
+        try (Connection connection =
+<span class="fc" id="L186">                     DBConnection.getConnection();</span>
+
+<span class="fc" id="L188">             PreparedStatement statement =</span>
+<span class="fc" id="L189">                     connection.prepareStatement(sql)) {</span>
+
+
+<span class="fc" id="L192">            statement.setInt(1, idMed);</span>
+
+
+
+<span class="fc" id="L196">            try (ResultSet result =</span>
+<span class="fc" id="L197">                         statement.executeQuery()) {</span>
+
+
+<span class="pc bpc" id="L200" title="1 of 2 branches missed.">                if (result.next()) {</span>
+
+<span class="nc" id="L202">                    return String.format(</span>
+                            &quot;Médicament en stock critique : %s (ID %d) | Stock actuel = %d&quot;,
+<span class="nc" id="L204">                            result.getString(COL_NOM),</span>
+<span class="nc" id="L205">                            result.getInt(COL_ID),</span>
+<span class="nc" id="L206">                            result.getInt(COL_STOCK)</span>
+                    );
+                }
+<span class="nc bnc" id="L209" title="All 2 branches missed.">            }</span>
+
+
+<span class="nc bnc" id="L212" title="All 4 branches missed.">        } catch (SQLException e) {</span>
+
+<span class="nc" id="L214">            LOGGER.log(</span>
+                    Level.SEVERE,
+                    &quot;Erreur lors de la vérification du stock critique&quot;,
+                    e
+            );
+<span class="fc" id="L219">        }</span>
+
+
+<span class="fc" id="L222">        return null;</span>
+    }
+
+
+
+    public int getIdMedicamentParNomEtDosage(
+            String nom,
+            String dosage) {
+
+
+<span class="fc" id="L232">        String sql =</span>
+                &quot;SELECT &quot;
+                + COL_ID
+                + &quot; FROM &quot;
+                + TABLE_MEDICAMENT
+                + &quot; WHERE &quot;
+                + COL_NOM
+                + &quot;=? AND dosage=?&quot;;
+
+
+
+        try (Connection connection =
+<span class="fc" id="L244">                     DBConnection.getConnection();</span>
+
+<span class="fc" id="L246">             PreparedStatement statement =</span>
+<span class="fc" id="L247">                     connection.prepareStatement(sql)) {</span>
+
+
+<span class="fc" id="L250">            statement.setString(1, nom);</span>
+<span class="fc" id="L251">            statement.setString(2, dosage);</span>
+
+
+
+<span class="fc" id="L255">            try (ResultSet result =</span>
+<span class="fc" id="L256">                         statement.executeQuery()) {</span>
+
+
+<span class="pc bpc" id="L259" title="1 of 2 branches missed.">                if (result.next()) {</span>
+
+<span class="fc" id="L261">                    return result.getInt(</span>
+                            COL_ID
+                    );
+                }
+<span class="pc bpc" id="L265" title="1 of 2 branches missed.">            }</span>
+
+
+<span class="pc bpc" id="L268" title="2 of 4 branches missed.">        } catch (SQLException e) {</span>
+
+<span class="nc" id="L270">            LOGGER.log(</span>
+                    Level.SEVERE,
+                    &quot;Erreur lors de la recherche du médicament&quot;,
+                    e
+            );
+<span class="nc" id="L275">        }</span>
+
+
+<span class="nc" id="L278">        return -1;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

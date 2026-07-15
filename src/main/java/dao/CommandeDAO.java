@@ -14,7 +14,7 @@ public class CommandeDAO {
             Logger.getLogger(CommandeDAO.class.getName());
 
     private static final String INSERT_COMMANDE =
-            "INSERT INTO Commande"
+            "INSERT INTO commande"
             + "(id_gestionnaire, id_medicament, quantite)"
             + " VALUES(?,?,?)";
 
