@@ -87,7 +87,7 @@ stage('Deploy Application') {
         sh '''
             docker rm -f pharmacie-app || true
 
-            docker run -d \
+            docker run -dit \
             --name pharmacie-app \
             --network pharmacie-net \
             -e DB_URL="jdbc:mysql://mysql-container:3306/pharmacie" \
