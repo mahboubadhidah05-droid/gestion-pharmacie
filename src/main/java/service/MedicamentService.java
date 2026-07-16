@@ -23,10 +23,15 @@ public class MedicamentService {
         dao.updateStock(id, qte);
     }
 
-    public void stockCritique(int idMed) {
+    public int getStock(int id) {
+        return dao.getStock(id);
+    }
+
+    public String stockCritique(int idMed) {
         String message = dao.stockCritique(idMed);
         if (message != null) {
             NotificationService.notifierStockCritique(message);
         }
+        return message;
     }
 }

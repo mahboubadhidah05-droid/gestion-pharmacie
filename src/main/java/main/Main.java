@@ -437,7 +437,13 @@ public class Main {
 
                 final int idMed = lireEntier(ID_MEDICAMENT_MSG);
 
-                medDAO.stockCritique(idMed);
+                String message = medService.stockCritique(idMed);
+
+                if (message != null) {
+                    afficher(message);
+                } else {
+                    afficher("Stock normal, aucun seuil critique atteint.");
+                }
 
                 break;
             }

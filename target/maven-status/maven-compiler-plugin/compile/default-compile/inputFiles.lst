@@ -1,3 +1,5 @@
+C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\main\java\config\AppConfig.java
+C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\main\java\controller\MedicamentController.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\main\java\dao\ClientDAO.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\main\java\dao\CommandeDAO.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\main\java\dao\MedicamentDAO.java
@@ -5,7 +7,10 @@ C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\main\java\dao\StockHistoriq
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\main\java\dao\UserDAO.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\main\java\dao\UtilisateurDAO.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\main\java\dao\VenteDAO.java
+C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\main\java\dto\MedicamentRequest.java
+C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\main\java\dto\StockUpdateRequest.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\main\java\main\Main.java
+C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\main\java\main\PharmacieApplication.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\main\java\model\Client.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\main\java\model\Commande.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\main\java\model\Gestionnaire.java

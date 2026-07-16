@@ -7,6 +7,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
+import dto.StockHistoriqueResponse;
 
 import utils.DBConnection;
 
@@ -84,39 +87,26 @@ public class StockHistoriqueDAO {
     }
 
 
-    public void afficherHistorique() {
+    public List<StockHistoriqueResponse> afficherHistorique() {
 
+        List<StockHistoriqueResponse> historique = new ArrayList<>();
 
         try (Connection connection =
                      DBConnection.getConnection();
-
              Statement statement =
                      connection.createStatement();
-
              ResultSet resultSet =
                      statement.executeQuery(
                              SELECT_HISTORIQUE)) {
 
-
             while (resultSet.next()) {
 
-                LOGGER.log(
-                        Level.INFO,
-                        "Med={0} | Qte={1} | Date={2}",
-                        new Object[]{
-                                resultSet.getInt(
-                                        ID_MEDICAMENT
-                                ),
-                                resultSet.getInt(
-                                        QUANTITE
-                                ),
-                                resultSet.getTimestamp(
-                                        DATE_MODIFICATION
-                                )
-                        }
-                );
+                historique.add(new StockHistoriqueResponse(
+                        resultSet.getInt(ID_MEDICAMENT),
+                        resultSet.getInt(QUANTITE),
+                        resultSet.getTimestamp(DATE_MODIFICATION)
+                ));
             }
-
 
         } catch (SQLException e) {
 
@@ -126,5 +116,7 @@ public class StockHistoriqueDAO {
                     e
             );
         }
+
+        return historique;
     }
 }

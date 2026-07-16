@@ -2,11 +2,13 @@ model\Commande.class
 model\Client.class
 dao\MedicamentDAO.class
 service\AuthService.class
+dto\StockUpdateRequest.class
 service\UserService.class
 model\Gestionnaire.class
 main\Main.class
 service\ClientService.class
 service\MedicamentService.class
+dto\MedicamentRequest.class
 dao\UserDAO.class
 model\Pharmacien.class
 model\Vente.class
@@ -17,9 +19,12 @@ service\VenteService.class
 model\Medicament.class
 model\Utilisateur.class
 dao\StockHistoriqueDAO.class
+config\AppConfig.class
+controller\MedicamentController.class
 dao\UtilisateurDAO.class
 service\CommandeService.class
 dao\VenteDAO.class
 service\StockService.class
 dao\ClientDAO.class
+main\PharmacieApplication.class
 service\NotificationService.class

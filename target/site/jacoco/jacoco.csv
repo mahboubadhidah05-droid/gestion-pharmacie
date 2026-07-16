@@ -1,4 +1,5 @@
 GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+pharmacie-corrige,controller,MedicamentController,3,0,0,0,1,0,1,0,1,0
 pharmacie-corrige,dao,MedicamentDAO,54,188,14,10,10,66,11,9,0,8
 pharmacie-corrige,dao,UserDAO,0,86,3,7,0,24,3,6,0,4
 pharmacie-corrige,dao,CommandeDAO,0,40,0,0,0,15,0,3,0,3
@@ -23,4 +24,8 @@ pharmacie-corrige,model,Commande,43,0,0,0,18,0,9,0,9,0
 pharmacie-corrige,model,Client,53,0,0,0,22,0,11,0,11,0
 pharmacie-corrige,model,Medicament,41,0,0,0,16,0,8,0,8,0
 pharmacie-corrige,model,Pharmacien,8,0,0,0,2,0,1,0,1,0
+pharmacie-corrige,main,PharmacieApplication,8,0,0,0,3,0,2,0,2,0
 pharmacie-corrige,main,Main,478,0,33,0,173,0,37,0,12,0
+pharmacie-corrige,config,AppConfig,3,0,0,0,1,0,1,0,1,0
+pharmacie-corrige,dto,StockUpdateRequest,3,0,0,0,1,0,1,0,1,0
+pharmacie-corrige,dto,MedicamentRequest,3,0,0,0,1,0,1,0,1,0

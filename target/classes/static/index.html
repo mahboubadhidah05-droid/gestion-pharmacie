@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Pharmacie — Stock</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="topbar">
+        <div class="croix" aria-hidden="true">
+            <span></span><span></span>
+        </div>
+        <div>
+            <h1>Gestion Pharmacie</h1>
+            <p class="soustitre">Stock des médicaments · API REST</p>
+        </div>
+        <div class="etat-api" id="etatApi">
+            <span class="pastille"></span>
+            <span id="etatApiTexte">Vérification de l'API…</span>
+        </div>
+    </header>
+
+
+    <main class="grille">
+
+        <!-- Ajouter un médicament -->
+        <section class="carte">
+            <h2>Ajouter un médicament</h2>
+            <form id="formAjout">
+                <div class="rangee">
+                    <label>Nom
+                        <input type="text" name="nom" required placeholder="Paracétamol">
+                    </label>
+                    <label>Dosage
+                        <input type="text" name="dosage" required placeholder="500mg">
+                    </label>
+                </div>
+                <div class="rangee rangee-3">
+                    <label>Stock initial
+                        <input type="number" name="stock" required min="0" placeholder="120">
+                    </label>
+                    <label>Prix (DT)
+                        <input type="number" name="prix" required min="0" step="0.01" placeholder="4.50">
+                    </label>
+                    <label>Seuil critique
+                        <input type="number" name="seuil" required min="0" placeholder="20">
+                    </label>
+                </div>
+                <button type="submit">Ajouter au stock</button>
+            </form>
+        </section>
+
+
+        <!-- Consulter le stock -->
+        <section class="carte">
+            <h2>Consulter un stock</h2>
+            <form id="formConsulter">
+                <label>ID du médicament
+                    <input type="number" name="id" required min="1" placeholder="1">
+                </label>
+                <button type="submit">Consulter</button>
+            </form>
+            <div class="resultat-stock" id="resultatStock" hidden>
+                <span class="resultat-valeur" id="stockValeur">—</span>
+                <span class="resultat-libelle">unités en stock</span>
+            </div>
+        </section>
+
+
+        <!-- Mettre à jour le stock -->
+        <section class="carte">
+            <h2>Mettre à jour un stock</h2>
+            <form id="formMaj">
+                <div class="rangee">
+                    <label>ID du médicament
+                        <input type="number" name="id" required min="1" placeholder="1">
+                    </label>
+                    <label>Nouveau stock
+                        <input type="number" name="stock" required min="0" placeholder="85">
+                    </label>
+                </div>
+                <button type="submit">Mettre à jour</button>
+            </form>
+        </section>
+
+
+        <!-- Vérifier le seuil critique -->
+        <section class="carte">
+            <h2>Vérifier le seuil critique</h2>
+            <form id="formCritique">
+                <label>ID du médicament
+                    <input type="number" name="id" required min="1" placeholder="1">
+                </label>
+                <button type="submit">Vérifier</button>
+            </form>
+            <p class="alerte" id="alerteCritique" hidden></p>
+        </section>
+
+    </main>
+
+
+    <!-- Journal : trace chaque appel API (pratique pour la démo de stage) -->
+    <section class="journal">
+        <h2>Journal des appels API</h2>
+        <div class="journal-corps" id="journal">
+            <p class="journal-vide">Aucun appel pour l'instant. Utilisez un formulaire ci-dessus.</p>
+        </div>
+    </section>
+
+
+    <script src="app.js"></script>
+</body>
+</html>

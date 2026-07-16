@@ -1,0 +1,272 @@
+/* ============================================================
+   Gestion Pharmacie — feuille de style
+   Palette :
+     --vert       #0E7A5F   vert pharmacie (croix, actions)
+     --vert-fonce #113B30   encre verte (titres, journal)
+     --papier     #F6F8F5   fond général
+     --blanc      #FFFFFF   cartes
+     --ambre      #B4690E   alertes seuil critique
+     --trait      #DCE4DE   bordures
+   Typo :
+     Archivo (titres / interface), IBM Plex Mono (données, journal)
+   ============================================================ */
+
+:root {
+    --vert: #0E7A5F;
+    --vert-fonce: #113B30;
+    --papier: #F6F8F5;
+    --blanc: #FFFFFF;
+    --ambre: #B4690E;
+    --trait: #DCE4DE;
+    --encre: #1C2420;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--papier);
+    color: var(--encre);
+    font-family: "Archivo", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+h1, h2 { margin: 0; }
+
+
+/* ---------- Barre supérieure ---------- */
+
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 28px;
+    background: var(--blanc);
+    border-bottom: 1px solid var(--trait);
+}
+
+.topbar h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.soustitre {
+    margin: 2px 0 0;
+    font-size: 0.8rem;
+    color: #5E6B64;
+}
+
+/* Croix de pharmacie */
+.croix {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+}
+
+.croix span {
+    position: absolute;
+    background: var(--vert);
+    border-radius: 3px;
+}
+
+.croix span:first-child {
+    left: 50%; top: 0;
+    width: 12px; height: 100%;
+    transform: translateX(-50%);
+}
+
+.croix span:last-child {
+    top: 50%; left: 0;
+    height: 12px; width: 100%;
+    transform: translateY(-50%);
+}
+
+/* Indicateur d'état API */
+.etat-api {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.75rem;
+    color: #5E6B64;
+}
+
+.pastille {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: #A7B3AC;
+}
+
+.etat-api.ok .pastille { background: var(--vert); }
+.etat-api.erreur .pastille { background: #B3261E; }
+
+
+/* ---------- Grille de cartes ---------- */
+
+.grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    padding: 28px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.carte {
+    background: var(--blanc);
+    border: 1px solid var(--trait);
+    border-radius: 10px;
+    padding: 22px;
+}
+
+.carte h2 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--vert-fonce);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--vert);
+    display: inline-block;
+}
+
+
+/* ---------- Formulaires ---------- */
+
+form { display: flex; flex-direction: column; gap: 12px; }
+
+.rangee { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.rangee-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #47554E;
+}
+
+input {
+    font: inherit;
+    padding: 9px 11px;
+    border: 1px solid var(--trait);
+    border-radius: 6px;
+    background: var(--papier);
+    color: var(--encre);
+}
+
+input:focus {
+    outline: 2px solid var(--vert);
+    outline-offset: 1px;
+    border-color: var(--vert);
+}
+
+button {
+    font: inherit;
+    font-weight: 700;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 6px;
+    background: var(--vert);
+    color: var(--blanc);
+    cursor: pointer;
+    align-self: flex-start;
+}
+
+button:hover { background: #0B6650; }
+button:focus-visible { outline: 3px solid var(--vert-fonce); outline-offset: 2px; }
+
+
+/* ---------- Résultats ---------- */
+
+.resultat-stock {
+    margin-top: 16px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.resultat-valeur {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 2rem;
+    font-weight: 500;
+    color: var(--vert-fonce);
+}
+
+.resultat-libelle {
+    font-size: 0.8rem;
+    color: #5E6B64;
+}
+
+.alerte {
+    margin: 16px 0 0;
+    padding: 10px 12px;
+    border-left: 4px solid var(--ambre);
+    background: #FBF3E7;
+    color: #6E430C;
+    font-size: 0.85rem;
+    border-radius: 0 6px 6px 0;
+}
+
+.alerte.ok {
+    border-left-color: var(--vert);
+    background: #EBF4F0;
+    color: var(--vert-fonce);
+}
+
+
+/* ---------- Journal des appels API ---------- */
+
+.journal {
+    max-width: 1100px;
+    margin: 0 auto 40px;
+    padding: 0 28px;
+}
+
+.journal h2 {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #5E6B64;
+    margin-bottom: 10px;
+}
+
+.journal-corps {
+    background: var(--vert-fonce);
+    color: #CFE4DB;
+    border-radius: 10px;
+    padding: 16px 18px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.78rem;
+    line-height: 1.7;
+    min-height: 80px;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.journal-vide { margin: 0; opacity: 0.55; }
+
+.journal-ligne { margin: 0; white-space: pre-wrap; word-break: break-all; }
+
+.journal-ligne .methode { color: #7FD8BC; font-weight: 500; }
+.journal-ligne .statut-ok { color: #9BE3C6; }
+.journal-ligne .statut-erreur { color: #F2B8B5; }
+
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 640px) {
+    .grille { padding: 16px; }
+    .journal { padding: 0 16px; }
+    .rangee, .rangee-3 { grid-template-columns: 1fr; }
+    .etat-api span:last-child { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+}
