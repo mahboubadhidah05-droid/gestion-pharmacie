@@ -1,6 +1,7 @@
 package dao;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
@@ -21,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import exception.AccesDonneesException;
 import utils.DBConnection;
 
 @ExtendWith(MockitoExtension.class)
@@ -81,7 +83,7 @@ class StockHistoriqueDAOTest {
     }
 
     @Test
-    void testAjouterHistorique_SQLException_NePasPropager()
+    void testAjouterHistorique_SQLException_DoitLeverAccesDonneesException()
             throws SQLException {
 
         try (MockedStatic<DBConnection> mockedDb =
@@ -93,15 +95,16 @@ class StockHistoriqueDAOTest {
             when(preparedStatement.executeUpdate())
                     .thenThrow(new SQLException("Erreur SQL simulée"));
 
-            assertDoesNotThrow(() ->
-                    stockHistoriqueDAO.ajouterHistorique(7, 50));
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> stockHistoriqueDAO.ajouterHistorique(7, 50));
 
             verify(preparedStatement).executeUpdate();
         }
     }
 
     @Test
-    void testAjouterHistorique_ErreurConnexion_NePasPropager()
+    void testAjouterHistorique_ErreurConnexion_DoitLeverAccesDonneesException()
             throws SQLException {
 
         try (MockedStatic<DBConnection> mockedDb =
@@ -110,10 +113,12 @@ class StockHistoriqueDAOTest {
             mockedDb.when(DBConnection::getConnection)
                     .thenThrow(new SQLException("Connexion impossible"));
 
-            assertDoesNotThrow(() ->
-                    stockHistoriqueDAO.ajouterHistorique(7, 50));
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> stockHistoriqueDAO.ajouterHistorique(7, 50));
         }
     }
+
     // ---------- afficherHistorique ----------
 
     @Test
@@ -177,7 +182,7 @@ class StockHistoriqueDAOTest {
     }
 
     @Test
-    void testAfficherHistorique_SQLException_NePasPropager()
+    void testAfficherHistorique_SQLException_DoitLeverAccesDonneesException()
             throws SQLException {
 
         try (MockedStatic<DBConnection> mockedDb =
@@ -190,13 +195,14 @@ class StockHistoriqueDAOTest {
                     .thenThrow(
                             new SQLException("Erreur SQL simulée"));
 
-            assertDoesNotThrow(() ->
-                    stockHistoriqueDAO.afficherHistorique());
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> stockHistoriqueDAO.afficherHistorique());
         }
     }
 
     @Test
-    void testAfficherHistorique_ErreurConnexion_NePasPropager()
+    void testAfficherHistorique_ErreurConnexion_DoitLeverAccesDonneesException()
             throws SQLException {
 
         try (MockedStatic<DBConnection> mockedDb =
@@ -206,8 +212,9 @@ class StockHistoriqueDAOTest {
                     .thenThrow(
                             new SQLException("Connexion impossible"));
 
-            assertDoesNotThrow(() ->
-                    stockHistoriqueDAO.afficherHistorique());
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> stockHistoriqueDAO.afficherHistorique());
         }
     }
 }

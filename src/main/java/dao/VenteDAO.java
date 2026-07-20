@@ -4,10 +4,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import dto.VenteResponse;
+import exception.AccesDonneesException;
 import utils.DBConnection;
 
 public class VenteDAO {
@@ -35,9 +39,6 @@ public class VenteDAO {
     private static final String COL_DATE =
             "date_vente";
 
-    private static final String AUCUNE_VENTE =
-            "Aucune vente trouvée pour ce médicament.";
-
 
     public boolean enregistrerVente(
             int idPh,
@@ -61,11 +62,10 @@ public class VenteDAO {
             ps.setInt(3, idMed);
             ps.setInt(4, qte);
 
-            ps.setDate(
+            ps.setTimestamp(
                     5,
-                    new java.sql.Date(new Date().getTime())
+                    new java.sql.Timestamp(new Date().getTime())
             );
-
             int lignesAffectees = ps.executeUpdate();
 
             LOGGER.log(
@@ -78,7 +78,11 @@ public class VenteDAO {
 
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de l'enregistrement de la vente");
-            return false;
+
+            throw new AccesDonneesException(
+                    "Échec de l'enregistrement de la vente",
+                    e
+            );
         }
     }
 
@@ -95,25 +99,25 @@ public class VenteDAO {
     }
 
 
-    public void ventesParMedicament(int idMed) {
+    public List<VenteResponse> ventesParMedicament(int idMed) {
 
-        afficherVentes(
+        return chercherVentes(
                 "SELECT * FROM vente WHERE id_medicament=?",
                 idMed
         );
     }
 
 
-    public void ventesParClient(int idClient) {
+    public List<VenteResponse> ventesParClient(int idClient) {
 
-        afficherVentes(
+        return chercherVentes(
                 "SELECT * FROM vente WHERE id_client=?",
                 idClient
         );
     }
 
 
-    public void ventesParPeriode(
+    public List<VenteResponse> ventesParPeriode(
             String dateDebut,
             String dateFin) {
 
@@ -121,16 +125,7 @@ public class VenteDAO {
                 "SELECT * FROM vente "
                 + "WHERE date_vente BETWEEN ? AND ?";
 
-        java.sql.Date debut;
-        java.sql.Date fin;
-
-        try {
-            debut = java.sql.Date.valueOf(dateDebut);
-            fin = java.sql.Date.valueOf(dateFin);
-        } catch (IllegalArgumentException e) {
-            LOGGER.log(Level.WARNING, "Format de date invalide : {0} / {1}", new Object[]{dateDebut, dateFin});
-            return;
-        }
+        List<VenteResponse> ventes = new ArrayList<>();
 
         try (Connection connection =
                      DBConnection.getConnection();
@@ -138,24 +133,31 @@ public class VenteDAO {
              PreparedStatement ps =
                      connection.prepareStatement(sql)) {
 
-            ps.setDate(1, debut);
-            ps.setDate(2, fin);
+            ps.setString(1, dateDebut);
+            ps.setString(2, dateFin + " 23:59:59");
 
-            afficherResultat(ps);
+            try (ResultSet rs = ps.executeQuery()) {
+                remplirVentes(rs, ventes);
+            }
 
         } catch (SQLException e) {
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de la recherche des ventes par période",
+            LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de la consultation des ventes par période");
+
+            throw new AccesDonneesException(
+                    "Échec de la consultation des ventes par période",
                     e
             );
         }
+
+        return ventes;
     }
 
-    private void afficherVentes(
-            String sql,
-            int id) {
 
+    private List<VenteResponse> chercherVentes(
+            String sql,
+            int parametre) {
+
+        List<VenteResponse> ventes = new ArrayList<>();
 
         try (Connection connection =
                      DBConnection.getConnection();
@@ -163,18 +165,41 @@ public class VenteDAO {
              PreparedStatement ps =
                      connection.prepareStatement(sql)) {
 
+            ps.setInt(1, parametre);
 
-            ps.setInt(1, id);
-
-            afficherResultat(ps);
-
+            try (ResultSet rs = ps.executeQuery()) {
+                remplirVentes(rs, ventes);
+            }
 
         } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de la consultation des ventes");
 
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de la récupération des ventes",
+            throw new AccesDonneesException(
+                    "Échec de la consultation des ventes",
                     e
+            );
+        }
+
+        return ventes;
+    }
+
+
+    private void remplirVentes(
+            ResultSet rs,
+            List<VenteResponse> ventes)
+            throws SQLException {
+
+        while (rs.next()) {
+
+            ventes.add(
+                    new VenteResponse(
+                            rs.getInt(COL_VENTE_ID),
+                            rs.getInt(COL_PHARMACIEN_ID),
+                            rs.getInt(COL_CLIENT_ID),
+                            rs.getInt(COL_MEDICAMENT_ID),
+                            rs.getInt(COL_QUANTITE),
+                            rs.getTimestamp(COL_DATE).toLocalDateTime()
+                    )
             );
         }
     }
@@ -204,46 +229,11 @@ public class VenteDAO {
 
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de la modification de la vente");
-            return false;
-        }
-    }
 
-
-    private void afficherResultat(
-            PreparedStatement ps)
-            throws SQLException {
-
-
-        boolean trouve = false;
-
-
-        try (ResultSet rs =
-                     ps.executeQuery()) {
-
-
-            while (rs.next()) {
-
-                trouve = true;
-
-                LOGGER.log(
-                        Level.INFO,
-                        "Vente ID={0}, Pharmacien ID={1}, Client ID={2}, "
-                        + "Médicament ID={3}, Qte={4}, Date={5}",
-                        new Object[]{
-                                rs.getInt(COL_VENTE_ID),
-                                rs.getInt(COL_PHARMACIEN_ID),
-                                rs.getInt(COL_CLIENT_ID),
-                                rs.getInt(COL_MEDICAMENT_ID),
-                                rs.getInt(COL_QUANTITE),
-                                rs.getDate(COL_DATE)
-                        }
-                );
-            }
-        }
-
-
-        if (!trouve) {
-            LOGGER.info(AUCUNE_VENTE);
+            throw new AccesDonneesException(
+                    "Échec de la modification de la vente",
+                    e
+            );
         }
     }
 }

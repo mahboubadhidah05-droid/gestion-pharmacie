@@ -19,14 +19,13 @@ public final class DBConnection {
             );
 
     private static final String PASSWORD =
-            System.getenv().getOrDefault(
-                    "DB_PASSWORD",
-                    "douaa"
-            );
+            System.getenv("DB_PASSWORD");
+
 
     private DBConnection() {
         throw new IllegalStateException("Utility class");
     }
+
 
     public static Connection getConnection() throws SQLException {
 
@@ -34,7 +33,9 @@ public final class DBConnection {
 
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
+
         } catch (ClassNotFoundException e) {
+
             throw new SQLException(
                     "Driver MySQL introuvable",
                     e
@@ -48,10 +49,12 @@ public final class DBConnection {
         );
     }
 
+
     static void validatePassword(String password)
             throws SQLException {
 
         if (password == null || password.isBlank()) {
+
             throw new SQLException(
                     "Database password not configured"
             );

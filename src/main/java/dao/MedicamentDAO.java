@@ -4,9 +4,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import dto.MedicamentResponse;
+import exception.AccesDonneesException;
 import utils.DBConnection;
 
 public class MedicamentDAO {
@@ -70,7 +74,12 @@ public class MedicamentDAO {
 
         } catch (SQLException e) {
 
-        	LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de l'ajout du médicament");
+            LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de l'ajout du médicament");
+
+            throw new AccesDonneesException(
+                    "Échec de l'ajout du médicament",
+                    e
+            );
         }
     }
 
@@ -117,10 +126,74 @@ public class MedicamentDAO {
                     "Erreur lors de la récupération du stock",
                     e
             );
+
+            throw new AccesDonneesException(
+                    "Échec de la récupération du stock",
+                    e
+            );
         }
 
 
         return -1;
+    }
+
+
+
+    public List<MedicamentResponse> listerMedicaments() {
+
+
+        String sql =
+                "SELECT * FROM "
+                + TABLE_MEDICAMENT
+                + " ORDER BY "
+                + COL_ID;
+
+
+        List<MedicamentResponse> medicaments =
+                new ArrayList<>();
+
+
+        try (Connection connection =
+                     DBConnection.getConnection();
+
+             PreparedStatement statement =
+                     connection.prepareStatement(sql);
+
+             ResultSet result =
+                     statement.executeQuery()) {
+
+
+            while (result.next()) {
+
+                medicaments.add(
+                        new MedicamentResponse(
+                                result.getInt(COL_ID),
+                                result.getString(COL_NOM),
+                                result.getString("dosage"),
+                                result.getInt(COL_STOCK),
+                                result.getDouble("prix"),
+                                result.getInt("seuil_critique")
+                        )
+                );
+            }
+
+
+        } catch (SQLException e) {
+
+            LOGGER.log(
+                    Level.SEVERE,
+                    "Erreur lors de la récupération des médicaments",
+                    e
+            );
+
+            throw new AccesDonneesException(
+                    "Échec de la récupération des médicaments",
+                    e
+            );
+        }
+
+
+        return medicaments;
     }
 
 
@@ -163,6 +236,11 @@ public class MedicamentDAO {
             LOGGER.log(
                     Level.SEVERE,
                     "Erreur lors de la mise à jour du stock",
+                    e
+            );
+
+            throw new AccesDonneesException(
+                    "Échec de la mise à jour du stock",
                     e
             );
         }
@@ -214,6 +292,11 @@ public class MedicamentDAO {
             LOGGER.log(
                     Level.SEVERE,
                     "Erreur lors de la vérification du stock critique",
+                    e
+            );
+
+            throw new AccesDonneesException(
+                    "Échec de la vérification du stock critique",
                     e
             );
         }
@@ -270,6 +353,11 @@ public class MedicamentDAO {
             LOGGER.log(
                     Level.SEVERE,
                     "Erreur lors de la recherche du médicament",
+                    e
+            );
+
+            throw new AccesDonneesException(
+                    "Échec de la recherche du médicament",
                     e
             );
         }

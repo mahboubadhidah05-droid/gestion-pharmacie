@@ -42,6 +42,12 @@
 <groupId>org.springframework.boot</groupId>
 <artifactId>spring-boot-starter-web</artifactId>
 </dependency>
+<!--  Tests Spring : MockMvc pour les contrôleurs REST  -->
+<dependency>
+<groupId>org.springframework.boot</groupId>
+<artifactId>spring-boot-starter-test</artifactId>
+<scope>test</scope>
+</dependency>
 <!--  JUnit 5  -->
 <dependency>
 <groupId>org.junit.jupiter</groupId>
@@ -79,6 +85,9 @@
 <version>3.13.0</version>
 <configuration>
 <release>21</release>
+<!--  Conserve les noms de paramètres dans les .class :  -->
+<!--  requis par Spring pour @PathVariable sans nom explicite  -->
+<parameters>true</parameters>
 </configuration>
 </plugin>
 <!--  Spring Boot : remplace le shade plugin.  -->

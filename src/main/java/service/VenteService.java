@@ -1,6 +1,9 @@
 package service;
 
 import java.util.logging.Level;
+import java.util.List;
+
+import dto.VenteResponse;
 import java.util.logging.Logger;
 
 import dao.MedicamentDAO;
@@ -34,7 +37,7 @@ public class VenteService {
         this.histDAO = histDAO;
     }
 
-    public void vendre(
+    public boolean vendre(
             int idPh,
             int idCl,
             int idMed,
@@ -44,13 +47,14 @@ public class VenteService {
 
         if (stock < quantite) {
             LOGGER.log(Level.WARNING, STOCK_INSUFFISANT, idMed);
-            return;
+            return false;
         }
 
-        enregistrerVente(idPh, idCl, idMed, quantite, stock);
+        return enregistrerVente(idPh, idCl, idMed, quantite, stock);
     }
 
-    private void enregistrerVente(
+
+    private boolean enregistrerVente(
             int idPh,
             int idCl,
             int idMed,
@@ -62,7 +66,7 @@ public class VenteService {
 
         if (!venteReussie) {
             LOGGER.log(Level.SEVERE, VENTE_ECHEC, idMed);
-            return;
+            return false;
         }
 
         medDAO.updateStock(idMed, stock - quantite);
@@ -71,6 +75,8 @@ public class VenteService {
         LOGGER.log(Level.INFO, VENTE_OK, idMed);
 
         verifierStockCritique(idMed);
+
+        return true;
     }
 
     private void verifierStockCritique(int idMed) {
@@ -80,18 +86,18 @@ public class VenteService {
         }
     }
 
-    public void ventesParMedicament(int idMed) {
-        venteDAO.ventesParMedicament(idMed);
+    public List<VenteResponse> ventesParMedicament(int idMed) {
+        return venteDAO.ventesParMedicament(idMed);
     }
 
-    public void ventesParClient(int idClient) {
-        venteDAO.ventesParClient(idClient);
+    public List<VenteResponse> ventesParClient(int idClient) {
+        return venteDAO.ventesParClient(idClient);
     }
 
-    public void ventesParPeriode(
+    public List<VenteResponse> ventesParPeriode(
             String dateDebut,
             String dateFin) {
-        venteDAO.ventesParPeriode(dateDebut, dateFin);
+        return venteDAO.ventesParPeriode(dateDebut, dateFin);
     }
 
     public boolean annulerVente(int idVente) {

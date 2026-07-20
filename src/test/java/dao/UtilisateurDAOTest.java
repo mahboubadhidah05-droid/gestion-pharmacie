@@ -12,9 +12,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import exception.AccesDonneesException;
 import utils.DBConnection;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
@@ -97,14 +99,13 @@ class UtilisateurDAOTest {
     }
 
     @Test
-    void getRole_erreurSQL_doitRetournerEchec() throws SQLException {
+    void getRole_erreurSQL_doitLeverAccesDonneesException() throws SQLException {
         try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
             mockedDb.when(DBConnection::getConnection)
                     .thenThrow(new SQLException("Erreur connexion"));
 
-            String role = utilisateurDAO.getRole("phar1", "motdepasse");
-
-            assertEquals("ECHEC", role);
+            assertThrows(AccesDonneesException.class,
+                    () -> utilisateurDAO.getRole("phar1", "motdepasse"));
         }
     }
 

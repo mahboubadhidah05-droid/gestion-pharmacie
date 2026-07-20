@@ -105,6 +105,30 @@ h1, h2 { margin: 0; }
 .etat-api.erreur .pastille { background: #B3261E; }
 
 
+/* ---------- Session (header) ---------- */
+
+.session {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.session #userInfo {
+    margin: 0;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--vert-fonce);
+}
+
+.session #btnLogout {
+    margin: 0;
+    padding: 6px 12px;
+    font-size: 0.78rem;
+}
+
+
 /* ---------- Grille de cartes ---------- */
 
 .grille {
@@ -140,7 +164,16 @@ form { display: flex; flex-direction: column; gap: 12px; }
 
 .rangee { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .rangee-3 { grid-template-columns: 1fr 1fr 1fr; }
+.rangee label,
+.rangee-3 label {
+    min-width: 0;
+}
 
+.rangee input,
+.rangee-3 input {
+    width: 100%;
+    min-width: 0;
+}
 label {
     display: flex;
     flex-direction: column;
@@ -160,6 +193,20 @@ input {
 }
 
 input:focus {
+    outline: 2px solid var(--vert);
+    outline-offset: 1px;
+    border-color: var(--vert);
+}
+select {
+    font: inherit;
+    padding: 9px 11px;
+    border: 1px solid var(--trait);
+    border-radius: 6px;
+    background: var(--papier);
+    color: var(--encre);
+}
+
+select:focus {
     outline: 2px solid var(--vert);
     outline-offset: 1px;
     border-color: var(--vert);
@@ -258,6 +305,49 @@ button:focus-visible { outline: 3px solid var(--vert-fonce); outline-offset: 2px
 .journal-ligne .statut-erreur { color: #F2B8B5; }
 
 
+/* ---------- Connexion (login.html) ---------- */
+
+.connexion {
+    grid-column: 1 / -1;
+    max-width: 420px;
+    margin: 40px auto 0;
+    width: 100%;
+}
+
+.connexion form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.connexion input {
+    width: 100%;
+}
+
+#btnLogout {
+    background: #b91c1c;
+}
+
+#btnLogout:hover {
+    background: #991b1b;
+}
+
+
+/* ---------- Rôles (étape 4 : menus conditionnels) ---------- */
+
+.menu-cache {
+    display: none;
+}
+
+.role-pharmacien {
+    border-left: 5px solid green;
+}
+
+.role-gestionnaire {
+    border-left: 5px solid blue;
+}
+
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 640px) {
@@ -269,4 +359,41 @@ button:focus-visible { outline: 3px solid var(--vert-fonce); outline-offset: 2px
 
 @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; animation: none !important; }
+}
+/* ---------- Tableaux ---------- */
+
+.carte-large {
+    grid-column: 1 / -1;
+}
+
+.tableau-conteneur {
+    margin-top: 16px;
+    overflow-x: auto;
+}
+
+.tableau {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.tableau th {
+    text-align: left;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #5E6B64;
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--vert);
+}
+
+.tableau td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--trait);
+    font-family: "IBM Plex Mono", monospace;
+}
+
+.tableau .ligne-critique td {
+    background: #FBF3E7;
+    color: #6E430C;
 }

@@ -1,8 +1,8 @@
 package dao;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import exception.AccesDonneesException;
 import utils.DBConnection;
 
 @ExtendWith(MockitoExtension.class)
@@ -81,7 +82,7 @@ class MedicamentDAOTest {
 
 
     @Test
-    void ajouterMedicament_erreurSQL_nePropagePasException()
+    void ajouterMedicament_erreurSQL_doitLeverAccesDonneesException()
             throws SQLException {
 
         try (MockedStatic<DBConnection> mockedDb =
@@ -90,8 +91,9 @@ class MedicamentDAOTest {
             mockedDb.when(DBConnection::getConnection)
                     .thenThrow(new SQLException("Erreur connexion"));
 
-            assertDoesNotThrow(() ->
-                    medicamentDAO.ajouterMedicament(
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> medicamentDAO.ajouterMedicament(
                             NOM,
                             DOSAGE,
                             STOCK,
@@ -161,7 +163,7 @@ class MedicamentDAOTest {
 
 
     @Test
-    void getStock_erreurConnexion_retourneMoinsUn()
+    void getStock_erreurConnexion_doitLeverAccesDonneesException()
             throws SQLException {
 
         try (MockedStatic<DBConnection> mockedDb =
@@ -170,9 +172,9 @@ class MedicamentDAOTest {
             mockedDb.when(DBConnection::getConnection)
                     .thenThrow(new SQLException("Erreur connexion"));
 
-            assertEquals(
-                    -1,
-                    medicamentDAO.getStock(1)
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> medicamentDAO.getStock(1)
             );
         }
     }
@@ -206,7 +208,7 @@ class MedicamentDAOTest {
 
 
     @Test
-    void updateStock_erreurConnexion_nePropagePasException()
+    void updateStock_erreurConnexion_doitLeverAccesDonneesException()
             throws SQLException {
 
         try (MockedStatic<DBConnection> mockedDb =
@@ -215,8 +217,9 @@ class MedicamentDAOTest {
             mockedDb.when(DBConnection::getConnection)
                     .thenThrow(new SQLException("Erreur connexion"));
 
-            assertDoesNotThrow(() ->
-                    medicamentDAO.updateStock(5, 80)
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> medicamentDAO.updateStock(5, 80)
             );
         }
     }

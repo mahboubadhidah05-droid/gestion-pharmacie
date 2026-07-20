@@ -6,12 +6,13 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import exception.AccesDonneesException;
 import utils.DBConnection;
 
-<span class="fc" id="L11">public class CommandeDAO {</span>
+<span class="fc" id="L12">public class CommandeDAO {</span>
 
-<span class="fc" id="L13">    private static final Logger LOGGER =</span>
-<span class="fc" id="L14">            Logger.getLogger(CommandeDAO.class.getName());</span>
+<span class="fc" id="L14">    private static final Logger LOGGER =</span>
+<span class="fc" id="L15">            Logger.getLogger(CommandeDAO.class.getName());</span>
 
     private static final String INSERT_COMMANDE =
             &quot;INSERT INTO commande&quot;
@@ -24,26 +25,31 @@ import utils.DBConnection;
             int idMedicament,
             int quantite) {
 
-<span class="fc" id="L27">        try (Connection connection = DBConnection.getConnection();</span>
-<span class="fc" id="L28">             PreparedStatement statement =</span>
-<span class="fc" id="L29">                     connection.prepareStatement(INSERT_COMMANDE)) {</span>
+<span class="fc" id="L28">        try (Connection connection = DBConnection.getConnection();</span>
+<span class="fc" id="L29">             PreparedStatement statement =</span>
+<span class="fc" id="L30">                     connection.prepareStatement(INSERT_COMMANDE)) {</span>
 
-<span class="fc" id="L31">            statement.setInt(1, idGestionnaire);</span>
-<span class="fc" id="L32">            statement.setInt(2, idMedicament);</span>
-<span class="fc" id="L33">            statement.setInt(3, quantite);</span>
+<span class="fc" id="L32">            statement.setInt(1, idGestionnaire);</span>
+<span class="fc" id="L33">            statement.setInt(2, idMedicament);</span>
+<span class="fc" id="L34">            statement.setInt(3, quantite);</span>
 
-<span class="fc" id="L35">            statement.executeUpdate();</span>
+<span class="fc" id="L36">            statement.executeUpdate();</span>
 
-<span class="fc" id="L37">            LOGGER.info(&quot;Commande créée avec succès&quot;);</span>
+<span class="fc" id="L38">            LOGGER.info(&quot;Commande créée avec succès&quot;);</span>
 
-<span class="fc" id="L39">        } catch (SQLException e) {</span>
+<span class="fc" id="L40">        } catch (SQLException e) {</span>
 
-<span class="fc" id="L41">            LOGGER.log(</span>
+<span class="fc" id="L42">            LOGGER.log(</span>
                     Level.SEVERE,
                     &quot;Erreur lors de la création de la commande&quot;,
                     e
             );
-<span class="fc" id="L46">        }</span>
-<span class="fc" id="L47">    }</span>
+
+<span class="fc" id="L48">            throw new AccesDonneesException(</span>
+                    &quot;Échec de la création de la commande&quot;,
+                    e
+            );
+<span class="fc" id="L52">        }</span>
+<span class="fc" id="L53">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

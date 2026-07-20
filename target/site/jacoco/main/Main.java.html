@@ -437,99 +437,105 @@ import service.VenteService;
 
 <span class="nc" id="L438">                final int idMed = lireEntier(ID_MEDICAMENT_MSG);</span>
 
-<span class="nc" id="L440">                medDAO.stockCritique(idMed);</span>
+<span class="nc" id="L440">                String message = medService.stockCritique(idMed);</span>
 
-<span class="nc" id="L442">                break;</span>
+<span class="nc bnc" id="L442" title="All 2 branches missed.">                if (message != null) {</span>
+<span class="nc" id="L443">                    afficher(message);</span>
+                } else {
+<span class="nc" id="L445">                    afficher(&quot;Stock normal, aucun seuil critique atteint.&quot;);</span>
+                }
+
+<span class="nc" id="L448">                break;</span>
             }
 
 
             case 4: {
 
-<span class="nc" id="L448">                final int idGest = lireEntier(&quot;ID Gestionnaire : &quot;);</span>
-<span class="nc" id="L449">                final int idMed = lireEntier(ID_MEDICAMENT_MSG);</span>
-<span class="nc" id="L450">                final int qte = lireEntier(QUANTITE_MSG);</span>
+<span class="nc" id="L454">                final int idGest = lireEntier(&quot;ID Gestionnaire : &quot;);</span>
+<span class="nc" id="L455">                final int idMed = lireEntier(ID_MEDICAMENT_MSG);</span>
+<span class="nc" id="L456">                final int qte = lireEntier(QUANTITE_MSG);</span>
 
-<span class="nc" id="L452">                cmdService.creerCommande(</span>
+<span class="nc" id="L458">                cmdService.creerCommande(</span>
                         idGest,
                         idMed,
                         qte
                 );
 
-<span class="nc" id="L458">                break;</span>
+<span class="nc" id="L464">                break;</span>
             }
 
 
             case 5: {
 
-<span class="nc" id="L464">                histDAO.afficherHistorique();</span>
+<span class="nc" id="L470">                histDAO.afficherHistorique();</span>
 
-<span class="nc" id="L466">                break;</span>
+<span class="nc" id="L472">                break;</span>
             }
 
 
             case 6: {
 
-<span class="nc" id="L472">                final int idMed = lireEntier(ID_MEDICAMENT_MSG);</span>
+<span class="nc" id="L478">                final int idMed = lireEntier(ID_MEDICAMENT_MSG);</span>
 
-<span class="nc" id="L474">                vservice.ventesParMedicament(idMed);</span>
+<span class="nc" id="L480">                vservice.ventesParMedicament(idMed);</span>
 
-<span class="nc" id="L476">                break;</span>
+<span class="nc" id="L482">                break;</span>
             }
 
 
             case 7: {
 
-<span class="nc" id="L482">                final int idClient = lireEntier(ID_CLIENT_MSG);</span>
+<span class="nc" id="L488">                final int idClient = lireEntier(ID_CLIENT_MSG);</span>
 
-<span class="nc" id="L484">                vservice.ventesParClient(idClient);</span>
+<span class="nc" id="L490">                vservice.ventesParClient(idClient);</span>
 
-<span class="nc" id="L486">                break;</span>
+<span class="nc" id="L492">                break;</span>
             }
 
 
             case 8: {
 
-<span class="nc" id="L492">                final String dateDebut = lireDate(DATE_DEBUT_MSG);</span>
-<span class="nc" id="L493">                final String dateFin = lireDate( DATE_FIN_MSG);</span>
+<span class="nc" id="L498">                final String dateDebut = lireDate(DATE_DEBUT_MSG);</span>
+<span class="nc" id="L499">                final String dateFin = lireDate( DATE_FIN_MSG);</span>
 
-<span class="nc" id="L495">                vservice.ventesParPeriode(</span>
+<span class="nc" id="L501">                vservice.ventesParPeriode(</span>
                         dateDebut,
                         dateFin
                 );
 
-<span class="nc" id="L500">                break;</span>
+<span class="nc" id="L506">                break;</span>
             }
 
 
             case 9: {
 
-<span class="nc" id="L506">                consulterProfil(userService);</span>
+<span class="nc" id="L512">                consulterProfil(userService);</span>
 
-<span class="nc" id="L508">                break;</span>
+<span class="nc" id="L514">                break;</span>
             }
 
 
             case 0: {
 
-<span class="nc" id="L514">                afficher(&quot;Déconnexion Gestionnaire...&quot;);</span>
+<span class="nc" id="L520">                afficher(&quot;Déconnexion Gestionnaire...&quot;);</span>
 
-<span class="nc" id="L516">                break;</span>
+<span class="nc" id="L522">                break;</span>
             }
 
 
             default: {
 
-<span class="nc" id="L522">                afficher(&quot;Choix invalide&quot;);</span>
+<span class="nc" id="L528">                afficher(&quot;Choix invalide&quot;);</span>
 
                 break;
             }
         }
 
 
-<span class="nc bnc" id="L529" title="All 2 branches missed.">            } while (choix != 0);</span>
+<span class="nc bnc" id="L535" title="All 2 branches missed.">            } while (choix != 0);</span>
 
 
-<span class="nc" id="L532">        }</span>
+<span class="nc" id="L538">        }</span>
 
     }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

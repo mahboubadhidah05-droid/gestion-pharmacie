@@ -2,6 +2,9 @@ package service;
 
 import dao.MedicamentDAO;
 import dao.StockHistoriqueDAO;
+import java.util.List;
+
+import dto.MedicamentResponse;
 
 public class MedicamentService {
 
@@ -21,6 +24,9 @@ public class MedicamentService {
 
     public void updateStock(int id, int qte) {
         dao.updateStock(id, qte);
+    }
+    public List<MedicamentResponse> listerMedicaments() {
+        return dao.listerMedicaments();
     }
 
     public int getStock(int id) {

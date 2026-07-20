@@ -42,30 +42,39 @@ public class UserService {
 <span class="fc" id="L42">    }</span>
 
 
+    /**
+     * Retourne le profil brut {nom, prenom} pour la couche web
+     * (tableau vide si l'utilisateur est introuvable).
+     */
+    public String[] getProfil(String login) {
+<span class="nc" id="L50">        return dao.getProfil(login);</span>
+    }
+
+
     private boolean profilValide(String[] profil) {
 
-<span class="pc bpc" id="L47" title="1 of 4 branches missed.">        return profil != null</span>
+<span class="pc bpc" id="L56" title="1 of 4 branches missed.">        return profil != null</span>
                 &amp;&amp; profil.length &gt;= 2;
     }
 
 
     private void afficherProfil(String[] profil) {
 
-<span class="fc" id="L54">        LOGGER.info(TITRE_PROFIL);</span>
+<span class="fc" id="L63">        LOGGER.info(TITRE_PROFIL);</span>
 
 
-<span class="fc" id="L57">        LOGGER.log(</span>
+<span class="fc" id="L66">        LOGGER.log(</span>
                 Level.INFO,
                 &quot;Nom : {0}&quot;,
                 profil[0]
         );
 
 
-<span class="fc" id="L64">        LOGGER.log(</span>
+<span class="fc" id="L73">        LOGGER.log(</span>
                 Level.INFO,
                 &quot;Prénom : {0}&quot;,
                 profil[1]
         );
-<span class="fc" id="L69">    }</span>
+<span class="fc" id="L78">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

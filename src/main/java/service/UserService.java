@@ -42,6 +42,15 @@ public class UserService {
     }
 
 
+    /**
+     * Retourne le profil brut {nom, prenom} pour la couche web
+     * (tableau vide si l'utilisateur est introuvable).
+     */
+    public String[] getProfil(String login) {
+        return dao.getProfil(login);
+    }
+
+
     private boolean profilValide(String[] profil) {
 
         return profil != null

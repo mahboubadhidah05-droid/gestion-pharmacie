@@ -11,6 +11,8 @@ import dao.CommandeDAO;
 import dao.MedicamentDAO;
 import dao.StockHistoriqueDAO;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,21 +38,26 @@ class CommandeServiceTest {
     void creerCommande_doitCreerLaCommandeMettreAJourLeStockEtHistoriser() {
         when(medicamentDAO.getStock(5)).thenReturn(50);
 
-        commandeService.creerCommande(1, 5, 20);
+        boolean resultat = commandeService.creerCommande(1, 5, 20);
 
-        InOrder ordre = inOrder(commandeDAO, medicamentDAO, stockHistoriqueDAO);
-        ordre.verify(commandeDAO).creerCommande(1, 5, 20);
+        assertTrue(resultat);
+
+        InOrder ordre = inOrder(medicamentDAO, commandeDAO, stockHistoriqueDAO);
         ordre.verify(medicamentDAO).getStock(5);
+        ordre.verify(commandeDAO).creerCommande(1, 5, 20);
         ordre.verify(medicamentDAO).updateStock(5, 70);
         ordre.verify(stockHistoriqueDAO).ajouterHistorique(5, 20);
     }
 
     @Test
-    void creerCommande_medicamentIntrouvable_doitPropagerStockNegatif() {
+    void creerCommande_medicamentIntrouvable_neDoitRienCreer() {
         when(medicamentDAO.getStock(999)).thenReturn(-1);
 
-        commandeService.creerCommande(1, 999, 10);
+        boolean resultat = commandeService.creerCommande(1, 999, 10);
 
-        verify(medicamentDAO).updateStock(999, 9);
+        assertFalse(resultat);
+        verify(commandeDAO, never()).creerCommande(anyInt(), anyInt(), anyInt());
+        verify(medicamentDAO, never()).updateStock(anyInt(), anyInt());
+        verify(stockHistoriqueDAO, never()).ajouterHistorique(anyInt(), anyInt());
     }
 }

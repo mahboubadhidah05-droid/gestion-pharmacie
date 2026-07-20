@@ -19,43 +19,46 @@ public final class DBConnection {
             );
 
 <span class="fc" id="L21">    private static final String PASSWORD =</span>
-<span class="fc" id="L22">            System.getenv().getOrDefault(</span>
-                    &quot;DB_PASSWORD&quot;,
-                    &quot;douaa&quot;
-            );
+<span class="fc" id="L22">            System.getenv(&quot;DB_PASSWORD&quot;);</span>
 
-<span class="fc" id="L27">    private DBConnection() {</span>
-<span class="fc" id="L28">        throw new IllegalStateException(&quot;Utility class&quot;);</span>
+
+<span class="fc" id="L25">    private DBConnection() {</span>
+<span class="fc" id="L26">        throw new IllegalStateException(&quot;Utility class&quot;);</span>
     }
+
 
     public static Connection getConnection() throws SQLException {
 
-<span class="fc" id="L33">        validatePassword(PASSWORD);</span>
+<span class="fc" id="L32">        validatePassword(PASSWORD);</span>
 
         try {
-<span class="fc" id="L36">            Class.forName(&quot;com.mysql.cj.jdbc.Driver&quot;);</span>
+<span class="fc" id="L35">            Class.forName(&quot;com.mysql.cj.jdbc.Driver&quot;);</span>
+
 <span class="nc" id="L37">        } catch (ClassNotFoundException e) {</span>
-<span class="nc" id="L38">            throw new SQLException(</span>
+
+<span class="nc" id="L39">            throw new SQLException(</span>
                     &quot;Driver MySQL introuvable&quot;,
                     e
             );
-<span class="fc" id="L42">        }</span>
+<span class="fc" id="L43">        }</span>
 
-<span class="fc" id="L44">        return DriverManager.getConnection(</span>
+<span class="fc" id="L45">        return DriverManager.getConnection(</span>
                 URL,
                 USER,
                 PASSWORD
         );
     }
 
+
     static void validatePassword(String password)
             throws SQLException {
 
-<span class="fc bfc" id="L54" title="All 4 branches covered.">        if (password == null || password.isBlank()) {</span>
-<span class="fc" id="L55">            throw new SQLException(</span>
+<span class="fc bfc" id="L56" title="All 4 branches covered.">        if (password == null || password.isBlank()) {</span>
+
+<span class="fc" id="L58">            throw new SQLException(</span>
                     &quot;Database password not configured&quot;
             );
         }
-<span class="fc" id="L59">    }</span>
+<span class="fc" id="L62">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

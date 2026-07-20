@@ -5,19 +5,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.ArrayList;
 import java.util.List;
-import dto.StockHistoriqueResponse;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import dto.StockHistoriqueResponse;
+import exception.AccesDonneesException;
 import utils.DBConnection;
 
 public class StockHistoriqueDAO {
 
     private static final Logger LOGGER =
             Logger.getLogger(StockHistoriqueDAO.class.getName());
-
 
     private static final String ID_MEDICAMENT =
             "id_medicament";
@@ -28,12 +28,10 @@ public class StockHistoriqueDAO {
     private static final String DATE_MODIFICATION =
             "date_modification";
 
-
     private static final String INSERT_HISTORIQUE =
             "INSERT INTO stock_historique "
             + "(id_medicament, quantite, date_modification) "
             + "VALUES (?, ?, NOW())";
-
 
     private static final String SELECT_HISTORIQUE =
             "SELECT * FROM stock_historique";
@@ -43,14 +41,12 @@ public class StockHistoriqueDAO {
             int idMedicament,
             int quantite) {
 
-
         try (Connection connection =
                      DBConnection.getConnection();
 
              PreparedStatement statement =
                      connection.prepareStatement(
                              INSERT_HISTORIQUE)) {
-
 
             statement.setInt(
                     1,
@@ -62,9 +58,7 @@ public class StockHistoriqueDAO {
                     quantite
             );
 
-
             statement.executeUpdate();
-
 
             LOGGER.log(
                     Level.INFO,
@@ -75,12 +69,16 @@ public class StockHistoriqueDAO {
                     }
             );
 
-
         } catch (SQLException e) {
 
             LOGGER.log(
                     Level.SEVERE,
                     "Erreur lors de l'enregistrement de l'historique stock",
+                    e
+            );
+
+            throw new AccesDonneesException(
+                    "Échec de l'enregistrement de l'historique stock",
                     e
             );
         }
@@ -93,8 +91,10 @@ public class StockHistoriqueDAO {
 
         try (Connection connection =
                      DBConnection.getConnection();
+
              Statement statement =
                      connection.createStatement();
+
              ResultSet resultSet =
                      statement.executeQuery(
                              SELECT_HISTORIQUE)) {
@@ -113,6 +113,11 @@ public class StockHistoriqueDAO {
             LOGGER.log(
                     Level.SEVERE,
                     "Erreur lors de l'affichage de l'historique stock",
+                    e
+            );
+
+            throw new AccesDonneesException(
+                    "Échec de la récupération de l'historique stock",
                     e
             );
         }

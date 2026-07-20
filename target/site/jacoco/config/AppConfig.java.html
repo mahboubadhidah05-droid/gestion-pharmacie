@@ -1,6 +1,109 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AppConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pharmacie-corrige</a> &gt; <a href="index.source.html" class="el_package">config</a> &gt; <span class="el_source">AppConfig.java</span></div><h1>AppConfig.java</h1><pre class="source lang-java linenums">package config;
 
-<span class="nc" id="L3">public class AppConfig {</span>
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
+import dao.ClientDAO;
+import dao.CommandeDAO;
+import dao.MedicamentDAO;
+import dao.StockHistoriqueDAO;
+import dao.UserDAO;
+import dao.UtilisateurDAO;
+import dao.VenteDAO;
+
+import service.AuthService;
+import service.ClientService;
+import service.CommandeService;
+import service.MedicamentService;
+import service.StockService;
+import service.UserService;
+import service.VenteService;
+
+@Configuration
+<span class="nc" id="L23">public class AppConfig {</span>
+
+    // ---------- DAO ----------
+
+    @Bean
+    public ClientDAO clientDAO() {
+<span class="nc" id="L29">        return new ClientDAO();</span>
+    }
+
+    @Bean
+    public CommandeDAO commandeDAO() {
+<span class="nc" id="L34">        return new CommandeDAO();</span>
+    }
+
+    @Bean
+    public MedicamentDAO medicamentDAO() {
+<span class="nc" id="L39">        return new MedicamentDAO();</span>
+    }
+
+    @Bean
+    public StockHistoriqueDAO stockHistoriqueDAO() {
+<span class="nc" id="L44">        return new StockHistoriqueDAO();</span>
+    }
+
+    @Bean
+    public UserDAO userDAO() {
+<span class="nc" id="L49">        return new UserDAO();</span>
+    }
+
+    @Bean
+    public UtilisateurDAO utilisateurDAO() {
+<span class="nc" id="L54">        return new UtilisateurDAO();</span>
+    }
+
+    @Bean
+    public VenteDAO venteDAO() {
+<span class="nc" id="L59">        return new VenteDAO();</span>
+    }
+
+    // ---------- Services ----------
+
+    @Bean
+    public AuthService authService(UtilisateurDAO utilisateurDAO) {
+<span class="nc" id="L66">        return new AuthService(utilisateurDAO);</span>
+    }
+
+    @Bean
+    public ClientService clientService(ClientDAO clientDAO) {
+<span class="nc" id="L71">        return new ClientService(clientDAO);</span>
+    }
+
+    @Bean
+    public MedicamentService medicamentService(
+            MedicamentDAO medicamentDAO,
+            StockHistoriqueDAO stockHistoriqueDAO) {
+<span class="nc" id="L78">        return new MedicamentService(medicamentDAO, stockHistoriqueDAO);</span>
+    }
+
+    @Bean
+    public StockService stockService(
+            MedicamentDAO medicamentDAO,
+            StockHistoriqueDAO stockHistoriqueDAO) {
+<span class="nc" id="L85">        return new StockService(medicamentDAO, stockHistoriqueDAO);</span>
+    }
+
+    @Bean
+    public CommandeService commandeService(
+            CommandeDAO commandeDAO,
+            MedicamentDAO medicamentDAO,
+            StockHistoriqueDAO stockHistoriqueDAO) {
+<span class="nc" id="L93">        return new CommandeService(commandeDAO, medicamentDAO, stockHistoriqueDAO);</span>
+    }
+
+    @Bean
+    public VenteService venteService(
+            MedicamentDAO medicamentDAO,
+            VenteDAO venteDAO,
+            StockHistoriqueDAO stockHistoriqueDAO) {
+<span class="nc" id="L101">        return new VenteService(medicamentDAO, venteDAO, stockHistoriqueDAO);</span>
+    }
+
+    @Bean
+    public UserService userService(UserDAO userDAO) {
+<span class="nc" id="L106">        return new UserService(userDAO);</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

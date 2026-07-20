@@ -12,17 +12,22 @@ public class ClientService {
     }
 
 
-    public void creerClient(
+    public int creerClient(
             String nom,
             String prenom,
             String email,
             String adresse) {
 
-        clientDAO.ajouterClient(
+        return clientDAO.ajouterClient(
                 nom,
                 prenom,
                 email,
                 adresse
         );
+    }
+
+
+    public boolean existeClient(int idClient) {
+        return clientDAO.existeClient(idClient);
     }
 }

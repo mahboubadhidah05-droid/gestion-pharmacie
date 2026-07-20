@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import exception.AccesDonneesException;
 import utils.DBConnection;
 
 /**
@@ -34,7 +35,8 @@ public class UtilisateurDAO {
 
 
     /**
-     * Vérifie le login et le mot de passe et retourne le rôle.
+     * Vérifie le login et le mot de passe et retourne le rôle,
+     * ou ROLE_ECHEC si les identifiants sont invalides.
      */
     public String getRole(String login, String pwd) {
 
@@ -67,6 +69,11 @@ public class UtilisateurDAO {
             LOGGER.log(
                     Level.SEVERE,
                     "Erreur lors de la verification du role",
+                    e
+            );
+
+            throw new AccesDonneesException(
+                    "Échec de la vérification des identifiants",
                     e
             );
         }

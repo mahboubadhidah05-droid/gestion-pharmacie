@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import exception.AccesDonneesException;
 import utils.DBConnection;
 
 public class UserDAO {
@@ -57,10 +58,12 @@ public class UserDAO {
                     "Erreur lors de la récupération du profil utilisateur",
                     e
             );
+
+            throw new AccesDonneesException(
+                    "Échec de la récupération du profil utilisateur",
+                    e
+            );
         }
-
-
-        return new String[0];
     }
 
 

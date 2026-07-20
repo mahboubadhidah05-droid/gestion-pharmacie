@@ -8,15 +8,16 @@ import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import exception.AccesDonneesException;
 import utils.DBConnection;
 
 /**
  * DAO pour la gestion des clients.
  */
-<span class="fc" id="L16">public class ClientDAO {</span>
+<span class="fc" id="L17">public class ClientDAO {</span>
 
-<span class="fc" id="L18">    private static final Logger LOGGER =</span>
-<span class="fc" id="L19">            Logger.getLogger(ClientDAO.class.getName());</span>
+<span class="fc" id="L19">    private static final Logger LOGGER =</span>
+<span class="fc" id="L20">            Logger.getLogger(ClientDAO.class.getName());</span>
 
     private static final String INSERT_CLIENT =
             &quot;INSERT INTO client VALUES(NULL,?,?,?,?)&quot;;
@@ -37,26 +38,29 @@ import utils.DBConnection;
      */
     public boolean existeClient(int idClient) {
 
-<span class="nc" id="L40">        try (Connection connection = DBConnection.getConnection();</span>
-<span class="nc" id="L41">             PreparedStatement statement =</span>
-<span class="nc" id="L42">                     connection.prepareStatement(EXISTE_CLIENT)) {</span>
+<span class="nc" id="L41">        try (Connection connection = DBConnection.getConnection();</span>
+<span class="nc" id="L42">             PreparedStatement statement =</span>
+<span class="nc" id="L43">                     connection.prepareStatement(EXISTE_CLIENT)) {</span>
 
-<span class="nc" id="L44">            statement.setInt(1, idClient);</span>
+<span class="nc" id="L45">            statement.setInt(1, idClient);</span>
 
-<span class="nc" id="L46">            try (ResultSet rs = statement.executeQuery()) {</span>
-<span class="nc" id="L47">                return rs.next();</span>
+<span class="nc" id="L47">            try (ResultSet rs = statement.executeQuery()) {</span>
+<span class="nc" id="L48">                return rs.next();</span>
             }
 
-<span class="nc" id="L50">        } catch (SQLException e) {</span>
-<span class="nc" id="L51">            LOGGER.log(Level.SEVERE, e, () -&gt; ERREUR_VERIF_CLIENT);</span>
-        }
+<span class="nc" id="L51">        } catch (SQLException e) {</span>
+<span class="nc" id="L52">            LOGGER.log(Level.SEVERE, e, () -&gt; ERREUR_VERIF_CLIENT);</span>
 
-<span class="nc" id="L54">        return false;</span>
+<span class="nc" id="L54">            throw new AccesDonneesException(</span>
+                    &quot;Échec de la vérification du client&quot;,
+                    e
+            );
+        }
     }
 
     /**
      * Ajoute un client et retourne son nouvel ID généré.
-     * Retourne -1 en cas d'échec.
+     * Retourne -1 si aucun ID n'a été généré.
      */
     public int ajouterClient(
             String nom,
@@ -64,32 +68,37 @@ import utils.DBConnection;
             String email,
             String adresse) {
 
-<span class="fc" id="L67">        try (Connection connection = DBConnection.getConnection();</span>
-<span class="fc" id="L68">             PreparedStatement statement =</span>
-<span class="fc" id="L69">                     connection.prepareStatement(</span>
+<span class="fc" id="L71">        try (Connection connection = DBConnection.getConnection();</span>
+<span class="fc" id="L72">             PreparedStatement statement =</span>
+<span class="fc" id="L73">                     connection.prepareStatement(</span>
                              INSERT_CLIENT,
                              Statement.RETURN_GENERATED_KEYS
                      )) {
 
-<span class="fc" id="L74">            statement.setString(1, nom);</span>
-<span class="fc" id="L75">            statement.setString(2, prenom);</span>
-<span class="fc" id="L76">            statement.setString(3, email);</span>
-<span class="fc" id="L77">            statement.setString(4, adresse);</span>
-<span class="fc" id="L78">            statement.executeUpdate();</span>
+<span class="fc" id="L78">            statement.setString(1, nom);</span>
+<span class="fc" id="L79">            statement.setString(2, prenom);</span>
+<span class="fc" id="L80">            statement.setString(3, email);</span>
+<span class="fc" id="L81">            statement.setString(4, adresse);</span>
+<span class="fc" id="L82">            statement.executeUpdate();</span>
 
-<span class="fc" id="L80">            try (ResultSet keys = statement.getGeneratedKeys()) {</span>
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">                if (keys.next()) {</span>
-<span class="fc" id="L82">                    int nouvelId = keys.getInt(1);</span>
-<span class="fc" id="L83">                    LOGGER.info(() -&gt; &quot;Client ajouté avec succès, ID=&quot; + nouvelId);</span>
-<span class="fc" id="L84">                    return nouvelId;</span>
+<span class="fc" id="L84">            try (ResultSet keys = statement.getGeneratedKeys()) {</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">                if (keys.next()) {</span>
+<span class="fc" id="L86">                    int nouvelId = keys.getInt(1);</span>
+<span class="fc" id="L87">                    LOGGER.info(() -&gt; &quot;Client ajouté avec succès, ID=&quot; + nouvelId);</span>
+<span class="fc" id="L88">                    return nouvelId;</span>
                 }
-<span class="pc bpc" id="L86" title="1 of 2 branches missed.">            }</span>
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">            }</span>
 
-<span class="pc bpc" id="L88" title="2 of 4 branches missed.">        } catch (SQLException e) {</span>
-<span class="fc" id="L89">            LOGGER.log(Level.SEVERE, e, () -&gt; ERREUR_AJOUT_CLIENT);</span>
-<span class="nc" id="L90">        }</span>
+<span class="pc bpc" id="L92" title="2 of 4 branches missed.">        } catch (SQLException e) {</span>
+<span class="fc" id="L93">            LOGGER.log(Level.SEVERE, e, () -&gt; ERREUR_AJOUT_CLIENT);</span>
 
-<span class="fc" id="L92">        return ID_INVALIDE;</span>
+<span class="fc" id="L95">            throw new AccesDonneesException(</span>
+                    &quot;Échec de l'ajout du client&quot;,
+                    e
+            );
+<span class="nc" id="L99">        }</span>
+
+<span class="nc" id="L101">        return ID_INVALIDE;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

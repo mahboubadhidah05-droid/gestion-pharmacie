@@ -12,18 +12,23 @@ public class ClientService {
 <span class="fc" id="L12">    }</span>
 
 
-    public void creerClient(
+    public int creerClient(
             String nom,
             String prenom,
             String email,
             String adresse) {
 
-<span class="fc" id="L21">        clientDAO.ajouterClient(</span>
+<span class="fc" id="L21">        return clientDAO.ajouterClient(</span>
                 nom,
                 prenom,
                 email,
                 adresse
         );
-<span class="fc" id="L27">    }</span>
+    }
+
+
+    public boolean existeClient(int idClient) {
+<span class="nc" id="L31">        return clientDAO.existeClient(idClient);</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

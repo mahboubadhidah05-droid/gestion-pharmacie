@@ -23,13 +23,124 @@
             <span class="pastille"></span>
             <span id="etatApiTexte">Vérification de l'API…</span>
         </div>
+        <div class="session">
+            <p id="userInfo"></p>
+            <button id="btnLogout" hidden>Déconnexion</button>
+        </div>
     </header>
 
 
     <main class="grille">
 
+		<!-- Enregistrer une vente -->
+		        <section class="carte" data-role="PHARMACIEN">
+		            <h2>Enregistrer une vente</h2>
+		            <form id="formVente">
+		                <div class="rangee">
+		                    <label>ID Pharmacien
+		                        <input type="number" name="idPharmacien" required min="1" placeholder="1">
+		                    </label>
+		                    <label>ID Client
+		                        <input type="number" name="idClient" required min="1" placeholder="1">
+		                    </label>
+		                </div>
+		                <div class="rangee">
+		                    <label>ID Médicament
+		                        <input type="number" name="idMedicament" required min="1" placeholder="1">
+		                    </label>
+		                    <label>Quantité
+		                        <input type="number" name="quantite" required min="1" placeholder="2">
+		                    </label>
+		                </div>
+		                <button type="submit">Enregistrer la vente</button>
+		            </form>
+		            <p class="alerte" id="alerteVente" hidden></p>
+		        </section>
+
+
+		        <!-- Annuler une vente -->
+		        <section class="carte" data-role="PHARMACIEN">
+		            <h2>Annuler une vente</h2>
+		            <form id="formAnnulation">
+		                <label>ID de la vente
+		                    <input type="number" name="id" required min="1" placeholder="7">
+		                </label>
+		                <button type="submit">Annuler la vente</button>
+		            </form>
+		            <p class="alerte" id="alerteAnnulation" hidden></p>
+		        </section>
+				<!-- Créer un client -->
+				        <section class="carte" data-role="PHARMACIEN">
+				            <h2>Créer un client</h2>
+				            <form id="formClient">
+				                <div class="rangee">
+				                    <label>Nom
+				                        <input type="text" name="nom" required placeholder="Ben Ali">
+				                    </label>
+				                    <label>Prénom
+				                        <input type="text" name="prenom" required placeholder="Sami">
+				                    </label>
+				                </div>
+				                <div class="rangee">
+				                    <label>Email
+				                        <input type="email" name="email" placeholder="sami@mail.com">
+				                    </label>
+				                    <label>Adresse
+				                        <input type="text" name="adresse" placeholder="Tunis">
+				                    </label>
+				                </div>
+				                <button type="submit">Créer le client</button>
+				            </form>
+				            <p class="alerte" id="alerteClient" hidden></p>
+				        </section>
+
+
+		        <!-- Consulter les ventes -->
+		        <section class="carte carte-large" data-role="PHARMACIEN">
+		            <h2>Consulter les ventes</h2>
+		            <form id="formConsulterVentes">
+		                <div class="rangee">
+		                    <label>Filtrer par
+		                        <select name="filtre" id="filtreVentes">
+		                            <option value="medicament">Médicament (ID)</option>
+		                            <option value="client">Client (ID)</option>
+		                            <option value="periode">Période</option>
+		                        </select>
+		                    </label>
+		                    <label id="champValeur">Valeur
+		                        <input type="number" name="valeur" min="1" placeholder="1">
+		                    </label>
+		                </div>
+		                <div class="rangee" id="champsPeriode" hidden>
+		                    <label>Date début
+		                        <input type="date" name="debut">
+		                    </label>
+		                    <label>Date fin
+		                        <input type="date" name="fin">
+		                    </label>
+		                </div>
+		                <button type="submit">Rechercher</button>
+		            </form>
+		            <div class="tableau-conteneur">
+		                <table class="tableau" id="tableVentes" hidden>
+		                    <thead>
+		                        <tr>
+		                            <th>ID</th>
+		                            <th>Pharmacien</th>
+		                            <th>Client</th>
+		                            <th>Médicament</th>
+		                            <th>Quantité</th>
+		                            <th>Date</th>
+		                        </tr>
+		                    </thead>
+		                    <tbody id="corpsTableVentes"></tbody>
+		                </table>
+		            </div>
+		            <p class="alerte ok" id="aucuneVente" hidden>Aucune vente trouvée.</p>
+		        </section>
+
         <!-- Ajouter un médicament -->
-        <section class="carte">
+        <section class="carte" data-role="GESTIONNAIRE">
             <h2>Ajouter un médicament</h2>
             <form id="formAjout">
                 <div class="rangee">
@@ -57,7 +168,7 @@
 
 
         <!-- Consulter le stock -->
-        <section class="carte">
+        <section class="carte" data-role="GESTIONNAIRE">
             <h2>Consulter un stock</h2>
             <form id="formConsulter">
                 <label>ID du médicament
@@ -73,7 +184,7 @@
 
 
         <!-- Mettre à jour le stock -->
-        <section class="carte">
+        <section class="carte" data-role="GESTIONNAIRE">
             <h2>Mettre à jour un stock</h2>
             <form id="formMaj">
                 <div class="rangee">
@@ -87,10 +198,29 @@
                 <button type="submit">Mettre à jour</button>
             </form>
         </section>
+		<!-- Créer une commande -->
+		        <section class="carte" data-role="GESTIONNAIRE">
+		            <h2>Créer une commande</h2>
+		            <form id="formCommande">
+		                <div class="rangee rangee-3">
+		                    <label>ID Gestionnaire
+		                        <input type="number" name="idGestionnaire" required min="1" placeholder="1">
+		                    </label>
+		                    <label>ID Médicament
+		                        <input type="number" name="idMedicament" required min="1" placeholder="1">
+		                    </label>
+		                    <label>Quantité
+		                        <input type="number" name="quantite" required min="1" placeholder="50">
+		                    </label>
+		                </div>
+		                <button type="submit">Créer la commande</button>
+		            </form>
+		            <p class="alerte" id="alerteCommande" hidden></p>
+		        </section>
 
 
         <!-- Vérifier le seuil critique -->
-        <section class="carte">
+        <section class="carte" data-role="GESTIONNAIRE">
             <h2>Vérifier le seuil critique</h2>
             <form id="formCritique">
                 <label>ID du médicament
@@ -100,6 +230,26 @@
             </form>
             <p class="alerte" id="alerteCritique" hidden></p>
         </section>
+		<!-- Liste des médicaments -->
+		        <section class="carte carte-large" data-role="GESTIONNAIRE">
+		            <h2>Liste des médicaments</h2>
+		            <button type="button" id="btnListeMedicaments">Actualiser la liste</button>
+		            <div class="tableau-conteneur">
+		                <table class="tableau" id="tableMedicaments" hidden>
+		                    <thead>
+		                        <tr>
+		                            <th>ID</th>
+		                            <th>Nom</th>
+		                            <th>Dosage</th>
+		                            <th>Stock</th>
+		                            <th>Prix (DT)</th>
+		                            <th>Seuil</th>
+		                        </tr>
+		                    </thead>
+		                    <tbody id="corpsTableMedicaments"></tbody>
+		                </table>
+		            </div>
+		        </section>
 
     </main>
 
@@ -113,6 +263,7 @@
     </section>
 
 
+    <script src="auth.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

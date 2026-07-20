@@ -7,15 +7,16 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import exception.AccesDonneesException;
 import utils.DBConnection;
 
 /**
  * DAO responsable de l'authentification des utilisateurs.
  */
-<span class="fc" id="L15">public class UtilisateurDAO {</span>
+<span class="fc" id="L16">public class UtilisateurDAO {</span>
 
-<span class="fc" id="L17">    private static final Logger LOGGER =</span>
-<span class="fc" id="L18">            Logger.getLogger(UtilisateurDAO.class.getName());</span>
+<span class="fc" id="L18">    private static final Logger LOGGER =</span>
+<span class="fc" id="L19">            Logger.getLogger(UtilisateurDAO.class.getName());</span>
 
     private static final String ROLE_PHARMACIEN =
             &quot;PHARMACIEN&quot;;
@@ -34,45 +35,51 @@ import utils.DBConnection;
 
 
     /**
-     * Vérifie le login et le mot de passe et retourne le rôle.
+     * Vérifie le login et le mot de passe et retourne le rôle,
+     * ou ROLE_ECHEC si les identifiants sont invalides.
      */
     public String getRole(String login, String pwd) {
 
         try (Connection connection =
-<span class="fc" id="L42">                     DBConnection.getConnection()) {</span>
+<span class="fc" id="L44">                     DBConnection.getConnection()) {</span>
 
 
-<span class="fc bfc" id="L45" title="All 2 branches covered.">            if (verifierUtilisateur(</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">            if (verifierUtilisateur(</span>
                     connection,
                     SQL_PHARMACIEN,
                     login,
                     pwd)) {
 
-<span class="fc" id="L51">                return ROLE_PHARMACIEN;</span>
+<span class="fc" id="L53">                return ROLE_PHARMACIEN;</span>
             }
 
 
-<span class="fc bfc" id="L55" title="All 2 branches covered.">            if (verifierUtilisateur(</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">            if (verifierUtilisateur(</span>
                     connection,
                     SQL_GESTIONNAIRE,
                     login,
                     pwd)) {
 
-<span class="fc" id="L61">                return ROLE_GESTIONNAIRE;</span>
+<span class="fc" id="L63">                return ROLE_GESTIONNAIRE;</span>
             }
 
 
-<span class="pc bpc" id="L65" title="2 of 4 branches missed.">        } catch (SQLException e) {</span>
+<span class="pc bpc" id="L67" title="2 of 4 branches missed.">        } catch (SQLException e) {</span>
 
-<span class="fc" id="L67">            LOGGER.log(</span>
+<span class="fc" id="L69">            LOGGER.log(</span>
                     Level.SEVERE,
                     &quot;Erreur lors de la verification du role&quot;,
                     e
             );
-<span class="fc" id="L72">        }</span>
+
+<span class="fc" id="L75">            throw new AccesDonneesException(</span>
+                    &quot;Échec de la vérification des identifiants&quot;,
+                    e
+            );
+<span class="fc" id="L79">        }</span>
 
 
-<span class="fc" id="L75">        return ROLE_ECHEC;</span>
+<span class="fc" id="L82">        return ROLE_ECHEC;</span>
     }
 
 
@@ -84,19 +91,19 @@ import utils.DBConnection;
             throws SQLException {
 
 
-<span class="fc" id="L87">        try (PreparedStatement ps =</span>
-<span class="fc" id="L88">                     connection.prepareStatement(sql)) {</span>
+<span class="fc" id="L94">        try (PreparedStatement ps =</span>
+<span class="fc" id="L95">                     connection.prepareStatement(sql)) {</span>
 
 
-<span class="fc" id="L91">            ps.setString(1, login);</span>
-<span class="fc" id="L92">            ps.setString(2, pwd);</span>
+<span class="fc" id="L98">            ps.setString(1, login);</span>
+<span class="fc" id="L99">            ps.setString(2, pwd);</span>
 
 
-<span class="fc" id="L95">            try (ResultSet rs =</span>
-<span class="fc" id="L96">                         ps.executeQuery()) {</span>
+<span class="fc" id="L102">            try (ResultSet rs =</span>
+<span class="fc" id="L103">                         ps.executeQuery()) {</span>
 
 
-<span class="fc" id="L99">                return rs.next();</span>
+<span class="fc" id="L106">                return rs.next();</span>
             }
         }
     }

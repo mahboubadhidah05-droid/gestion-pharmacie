@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import exception.AccesDonneesException;
 import utils.DBConnection;
 
 /**
@@ -49,14 +50,17 @@ public class ClientDAO {
 
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, e, () -> ERREUR_VERIF_CLIENT);
-        }
 
-        return false;
+            throw new AccesDonneesException(
+                    "Échec de la vérification du client",
+                    e
+            );
+        }
     }
 
     /**
      * Ajoute un client et retourne son nouvel ID généré.
-     * Retourne -1 en cas d'échec.
+     * Retourne -1 si aucun ID n'a été généré.
      */
     public int ajouterClient(
             String nom,
@@ -87,6 +91,11 @@ public class ClientDAO {
 
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, e, () -> ERREUR_AJOUT_CLIENT);
+
+            throw new AccesDonneesException(
+                    "Échec de l'ajout du client",
+                    e
+            );
         }
 
         return ID_INVALIDE;

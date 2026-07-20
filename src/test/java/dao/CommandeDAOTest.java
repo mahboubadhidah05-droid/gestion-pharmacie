@@ -1,6 +1,6 @@
 package dao;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import exception.AccesDonneesException;
 import utils.DBConnection;
 
 @ExtendWith(MockitoExtension.class)
@@ -83,7 +84,7 @@ class CommandeDAOTest {
 
 
     @Test
-    void creerCommande_erreurConnexion_nePropagePasException()
+    void creerCommande_erreurConnexion_doitLeverAccesDonneesException()
             throws SQLException {
 
         try (MockedStatic<DBConnection> mockedDb =
@@ -98,8 +99,9 @@ class CommandeDAOTest {
                     );
 
 
-            assertDoesNotThrow(() ->
-                    commandeDAO.creerCommande(
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> commandeDAO.creerCommande(
                             ID_GESTIONNAIRE,
                             ID_MEDICAMENT,
                             QUANTITE
@@ -110,7 +112,7 @@ class CommandeDAOTest {
 
 
     @Test
-    void creerCommande_erreurPreparation_nePropagePasException()
+    void creerCommande_erreurPreparation_doitLeverAccesDonneesException()
             throws SQLException {
 
         try (MockedStatic<DBConnection> mockedDb =
@@ -129,8 +131,9 @@ class CommandeDAOTest {
                     );
 
 
-            assertDoesNotThrow(() ->
-                    commandeDAO.creerCommande(
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> commandeDAO.creerCommande(
                             ID_GESTIONNAIRE,
                             ID_MEDICAMENT,
                             QUANTITE
@@ -141,7 +144,7 @@ class CommandeDAOTest {
 
 
     @Test
-    void creerCommande_executionSQL_EchoueNePropagePasException()
+    void creerCommande_executionSQL_doitLeverAccesDonneesException()
             throws SQLException {
 
         try (MockedStatic<DBConnection> mockedDb =
@@ -164,8 +167,9 @@ class CommandeDAOTest {
                     );
 
 
-            assertDoesNotThrow(() ->
-                    commandeDAO.creerCommande(
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> commandeDAO.creerCommande(
                             ID_GESTIONNAIRE,
                             ID_MEDICAMENT,
                             QUANTITE

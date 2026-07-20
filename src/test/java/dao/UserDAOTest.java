@@ -2,6 +2,7 @@ package dao;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -20,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import exception.AccesDonneesException;
 import utils.DBConnection;
 
 @ExtendWith(MockitoExtension.class)
@@ -171,6 +173,8 @@ class UserDAOTest {
             );
         }
     }
+
+
     @Test
     void testGetProfil_AucunUtilisateurTrouve()
             throws SQLException {
@@ -236,7 +240,7 @@ class UserDAOTest {
 
 
     @Test
-    void testGetProfil_SQLException_RetourneTableauVide()
+    void testGetProfil_SQLException_DoitLeverAccesDonneesException()
             throws SQLException {
 
         try (MockedStatic<DBConnection> mockedDb =
@@ -250,20 +254,16 @@ class UserDAOTest {
                     );
 
 
-            String[] resultat =
-                    userDAO.getProfil("nour.gharbi");
-
-
-            assertEquals(
-                    0,
-                    resultat.length
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> userDAO.getProfil("nour.gharbi")
             );
         }
     }
 
 
     @Test
-    void testGetProfil_ErreurConnexion_RetourneTableauVide()
+    void testGetProfil_ErreurConnexion_DoitLeverAccesDonneesException()
             throws SQLException {
 
         try (MockedStatic<DBConnection> mockedDb =
@@ -277,13 +277,9 @@ class UserDAOTest {
                     );
 
 
-            String[] resultat =
-                    userDAO.getProfil("nour.gharbi");
-
-
-            assertEquals(
-                    0,
-                    resultat.length
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> userDAO.getProfil("nour.gharbi")
             );
         }
     }

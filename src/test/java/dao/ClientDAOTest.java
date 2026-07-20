@@ -1,7 +1,7 @@
 package dao;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import exception.AccesDonneesException;
 import utils.DBConnection;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,7 +31,6 @@ class ClientDAOTest {
     private static final String PRENOM = "Amine";
     private static final String EMAIL = "amine.trabelsi@mail.com";
     private static final String ADRESSE = "Ariana";
-    private static final int ID_INVALIDE = -1;
     private static final int ID_GENERE = 7;
 
     @Mock
@@ -102,7 +103,7 @@ class ClientDAOTest {
 
 
     @Test
-    void ajouterClient_erreurSQL_nePropagePasException()
+    void ajouterClient_erreurSQL_doitLeverAccesDonneesException()
             throws SQLException {
 
         try (MockedStatic<DBConnection> mockedDb =
@@ -117,22 +118,21 @@ class ClientDAOTest {
                     );
 
 
-            int idResultat = assertDoesNotThrow(() ->
-                    clientDAO.ajouterClient(
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> clientDAO.ajouterClient(
                             NOM,
                             PRENOM,
                             EMAIL,
                             ADRESSE
                     )
             );
-
-            assertEquals(ID_INVALIDE, idResultat);
         }
     }
 
 
     @Test
-    void ajouterClient_erreurPreparation_nePropagePasException()
+    void ajouterClient_erreurPreparation_doitLeverAccesDonneesException()
             throws SQLException {
 
         try (MockedStatic<DBConnection> mockedDb =
@@ -151,22 +151,21 @@ class ClientDAOTest {
                     );
 
 
-            int idResultat = assertDoesNotThrow(() ->
-                    clientDAO.ajouterClient(
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> clientDAO.ajouterClient(
                             NOM,
                             PRENOM,
                             EMAIL,
                             ADRESSE
                     )
             );
-
-            assertEquals(ID_INVALIDE, idResultat);
         }
     }
 
 
     @Test
-    void ajouterClient_executionSQL_EchoueNePropagePasException()
+    void ajouterClient_executionSQL_doitLeverAccesDonneesException()
             throws SQLException {
 
         try (MockedStatic<DBConnection> mockedDb =
@@ -189,16 +188,15 @@ class ClientDAOTest {
                     );
 
 
-            int idResultat = assertDoesNotThrow(() ->
-                    clientDAO.ajouterClient(
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> clientDAO.ajouterClient(
                             NOM,
                             PRENOM,
                             EMAIL,
                             ADRESSE
                     )
             );
-
-            assertEquals(ID_INVALIDE, idResultat);
 
             verify(preparedStatement)
                     .executeUpdate();

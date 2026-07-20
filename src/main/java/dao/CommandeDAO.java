@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import exception.AccesDonneesException;
 import utils.DBConnection;
 
 public class CommandeDAO {
@@ -41,6 +42,11 @@ public class CommandeDAO {
             LOGGER.log(
                     Level.SEVERE,
                     "Erreur lors de la création de la commande",
+                    e
+            );
+
+            throw new AccesDonneesException(
+                    "Échec de la création de la commande",
                     e
             );
         }
