@@ -1,147 +1,100 @@
-/* Page de connexion : vérifie les identifiants via l'API
-   puis redirige vers l'application. */
+/* ============================================================
+   Gestion Pharmacie — Page de connexion
+   ============================================================ */
 
 const formLogin = document.getElementById("formLogin");
 const erreurLogin = document.getElementById("erreurLogin");
 
 
-/* Si l'utilisateur est déjà connecté, inutile de rester ici. */
+/* ---------- Vérifier si une session existe déjà ---------- */
+
 fetch("/api/auth/me")
     .then((reponse) => {
+
         if (reponse.ok) {
             window.location.href = "index.html";
         }
+
     })
     .catch(() => {
-        /* API injoignable : on reste sur la page de connexion. */
+
+        // Le serveur est inaccessible.
+        // L'utilisateur reste sur la page de connexion.
+
     });
 
 
+/* ---------- Connexion ---------- */
+
 formLogin.addEventListener("submit", (evenement) => {
+
     evenement.preventDefault();
 
     const donnees = new FormData(formLogin);
 
+    const login = donnees.get("login");
+    const pwd = donnees.get("pwd");
+
+
     fetch("/api/auth/login", {
+
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
         body: JSON.stringify({
-            login: donnees.get("login"),
-            pwd: donnees.get("pwd")
+
+            login: login,
+            pwd: pwd
+
         })
+
     })
-        .then((reponse) => {
-            if (reponse.ok) {
-                window.location.href = "index.html";
-                return;
-            }
 
-            if (reponse.status === 401) {
-                erreurLogin.textContent =
-                    "Identifiants incorrects. Veuillez réessayer.";
-            } else {
-                erreurLogin.textContent =
-                    "Erreur technique du serveur. Réessayez dans un instant.";
-            }
+    .then((reponse) => {
 
-            erreurLogin.hidden = false;
-        })
-        .catch(() => {
+        /* Connexion réussie */
+
+        if (reponse.ok) {
+
+            window.location.href = "index.html";
+
+            return;
+        }
+
+
+        /* Identifiants incorrects */
+
+        if (reponse.status === 401) {
+
             erreurLogin.textContent =
-                "Impossible de contacter le serveur.";
-            erreurLogin.hidden = false;
-        });
-});		package controller;
+                "Identifiants incorrects. Veuillez réessayer.";
 
-		import org.junit.jupiter.api.BeforeEach;
-		import org.junit.jupiter.api.Test;
-		import org.junit.jupiter.api.extension.ExtendWith;
-		import org.mockito.Mock;
-		import org.mockito.junit.jupiter.MockitoExtension;
-		import org.springframework.test.web.servlet.MockMvc;
-		import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+        }
 
-		import service.AuthService;
+        /* Autre erreur serveur */
 
-		import static org.mockito.Mockito.when;
-		import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-		import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-		import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-		import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+        else {
 
-		@ExtendWith(MockitoExtension.class)
-		class AuthControllerTest {
+            erreurLogin.textContent =
+                "Erreur technique du serveur. Réessayez dans un instant.";
 
-		    private static final String CONTENT_TYPE = "application/json";
-
-		    @Mock
-		    private AuthService authService;
-
-		    private MockMvc mockMvc;
+        }
 
 
-		    @BeforeEach
-		    void setUp() {
-		        mockMvc = MockMvcBuilders
-		                .standaloneSetup(new AuthController(authService))
-		                .build();
-		    }
+        erreurLogin.hidden = false;
 
+    })
 
-		    @Test
-		    void login_identifiantsValides_doitRetourner200EtLeRole() throws Exception {
-		        when(authService.login("pharma", "123")).thenReturn("PHARMACIEN");
+    .catch(() => {
 
-		        mockMvc.perform(post("/api/auth/login")
-		                        .contentType(CONTENT_TYPE)
-		                        .content("{\"login\":\"pharma\",\"pwd\":\"123\"}"))
-		                .andExpect(status().isOk())
-		                .andExpect(jsonPath("$.login").value("pharma"))
-		                .andExpect(jsonPath("$.role").value("PHARMACIEN"));
-		    }
+        erreurLogin.textContent =
+            "Impossible de contacter le serveur.";
 
+        erreurLogin.hidden = false;
 
-		    @Test
-		    void login_identifiantsInvalides_doitRetourner401() throws Exception {
-		        when(authService.login("pharma", "faux")).thenReturn("ECHEC");
+    });
 
-		        mockMvc.perform(post("/api/auth/login")
-		                        .contentType(CONTENT_TYPE)
-		                        .content("{\"login\":\"pharma\",\"pwd\":\"faux\"}"))
-		                .andExpect(status().isUnauthorized());
-		    }
-
-
-		    @Test
-		    void me_sansSession_doitRetourner401() throws Exception {
-		        mockMvc.perform(get("/api/auth/me"))
-		                .andExpect(status().isUnauthorized());
-		    }
-
-
-		    @Test
-		    void me_avecSession_doitRetournerLUtilisateur() throws Exception {
-		        when(authService.login("gest", "133")).thenReturn("GESTIONNAIRE");
-
-		        var session = mockMvc.perform(post("/api/auth/login")
-		                        .contentType(CONTENT_TYPE)
-		                        .content("{\"login\":\"gest\",\"pwd\":\"133\"}"))
-		                .andExpect(status().isOk())
-		                .andReturn()
-		                .getRequest()
-		                .getSession();
-
-		        mockMvc.perform(get("/api/auth/me")
-		                        .session((org.springframework.mock.web.MockHttpSession) session))
-		                .andExpect(status().isOk())
-		                .andExpect(jsonPath("$.login").value("gest"))
-		                .andExpect(jsonPath("$.role").value("GESTIONNAIRE"));
-		    }
-
-
-		    @Test
-		    void logout_doitRetourner204() throws Exception {
-		        mockMvc.perform(post("/api/auth/logout"))
-		                .andExpect(status().isNoContent());
-		    }
-		}
+});
