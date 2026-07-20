@@ -19,7 +19,8 @@ public class VenteDAO {
     private static final Logger LOGGER =
             Logger.getLogger(VenteDAO.class.getName());
 
-    private static final String TABLE_VENTE = "vente";
+    private static final String TABLE_VENTE =
+            "vente";
 
     private static final String COL_VENTE_ID =
             "id_vente";
@@ -39,7 +40,6 @@ public class VenteDAO {
     private static final String COL_DATE =
             "date_vente";
 
-
     public boolean enregistrerVente(
             int idPh,
             int idCl,
@@ -47,13 +47,12 @@ public class VenteDAO {
             int qte) {
 
         String sql =
-                "INSERT INTO " + TABLE_VENTE +
-                " (id_pharmacien,id_client,id_medicament,quantite,date_vente)"
-                + " VALUES(?,?,?,?,?)";
+                "INSERT INTO " + TABLE_VENTE
+                + " (id_pharmacien, id_client, id_medicament, "
+                + "quantite, date_vente)"
+                + " VALUES (?, ?, ?, ?, ?)";
 
-        try (Connection connection =
-                     DBConnection.getConnection();
-
+        try (Connection connection = DBConnection.getConnection();
              PreparedStatement ps =
                      connection.prepareStatement(sql)) {
 
@@ -61,11 +60,11 @@ public class VenteDAO {
             ps.setInt(2, idCl);
             ps.setInt(3, idMed);
             ps.setInt(4, qte);
-
             ps.setTimestamp(
                     5,
                     new java.sql.Timestamp(new Date().getTime())
             );
+
             int lignesAffectees = ps.executeUpdate();
 
             LOGGER.log(
@@ -76,30 +75,28 @@ public class VenteDAO {
 
             return lignesAffectees > 0;
 
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de l'enregistrement de la vente");
+        } catch (SQLException exception) {
 
             throw new AccesDonneesException(
-                    "Échec de l'enregistrement de la vente",
-                    e
+                    "Échec de l'enregistrement de la vente "
+                            + "pour le pharmacien : " + idPh
+                            + ", client : " + idCl
+                            + ", médicament : " + idMed,
+                    exception
             );
         }
     }
-
 
     public boolean annulerVente(int idVente) {
 
         String sql =
                 "DELETE FROM vente WHERE id_vente=?";
 
-        return executerModification(
-                sql,
-                idVente
-        );
+        return executerModification(sql, idVente);
     }
 
-
-    public List<VenteResponse> ventesParMedicament(int idMed) {
+    public List<VenteResponse> ventesParMedicament(
+            int idMed) {
 
         return chercherVentes(
                 "SELECT * FROM vente WHERE id_medicament=?",
@@ -107,15 +104,14 @@ public class VenteDAO {
         );
     }
 
-
-    public List<VenteResponse> ventesParClient(int idClient) {
+    public List<VenteResponse> ventesParClient(
+            int idClient) {
 
         return chercherVentes(
                 "SELECT * FROM vente WHERE id_client=?",
                 idClient
         );
     }
-
 
     public List<VenteResponse> ventesParPeriode(
             String dateDebut,
@@ -125,11 +121,11 @@ public class VenteDAO {
                 "SELECT * FROM vente "
                 + "WHERE date_vente BETWEEN ? AND ?";
 
-        List<VenteResponse> ventes = new ArrayList<>();
+        List<VenteResponse> ventes =
+                new ArrayList<>();
 
         try (Connection connection =
                      DBConnection.getConnection();
-
              PreparedStatement ps =
                      connection.prepareStatement(sql)) {
 
@@ -140,28 +136,30 @@ public class VenteDAO {
                 remplirVentes(rs, ventes);
             }
 
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de la consultation des ventes par période");
+        } catch (SQLException exception) {
 
             throw new AccesDonneesException(
-                    "Échec de la consultation des ventes par période",
-                    e
+                    "Échec de la consultation des ventes "
+                            + "pour la période du "
+                            + dateDebut
+                            + " au "
+                            + dateFin,
+                    exception
             );
         }
 
         return ventes;
     }
 
-
     private List<VenteResponse> chercherVentes(
             String sql,
             int parametre) {
 
-        List<VenteResponse> ventes = new ArrayList<>();
+        List<VenteResponse> ventes =
+                new ArrayList<>();
 
         try (Connection connection =
                      DBConnection.getConnection();
-
              PreparedStatement ps =
                      connection.prepareStatement(sql)) {
 
@@ -171,18 +169,17 @@ public class VenteDAO {
                 remplirVentes(rs, ventes);
             }
 
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de la consultation des ventes");
+        } catch (SQLException exception) {
 
             throw new AccesDonneesException(
-                    "Échec de la consultation des ventes",
-                    e
+                    "Échec de la consultation des ventes "
+                            + "avec le paramètre : " + parametre,
+                    exception
             );
         }
 
         return ventes;
     }
-
 
     private void remplirVentes(
             ResultSet rs,
@@ -198,12 +195,12 @@ public class VenteDAO {
                             rs.getInt(COL_CLIENT_ID),
                             rs.getInt(COL_MEDICAMENT_ID),
                             rs.getInt(COL_QUANTITE),
-                            rs.getTimestamp(COL_DATE).toLocalDateTime()
+                            rs.getTimestamp(COL_DATE)
+                                    .toLocalDateTime()
                     )
             );
         }
     }
-
 
     private boolean executerModification(
             String sql,
@@ -211,13 +208,13 @@ public class VenteDAO {
 
         try (Connection connection =
                      DBConnection.getConnection();
-
              PreparedStatement ps =
                      connection.prepareStatement(sql)) {
 
             ps.setInt(1, id);
 
-            int lignesAffectees = ps.executeUpdate();
+            int lignesAffectees =
+                    ps.executeUpdate();
 
             LOGGER.log(
                     Level.INFO,
@@ -227,12 +224,12 @@ public class VenteDAO {
 
             return lignesAffectees > 0;
 
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de la modification de la vente");
+        } catch (SQLException exception) {
 
             throw new AccesDonneesException(
-                    "Échec de la modification de la vente",
-                    e
+                    "Échec de la modification de la vente "
+                            + "avec l'ID : " + id,
+                    exception
             );
         }
     }

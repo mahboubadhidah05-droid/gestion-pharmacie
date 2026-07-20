@@ -36,27 +36,16 @@ public class StockHistoriqueDAO {
     private static final String SELECT_HISTORIQUE =
             "SELECT * FROM stock_historique";
 
-
     public void ajouterHistorique(
             int idMedicament,
             int quantite) {
 
-        try (Connection connection =
-                     DBConnection.getConnection();
-
+        try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
-                     connection.prepareStatement(
-                             INSERT_HISTORIQUE)) {
+                     connection.prepareStatement(INSERT_HISTORIQUE)) {
 
-            statement.setInt(
-                    1,
-                    idMedicament
-            );
-
-            statement.setInt(
-                    2,
-                    quantite
-            );
+            statement.setInt(1, idMedicament);
+            statement.setInt(2, quantite);
 
             statement.executeUpdate();
 
@@ -69,56 +58,45 @@ public class StockHistoriqueDAO {
                     }
             );
 
-        } catch (SQLException e) {
-
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de l'enregistrement de l'historique stock",
-                    e
-            );
+        } catch (SQLException exception) {
 
             throw new AccesDonneesException(
-                    "Échec de l'enregistrement de l'historique stock",
-                    e
+                    "Échec de l'enregistrement de l'historique du stock "
+                            + "pour le médicament avec l'ID : "
+                            + idMedicament
+                            + ", quantité : "
+                            + quantite,
+                    exception
             );
         }
     }
 
-
     public List<StockHistoriqueResponse> afficherHistorique() {
 
-        List<StockHistoriqueResponse> historique = new ArrayList<>();
+        List<StockHistoriqueResponse> historique =
+                new ArrayList<>();
 
-        try (Connection connection =
-                     DBConnection.getConnection();
-
-             Statement statement =
-                     connection.createStatement();
-
+        try (Connection connection = DBConnection.getConnection();
+             Statement statement = connection.createStatement();
              ResultSet resultSet =
-                     statement.executeQuery(
-                             SELECT_HISTORIQUE)) {
+                     statement.executeQuery(SELECT_HISTORIQUE)) {
 
             while (resultSet.next()) {
 
-                historique.add(new StockHistoriqueResponse(
-                        resultSet.getInt(ID_MEDICAMENT),
-                        resultSet.getInt(QUANTITE),
-                        resultSet.getTimestamp(DATE_MODIFICATION)
-                ));
+                historique.add(
+                        new StockHistoriqueResponse(
+                                resultSet.getInt(ID_MEDICAMENT),
+                                resultSet.getInt(QUANTITE),
+                                resultSet.getTimestamp(DATE_MODIFICATION)
+                        )
+                );
             }
 
-        } catch (SQLException e) {
-
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de l'affichage de l'historique stock",
-                    e
-            );
+        } catch (SQLException exception) {
 
             throw new AccesDonneesException(
-                    "Échec de la récupération de l'historique stock",
-                    e
+                    "Échec de la récupération de l'historique du stock",
+                    exception
             );
         }
 

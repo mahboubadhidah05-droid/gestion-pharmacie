@@ -6,18 +6,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import dto.MedicamentResponse;
 import exception.AccesDonneesException;
 import utils.DBConnection;
 
 public class MedicamentDAO {
-
-    private static final Logger LOGGER =
-            Logger.getLogger(MedicamentDAO.class.getName());
-
 
     private static final String TABLE_MEDICAMENT =
             "medicament";
@@ -34,8 +28,6 @@ public class MedicamentDAO {
     private static final String WHERE_ID =
             " WHERE " + COL_ID + " = ?";
 
-
-
     public void ajouterMedicament(
             String nom,
             String dosage,
@@ -43,20 +35,15 @@ public class MedicamentDAO {
             double prix,
             int seuil) {
 
-
         String sql =
                 "INSERT INTO "
                 + TABLE_MEDICAMENT
                 + " (nom, dosage, stock, prix, seuil_critique)"
                 + " VALUES(?,?,?,?,?)";
 
-
-        try (Connection connection =
-                     DBConnection.getConnection();
-
+        try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
                      connection.prepareStatement(sql)) {
-
 
             statement.setString(1, nom);
             statement.setString(2, dosage);
@@ -66,27 +53,17 @@ public class MedicamentDAO {
 
             statement.executeUpdate();
 
-
-            LOGGER.info(
-                    "Médicament ajouté avec succès"
-            );
-
-
-        } catch (SQLException e) {
-
-            LOGGER.log(Level.SEVERE, e, () -> "Erreur lors de l'ajout du médicament");
+        } catch (SQLException exception) {
 
             throw new AccesDonneesException(
-                    "Échec de l'ajout du médicament",
-                    e
+                    "Échec de l'ajout du médicament : "
+                            + nom + ", dosage : " + dosage,
+                    exception
             );
         }
     }
 
-
-
     public int getStock(int idMed) {
-
 
         String sql =
                 "SELECT "
@@ -95,52 +72,32 @@ public class MedicamentDAO {
                 + TABLE_MEDICAMENT
                 + WHERE_ID;
 
-
-        try (Connection connection =
-                     DBConnection.getConnection();
-
+        try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
                      connection.prepareStatement(sql)) {
 
-
             statement.setInt(1, idMed);
 
-
-            try (ResultSet result =
-                         statement.executeQuery()) {
-
+            try (ResultSet result = statement.executeQuery()) {
 
                 if (result.next()) {
-
-                    return result.getInt(
-                            COL_STOCK
-                    );
+                    return result.getInt(COL_STOCK);
                 }
             }
 
-
-        } catch (SQLException e) {
-
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de la récupération du stock",
-                    e
-            );
+        } catch (SQLException exception) {
 
             throw new AccesDonneesException(
-                    "Échec de la récupération du stock",
-                    e
+                    "Échec de la récupération du stock "
+                            + "du médicament avec l'ID : " + idMed,
+                    exception
             );
         }
-
 
         return -1;
     }
 
-
-
     public List<MedicamentResponse> listerMedicaments() {
-
 
         String sql =
                 "SELECT * FROM "
@@ -148,20 +105,13 @@ public class MedicamentDAO {
                 + " ORDER BY "
                 + COL_ID;
 
-
         List<MedicamentResponse> medicaments =
                 new ArrayList<>();
 
-
-        try (Connection connection =
-                     DBConnection.getConnection();
-
+        try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
                      connection.prepareStatement(sql);
-
-             ResultSet result =
-                     statement.executeQuery()) {
-
+             ResultSet result = statement.executeQuery()) {
 
             while (result.next()) {
 
@@ -177,31 +127,21 @@ public class MedicamentDAO {
                 );
             }
 
-
-        } catch (SQLException e) {
-
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de la récupération des médicaments",
-                    e
-            );
+        } catch (SQLException exception) {
 
             throw new AccesDonneesException(
-                    "Échec de la récupération des médicaments",
-                    e
+                    "Échec de la récupération de la liste "
+                            + "des médicaments",
+                    exception
             );
         }
-
 
         return medicaments;
     }
 
-
-
     public void updateStock(
             int idMed,
             int quantite) {
-
 
         String sql =
                 "UPDATE "
@@ -211,45 +151,27 @@ public class MedicamentDAO {
                 + "=?"
                 + WHERE_ID;
 
-
-
-        try (Connection connection =
-                     DBConnection.getConnection();
-
+        try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
                      connection.prepareStatement(sql)) {
-
 
             statement.setInt(1, quantite);
             statement.setInt(2, idMed);
 
             statement.executeUpdate();
 
-
-            LOGGER.info(
-                    "Stock mis à jour avec succès"
-            );
-
-
-        } catch (SQLException e) {
-
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de la mise à jour du stock",
-                    e
-            );
+        } catch (SQLException exception) {
 
             throw new AccesDonneesException(
-                    "Échec de la mise à jour du stock",
-                    e
+                    "Échec de la mise à jour du stock "
+                            + "du médicament avec l'ID : " + idMed
+                            + ", nouvelle quantité : " + quantite,
+                    exception
             );
         }
     }
 
-
-
     public String stockCritique(int idMed) {
-
 
         String sql =
                 "SELECT * FROM "
@@ -259,26 +181,19 @@ public class MedicamentDAO {
                 + COL_STOCK
                 + " <= seuil_critique";
 
-
-        try (Connection connection =
-                     DBConnection.getConnection();
-
+        try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
                      connection.prepareStatement(sql)) {
 
-
             statement.setInt(1, idMed);
 
-
-
-            try (ResultSet result =
-                         statement.executeQuery()) {
-
+            try (ResultSet result = statement.executeQuery()) {
 
                 if (result.next()) {
 
                     return String.format(
-                            "Médicament en stock critique : %s (ID %d) | Stock actuel = %d",
+                            "Médicament en stock critique : %s (ID %d) "
+                                    + "| Stock actuel = %d",
                             result.getString(COL_NOM),
                             result.getInt(COL_ID),
                             result.getInt(COL_STOCK)
@@ -286,31 +201,21 @@ public class MedicamentDAO {
                 }
             }
 
-
-        } catch (SQLException e) {
-
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de la vérification du stock critique",
-                    e
-            );
+        } catch (SQLException exception) {
 
             throw new AccesDonneesException(
-                    "Échec de la vérification du stock critique",
-                    e
+                    "Échec de la vérification du stock critique "
+                            + "du médicament avec l'ID : " + idMed,
+                    exception
             );
         }
-
 
         return null;
     }
 
-
-
     public int getIdMedicamentParNomEtDosage(
             String nom,
             String dosage) {
-
 
         String sql =
                 "SELECT "
@@ -321,47 +226,29 @@ public class MedicamentDAO {
                 + COL_NOM
                 + "=? AND dosage=?";
 
-
-
-        try (Connection connection =
-                     DBConnection.getConnection();
-
+        try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
                      connection.prepareStatement(sql)) {
-
 
             statement.setString(1, nom);
             statement.setString(2, dosage);
 
-
-
-            try (ResultSet result =
-                         statement.executeQuery()) {
-
+            try (ResultSet result = statement.executeQuery()) {
 
                 if (result.next()) {
-
-                    return result.getInt(
-                            COL_ID
-                    );
+                    return result.getInt(COL_ID);
                 }
             }
 
-
-        } catch (SQLException e) {
-
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de la recherche du médicament",
-                    e
-            );
+        } catch (SQLException exception) {
 
             throw new AccesDonneesException(
-                    "Échec de la recherche du médicament",
-                    e
+                    "Échec de la recherche du médicament "
+                            + "avec le nom : " + nom
+                            + " et le dosage : " + dosage,
+                    exception
             );
         }
-
 
         return -1;
     }

@@ -3,23 +3,28 @@ package dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import exception.AccesDonneesException;
 import utils.DBConnection;
 
+/**
+ * DAO pour la gestion des commandes.
+ */
 public class CommandeDAO {
 
-    private static final Logger LOGGER =
-            Logger.getLogger(CommandeDAO.class.getName());
-
     private static final String INSERT_COMMANDE =
-            "INSERT INTO commande"
-            + "(id_gestionnaire, id_medicament, quantite)"
-            + " VALUES(?,?,?)";
+            "INSERT INTO commande "
+            + "(id_gestionnaire, id_medicament, quantite) "
+            + "VALUES (?, ?, ?)";
 
-
+    /**
+     * Crée une nouvelle commande.
+     *
+     * @param idGestionnaire identifiant du gestionnaire
+     * @param idMedicament identifiant du médicament
+     * @param quantite quantité commandée
+     * @throws AccesDonneesException en cas d'erreur d'accès à la base de données
+     */
     public void creerCommande(
             int idGestionnaire,
             int idMedicament,
@@ -35,19 +40,16 @@ public class CommandeDAO {
 
             statement.executeUpdate();
 
-            LOGGER.info("Commande créée avec succès");
-
-        } catch (SQLException e) {
-
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de la création de la commande",
-                    e
-            );
+        } catch (SQLException exception) {
 
             throw new AccesDonneesException(
-                    "Échec de la création de la commande",
-                    e
+                    "Échec de la création de la commande pour le gestionnaire "
+                            + idGestionnaire
+                            + ", médicament "
+                            + idMedicament
+                            + ", quantité "
+                            + quantite,
+                    exception
             );
         }
     }

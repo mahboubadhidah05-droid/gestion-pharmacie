@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import exception.AccesDonneesException;
@@ -15,8 +14,11 @@ public class UserDAO {
     private static final Logger LOGGER =
             Logger.getLogger(UserDAO.class.getName());
 
-    private static final String NOM_COLUMN = "nom";
-    private static final String PRENOM_COLUMN = "prenom";
+    private static final String NOM_COLUMN =
+            "nom";
+
+    private static final String PRENOM_COLUMN =
+            "prenom";
 
     private static final String SQL_PHARMACIEN =
             "SELECT nom, prenom FROM pharmacien WHERE login=?";
@@ -24,12 +26,10 @@ public class UserDAO {
     private static final String SQL_GESTIONNAIRE =
             "SELECT nom, prenom FROM gestionnaire WHERE login=?";
 
-
     public String[] getProfil(String login) {
 
         try (Connection connection =
                      DBConnection.getConnection()) {
-
 
             String[] profil =
                     rechercherProfil(
@@ -38,11 +38,9 @@ public class UserDAO {
                             login
                     );
 
-
             if (profil.length > 0) {
                 return profil;
             }
-
 
             return rechercherProfil(
                     connection,
@@ -50,22 +48,15 @@ public class UserDAO {
                     login
             );
 
-
-        } catch (SQLException e) {
-
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de la récupération du profil utilisateur",
-                    e
-            );
+        } catch (SQLException exception) {
 
             throw new AccesDonneesException(
-                    "Échec de la récupération du profil utilisateur",
-                    e
+                    "Échec de la récupération du profil "
+                            + "pour l'utilisateur : " + login,
+                    exception
             );
         }
     }
-
 
     private String[] rechercherProfil(
             Connection connection,
@@ -73,17 +64,13 @@ public class UserDAO {
             String login)
             throws SQLException {
 
-
         try (PreparedStatement ps =
                      connection.prepareStatement(sql)) {
 
-
             ps.setString(1, login);
-
 
             try (ResultSet rs =
                          ps.executeQuery()) {
-
 
                 if (rs.next()) {
 
@@ -95,7 +82,10 @@ public class UserDAO {
             }
         }
 
-
         return new String[0];
     }
+
+	public static Logger getLogger() {
+		return LOGGER;
+	}
 }

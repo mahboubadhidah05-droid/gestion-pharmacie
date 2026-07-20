@@ -4,8 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import exception.AccesDonneesException;
 import utils.DBConnection;
@@ -14,9 +12,6 @@ import utils.DBConnection;
  * DAO responsable de l'authentification des utilisateurs.
  */
 public class UtilisateurDAO {
-
-    private static final Logger LOGGER =
-            Logger.getLogger(UtilisateurDAO.class.getName());
 
     private static final String ROLE_PHARMACIEN =
             "PHARMACIEN";
@@ -33,7 +28,6 @@ public class UtilisateurDAO {
     private static final String SQL_GESTIONNAIRE =
             "SELECT * FROM gestionnaire WHERE login=? AND pwd=?";
 
-
     /**
      * Vérifie le login et le mot de passe et retourne le rôle,
      * ou ROLE_ECHEC si les identifiants sont invalides.
@@ -42,7 +36,6 @@ public class UtilisateurDAO {
 
         try (Connection connection =
                      DBConnection.getConnection()) {
-
 
             if (verifierUtilisateur(
                     connection,
@@ -53,7 +46,6 @@ public class UtilisateurDAO {
                 return ROLE_PHARMACIEN;
             }
 
-
             if (verifierUtilisateur(
                     connection,
                     SQL_GESTIONNAIRE,
@@ -63,25 +55,17 @@ public class UtilisateurDAO {
                 return ROLE_GESTIONNAIRE;
             }
 
-
-        } catch (SQLException e) {
-
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Erreur lors de la verification du role",
-                    e
-            );
+        } catch (SQLException exception) {
 
             throw new AccesDonneesException(
-                    "Échec de la vérification des identifiants",
-                    e
+                    "Échec de la vérification des identifiants "
+                            + "pour l'utilisateur : " + login,
+                    exception
             );
         }
 
-
         return ROLE_ECHEC;
     }
-
 
     private boolean verifierUtilisateur(
             Connection connection,
@@ -90,18 +74,14 @@ public class UtilisateurDAO {
             String pwd)
             throws SQLException {
 
-
         try (PreparedStatement ps =
                      connection.prepareStatement(sql)) {
-
 
             ps.setString(1, login);
             ps.setString(2, pwd);
 
-
             try (ResultSet rs =
                          ps.executeQuery()) {
-
 
                 return rs.next();
             }
