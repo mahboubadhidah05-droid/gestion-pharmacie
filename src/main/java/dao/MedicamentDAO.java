@@ -13,7 +13,6 @@ import utils.DBConnection;
 
 public class MedicamentDAO {
 
-```
 private static final String TABLE_MEDICAMENT =
         "medicament";
 
@@ -275,6 +274,6 @@ public int getIdMedicamentParNomEtDosage(
 
     return -1;
 }
-```
+
 
 }
