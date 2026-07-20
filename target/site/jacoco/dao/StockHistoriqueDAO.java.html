@@ -36,93 +36,71 @@ import utils.DBConnection;
     private static final String SELECT_HISTORIQUE =
             &quot;SELECT * FROM stock_historique&quot;;
 
-
     public void ajouterHistorique(
             int idMedicament,
             int quantite) {
 
-        try (Connection connection =
-<span class="fc" id="L45">                     DBConnection.getConnection();</span>
+<span class="fc" id="L43">        try (Connection connection = DBConnection.getConnection();</span>
+<span class="fc" id="L44">             PreparedStatement statement =</span>
+<span class="fc" id="L45">                     connection.prepareStatement(INSERT_HISTORIQUE)) {</span>
 
-<span class="fc" id="L47">             PreparedStatement statement =</span>
-<span class="fc" id="L48">                     connection.prepareStatement(</span>
-                             INSERT_HISTORIQUE)) {
+<span class="fc" id="L47">            statement.setInt(1, idMedicament);</span>
+<span class="fc" id="L48">            statement.setInt(2, quantite);</span>
 
-<span class="fc" id="L51">            statement.setInt(</span>
-                    1,
-                    idMedicament
-            );
+<span class="fc" id="L50">            statement.executeUpdate();</span>
 
-<span class="fc" id="L56">            statement.setInt(</span>
-                    2,
-                    quantite
-            );
-
-<span class="fc" id="L61">            statement.executeUpdate();</span>
-
-<span class="fc" id="L63">            LOGGER.log(</span>
+<span class="fc" id="L52">            LOGGER.log(</span>
                     Level.INFO,
                     &quot;Historique stock enregistré : idMed={0} qte={1}&quot;,
                     new Object[]{
-<span class="fc" id="L67">                            idMedicament,</span>
-<span class="fc" id="L68">                            quantite</span>
+<span class="fc" id="L56">                            idMedicament,</span>
+<span class="fc" id="L57">                            quantite</span>
                     }
             );
 
-<span class="fc" id="L72">        } catch (SQLException e) {</span>
+<span class="fc" id="L61">        } catch (SQLException exception) {</span>
 
-<span class="fc" id="L74">            LOGGER.log(</span>
-                    Level.SEVERE,
-                    &quot;Erreur lors de l'enregistrement de l'historique stock&quot;,
-                    e
+<span class="fc" id="L63">            throw new AccesDonneesException(</span>
+                    &quot;Échec de l'enregistrement de l'historique du stock &quot;
+                            + &quot;pour le médicament avec l'ID : &quot;
+                            + idMedicament
+                            + &quot;, quantité : &quot;
+                            + quantite,
+                    exception
             );
-
-<span class="fc" id="L80">            throw new AccesDonneesException(</span>
-                    &quot;Échec de l'enregistrement de l'historique stock&quot;,
-                    e
-            );
-<span class="fc" id="L84">        }</span>
-<span class="fc" id="L85">    }</span>
-
+<span class="fc" id="L71">        }</span>
+<span class="fc" id="L72">    }</span>
 
     public List&lt;StockHistoriqueResponse&gt; afficherHistorique() {
 
-<span class="fc" id="L90">        List&lt;StockHistoriqueResponse&gt; historique = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L76">        List&lt;StockHistoriqueResponse&gt; historique =</span>
+                new ArrayList&lt;&gt;();
 
-        try (Connection connection =
-<span class="fc" id="L93">                     DBConnection.getConnection();</span>
+<span class="fc" id="L79">        try (Connection connection = DBConnection.getConnection();</span>
+<span class="fc" id="L80">             Statement statement = connection.createStatement();</span>
+<span class="fc" id="L81">             ResultSet resultSet =</span>
+<span class="fc" id="L82">                     statement.executeQuery(SELECT_HISTORIQUE)) {</span>
 
-<span class="fc" id="L95">             Statement statement =</span>
-<span class="fc" id="L96">                     connection.createStatement();</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">            while (resultSet.next()) {</span>
 
-<span class="fc" id="L98">             ResultSet resultSet =</span>
-<span class="fc" id="L99">                     statement.executeQuery(</span>
-                             SELECT_HISTORIQUE)) {
-
-<span class="fc bfc" id="L102" title="All 2 branches covered.">            while (resultSet.next()) {</span>
-
-<span class="fc" id="L104">                historique.add(new StockHistoriqueResponse(</span>
-<span class="fc" id="L105">                        resultSet.getInt(ID_MEDICAMENT),</span>
-<span class="fc" id="L106">                        resultSet.getInt(QUANTITE),</span>
-<span class="fc" id="L107">                        resultSet.getTimestamp(DATE_MODIFICATION)</span>
-                ));
+<span class="fc" id="L86">                historique.add(</span>
+                        new StockHistoriqueResponse(
+<span class="fc" id="L88">                                resultSet.getInt(ID_MEDICAMENT),</span>
+<span class="fc" id="L89">                                resultSet.getInt(QUANTITE),</span>
+<span class="fc" id="L90">                                resultSet.getTimestamp(DATE_MODIFICATION)</span>
+                        )
+                );
             }
 
-<span class="fc" id="L111">        } catch (SQLException e) {</span>
+<span class="fc" id="L95">        } catch (SQLException exception) {</span>
 
-<span class="fc" id="L113">            LOGGER.log(</span>
-                    Level.SEVERE,
-                    &quot;Erreur lors de l'affichage de l'historique stock&quot;,
-                    e
+<span class="fc" id="L97">            throw new AccesDonneesException(</span>
+                    &quot;Échec de la récupération de l'historique du stock&quot;,
+                    exception
             );
+<span class="fc" id="L101">        }</span>
 
-<span class="fc" id="L119">            throw new AccesDonneesException(</span>
-                    &quot;Échec de la récupération de l'historique stock&quot;,
-                    e
-            );
-<span class="fc" id="L123">        }</span>
-
-<span class="fc" id="L125">        return historique;</span>
+<span class="fc" id="L103">        return historique;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -76,7 +76,7 @@ public class AuthController {
 <span class="fc" id="L76">        HttpSession session = request.getSession(false);</span>
 
 <span class="pc bpc" id="L78" title="1 of 2 branches missed.">        if (session != null) {</span>
-<span class="nc" id="L79">            session.invalidate();</span>
+<span class="fc" id="L79">            session.invalidate();</span>
         }
 
 <span class="fc" id="L82">        return ResponseEntity.noContent().build();</span>

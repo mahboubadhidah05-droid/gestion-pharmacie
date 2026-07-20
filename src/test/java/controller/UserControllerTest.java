@@ -7,14 +7,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import main.PharmacieApplication;
 import service.UserService;
 
-@WebMvcTest(UserController.class)
+@SpringBootTest(
+        classes = PharmacieApplication.class
+)
+@AutoConfigureMockMvc
 class UserControllerTest {
 
     @Autowired
@@ -24,7 +29,7 @@ class UserControllerTest {
     private UserService userService;
 
     @Test
-    void profilDoitRetourner401SansSession()
+    void profilSansSessionDoitRetourner401()
             throws Exception {
 
         mockMvc.perform(
@@ -36,7 +41,7 @@ class UserControllerTest {
     }
 
     @Test
-    void profilDoitRetourner404SiProfilInexistant()
+    void profilInexistantDoitRetourner404()
             throws Exception {
 
         MockHttpSession session =
@@ -68,7 +73,7 @@ class UserControllerTest {
     }
 
     @Test
-    void profilDoitRetourner200AvecProfil()
+    void profilExistantDoitRetourner200()
             throws Exception {
 
         MockHttpSession session =

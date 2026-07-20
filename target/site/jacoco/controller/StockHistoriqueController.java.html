@@ -16,13 +16,13 @@ public class StockHistoriqueController {
 
     private final StockHistoriqueDAO stockHistoriqueDAO;
 
-<span class="nc" id="L19">    public StockHistoriqueController(StockHistoriqueDAO stockHistoriqueDAO) {</span>
-<span class="nc" id="L20">        this.stockHistoriqueDAO = stockHistoriqueDAO;</span>
-<span class="nc" id="L21">    }</span>
+<span class="fc" id="L19">    public StockHistoriqueController(StockHistoriqueDAO stockHistoriqueDAO) {</span>
+<span class="fc" id="L20">        this.stockHistoriqueDAO = stockHistoriqueDAO;</span>
+<span class="fc" id="L21">    }</span>
 
     @GetMapping(&quot;/historique&quot;)
     public ResponseEntity&lt;List&lt;StockHistoriqueResponse&gt;&gt; historique() {
-<span class="nc" id="L25">        return ResponseEntity.ok(stockHistoriqueDAO.afficherHistorique());</span>
+<span class="fc" id="L25">        return ResponseEntity.ok(stockHistoriqueDAO.afficherHistorique());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -9,14 +9,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * en laissant libres les endpoints de connexion.
  */
 @Configuration
-<span class="nc" id="L12">public class WebConfig implements WebMvcConfigurer {</span>
+<span class="fc" id="L12">public class WebConfig implements WebMvcConfigurer {</span>
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
 
-<span class="nc" id="L17">        registry.addInterceptor(new AuthInterceptor())</span>
-<span class="nc" id="L18">                .addPathPatterns(&quot;/api/**&quot;)</span>
-<span class="nc" id="L19">                .excludePathPatterns(&quot;/api/auth/**&quot;);</span>
-<span class="nc" id="L20">    }</span>
+<span class="fc" id="L17">        registry.addInterceptor(new AuthInterceptor())</span>
+<span class="fc" id="L18">                .addPathPatterns(&quot;/api/**&quot;)</span>
+<span class="fc" id="L19">                .excludePathPatterns(&quot;/api/auth/**&quot;);</span>
+<span class="fc" id="L20">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

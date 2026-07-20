@@ -1,8 +1,12 @@
+C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\config\AppConfigTest.java
+C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\config\AuthInterceptorTest.java
+C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\config\WebConfigTest.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\controller\AuthControllerTest.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\controller\ClientControllerTest.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\controller\CommandeControllerTest.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\controller\GestionnaireErreursTest.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\controller\MedicamentControllerTest.java
+C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\controller\StockHistoriqueControllerTest.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\controller\UserControllerTest.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\controller\VenteControllerTest.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\dao\ClientDAOTest.java
@@ -16,6 +20,7 @@ C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\service\AuthServi
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\service\ClientServiceTest.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\service\CommandeServiceTest.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\service\MedicamentServiceTest.java
+C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\service\NotificationServiceTest.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\service\StockServiceTest.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\service\UserServiceTest.java
 C:\Users\mahbo\OneDrive\Bureau\pharmacie-corrige\src\test\java\service\VenteServiceTest.java

@@ -47,13 +47,13 @@ public class UserService {
      * (tableau vide si l'utilisateur est introuvable).
      */
     public String[] getProfil(String login) {
-<span class="nc" id="L50">        return dao.getProfil(login);</span>
+<span class="fc" id="L50">        return dao.getProfil(login);</span>
     }
 
 
     private boolean profilValide(String[] profil) {
 
-<span class="pc bpc" id="L56" title="1 of 4 branches missed.">        return profil != null</span>
+<span class="fc bfc" id="L56" title="All 4 branches covered.">        return profil != null</span>
                 &amp;&amp; profil.length &gt;= 2;
     }
 

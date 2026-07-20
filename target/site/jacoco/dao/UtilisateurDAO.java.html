@@ -4,8 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import exception.AccesDonneesException;
 import utils.DBConnection;
@@ -13,10 +11,7 @@ import utils.DBConnection;
 /**
  * DAO responsable de l'authentification des utilisateurs.
  */
-<span class="fc" id="L16">public class UtilisateurDAO {</span>
-
-<span class="fc" id="L18">    private static final Logger LOGGER =</span>
-<span class="fc" id="L19">            Logger.getLogger(UtilisateurDAO.class.getName());</span>
+<span class="fc" id="L14">public class UtilisateurDAO {</span>
 
     private static final String ROLE_PHARMACIEN =
             &quot;PHARMACIEN&quot;;
@@ -33,7 +28,6 @@ import utils.DBConnection;
     private static final String SQL_GESTIONNAIRE =
             &quot;SELECT * FROM gestionnaire WHERE login=? AND pwd=?&quot;;
 
-
     /**
      * Vérifie le login et le mot de passe et retourne le rôle,
      * ou ROLE_ECHEC si les identifiants sont invalides.
@@ -41,47 +35,37 @@ import utils.DBConnection;
     public String getRole(String login, String pwd) {
 
         try (Connection connection =
-<span class="fc" id="L44">                     DBConnection.getConnection()) {</span>
+<span class="fc" id="L38">                     DBConnection.getConnection()) {</span>
 
-
-<span class="fc bfc" id="L47" title="All 2 branches covered.">            if (verifierUtilisateur(</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">            if (verifierUtilisateur(</span>
                     connection,
                     SQL_PHARMACIEN,
                     login,
                     pwd)) {
 
-<span class="fc" id="L53">                return ROLE_PHARMACIEN;</span>
+<span class="fc" id="L46">                return ROLE_PHARMACIEN;</span>
             }
 
-
-<span class="fc bfc" id="L57" title="All 2 branches covered.">            if (verifierUtilisateur(</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">            if (verifierUtilisateur(</span>
                     connection,
                     SQL_GESTIONNAIRE,
                     login,
                     pwd)) {
 
-<span class="fc" id="L63">                return ROLE_GESTIONNAIRE;</span>
+<span class="fc" id="L55">                return ROLE_GESTIONNAIRE;</span>
             }
 
+<span class="pc bpc" id="L58" title="2 of 4 branches missed.">        } catch (SQLException exception) {</span>
 
-<span class="pc bpc" id="L67" title="2 of 4 branches missed.">        } catch (SQLException e) {</span>
-
-<span class="fc" id="L69">            LOGGER.log(</span>
-                    Level.SEVERE,
-                    &quot;Erreur lors de la verification du role&quot;,
-                    e
+<span class="fc" id="L60">            throw new AccesDonneesException(</span>
+                    &quot;Échec de la vérification des identifiants &quot;
+                            + &quot;pour l'utilisateur : &quot; + login,
+                    exception
             );
+<span class="fc" id="L65">        }</span>
 
-<span class="fc" id="L75">            throw new AccesDonneesException(</span>
-                    &quot;Échec de la vérification des identifiants&quot;,
-                    e
-            );
-<span class="fc" id="L79">        }</span>
-
-
-<span class="fc" id="L82">        return ROLE_ECHEC;</span>
+<span class="fc" id="L67">        return ROLE_ECHEC;</span>
     }
-
 
     private boolean verifierUtilisateur(
             Connection connection,
@@ -90,20 +74,16 @@ import utils.DBConnection;
             String pwd)
             throws SQLException {
 
+<span class="fc" id="L77">        try (PreparedStatement ps =</span>
+<span class="fc" id="L78">                     connection.prepareStatement(sql)) {</span>
 
-<span class="fc" id="L94">        try (PreparedStatement ps =</span>
-<span class="fc" id="L95">                     connection.prepareStatement(sql)) {</span>
+<span class="fc" id="L80">            ps.setString(1, login);</span>
+<span class="fc" id="L81">            ps.setString(2, pwd);</span>
 
+<span class="fc" id="L83">            try (ResultSet rs =</span>
+<span class="fc" id="L84">                         ps.executeQuery()) {</span>
 
-<span class="fc" id="L98">            ps.setString(1, login);</span>
-<span class="fc" id="L99">            ps.setString(2, pwd);</span>
-
-
-<span class="fc" id="L102">            try (ResultSet rs =</span>
-<span class="fc" id="L103">                         ps.executeQuery()) {</span>
-
-
-<span class="fc" id="L106">                return rs.next();</span>
+<span class="fc" id="L86">                return rs.next();</span>
             }
         }
     }

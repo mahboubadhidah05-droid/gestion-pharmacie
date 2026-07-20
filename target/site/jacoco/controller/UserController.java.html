@@ -33,12 +33,12 @@ public class UserController {
 <span class="fc" id="L33">        HttpSession session = request.getSession(false);</span>
 
         /* L'interceptor garantit une session, mais on reste défensif. */
-<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (session == null</span>
+<span class="pc bpc" id="L36" title="1 of 2 branches missed.">        if (session == null</span>
 <span class="pc bpc" id="L37" title="1 of 2 branches missed.">                || session.getAttribute(AuthController.ATTR_LOGIN) == null) {</span>
 
-<span class="fc" id="L39">            return ResponseEntity</span>
-<span class="fc" id="L40">                    .status(HttpStatus.UNAUTHORIZED)</span>
-<span class="fc" id="L41">                    .build();</span>
+<span class="nc" id="L39">            return ResponseEntity</span>
+<span class="nc" id="L40">                    .status(HttpStatus.UNAUTHORIZED)</span>
+<span class="nc" id="L41">                    .build();</span>
         }
 
 <span class="fc" id="L44">        String login =</span>

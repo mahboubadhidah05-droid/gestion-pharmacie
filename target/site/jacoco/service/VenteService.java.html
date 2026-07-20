@@ -81,8 +81,8 @@ public class VenteService {
 
     private void verifierStockCritique(int idMed) {
 <span class="fc" id="L83">        String alerte = medDAO.stockCritique(idMed);</span>
-<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (alerte != null) {</span>
-<span class="nc" id="L85">            LOGGER.warning(alerte);</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">        if (alerte != null) {</span>
+<span class="fc" id="L85">            LOGGER.warning(alerte);</span>
         }
 <span class="fc" id="L87">    }</span>
 
@@ -91,7 +91,7 @@ public class VenteService {
     }
 
     public List&lt;VenteResponse&gt; ventesParClient(int idClient) {
-<span class="nc" id="L94">        return venteDAO.ventesParClient(idClient);</span>
+<span class="fc" id="L94">        return venteDAO.ventesParClient(idClient);</span>
     }
 
     public List&lt;VenteResponse&gt; ventesParPeriode(

@@ -28,44 +28,44 @@ public final class NotificationService {
             List&lt;String&gt; medicamentsCritiques) {
 
 
-<span class="nc bnc" id="L31" title="All 2 branches missed.">        if (medicamentsCritiques == null</span>
-<span class="nc bnc" id="L32" title="All 2 branches missed.">                || medicamentsCritiques.isEmpty()) {</span>
+<span class="fc bfc" id="L31" title="All 2 branches covered.">        if (medicamentsCritiques == null</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">                || medicamentsCritiques.isEmpty()) {</span>
 
-<span class="nc" id="L34">            LOGGER.info(MESSAGE_VIDE);</span>
-<span class="nc" id="L35">            return;</span>
+<span class="fc" id="L34">            LOGGER.info(MESSAGE_VIDE);</span>
+<span class="fc" id="L35">            return;</span>
         }
 
 
-<span class="nc" id="L39">        LOGGER.info(TITRE_DEBUT);</span>
+<span class="fc" id="L39">        LOGGER.info(TITRE_DEBUT);</span>
 
 
-<span class="nc" id="L42">        medicamentsCritiques.forEach(</span>
+<span class="fc" id="L42">        medicamentsCritiques.forEach(</span>
                 NotificationService::envoyerNotification
         );
 
 
-<span class="nc" id="L47">        LOGGER.info(TITRE_FIN);</span>
-<span class="nc" id="L48">    }</span>
+<span class="fc" id="L47">        LOGGER.info(TITRE_FIN);</span>
+<span class="fc" id="L48">    }</span>
 
 
     private static void envoyerNotification(
             String medicament) {
 
 
-<span class="nc" id="L55">        LOGGER.log(</span>
+<span class="fc" id="L55">        LOGGER.log(</span>
                 Level.WARNING,
                 &quot;Notification : {0}&quot;,
                 medicament
         );
-<span class="nc" id="L60">    }</span>
+<span class="fc" id="L60">    }</span>
 
 
     public static void notifierStockCritique(
             String medicament) {
 
-<span class="nc" id="L66">        envoyerEmail(</span>
-<span class="nc" id="L67">                List.of(medicament)</span>
+<span class="fc" id="L66">        envoyerEmail(</span>
+<span class="fc" id="L67">                List.of(medicament)</span>
         );
-<span class="nc" id="L69">    }</span>
+<span class="fc" id="L69">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

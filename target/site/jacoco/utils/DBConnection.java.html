@@ -29,10 +29,10 @@ public final class DBConnection {
 
     public static Connection getConnection() throws SQLException {
 
-<span class="fc" id="L32">        validatePassword(PASSWORD);</span>
+<span class="nc" id="L32">        validatePassword(PASSWORD);</span>
 
         try {
-<span class="fc" id="L35">            Class.forName(&quot;com.mysql.cj.jdbc.Driver&quot;);</span>
+<span class="nc" id="L35">            Class.forName(&quot;com.mysql.cj.jdbc.Driver&quot;);</span>
 
 <span class="nc" id="L37">        } catch (ClassNotFoundException e) {</span>
 
@@ -40,9 +40,9 @@ public final class DBConnection {
                     &quot;Driver MySQL introuvable&quot;,
                     e
             );
-<span class="fc" id="L43">        }</span>
+<span class="nc" id="L43">        }</span>
 
-<span class="fc" id="L45">        return DriverManager.getConnection(</span>
+<span class="nc" id="L45">        return DriverManager.getConnection(</span>
                 URL,
                 USER,
                 PASSWORD

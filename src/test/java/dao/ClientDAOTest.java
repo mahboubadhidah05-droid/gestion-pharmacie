@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
@@ -14,6 +15,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,15 +51,19 @@ class ClientDAOTest {
         ).thenReturn(true);
 
         when(
-                connection.prepareStatement(anyString())
+                connection.prepareStatement(
+                        anyString()
+                )
         ).thenReturn(statement);
 
         when(
                 statement.executeQuery()
         ).thenReturn(resultSet);
 
-        try (MockedStatic<DBConnection> dbConnection =
-                     mockStatic(DBConnection.class)) {
+        try (
+                MockedStatic<DBConnection> dbConnection =
+                        mockStatic(DBConnection.class)
+        ) {
 
             dbConnection.when(
                     DBConnection::getConnection
@@ -68,8 +74,11 @@ class ClientDAOTest {
 
             assertTrue(resultat);
 
-            verify(statement).setInt(1, 1);
-            verify(statement).executeQuery();
+            verify(statement)
+                    .setInt(1, 1);
+
+            verify(statement)
+                    .executeQuery();
         }
     }
 
@@ -91,15 +100,19 @@ class ClientDAOTest {
         ).thenReturn(false);
 
         when(
-                connection.prepareStatement(anyString())
+                connection.prepareStatement(
+                        anyString()
+                )
         ).thenReturn(statement);
 
         when(
                 statement.executeQuery()
         ).thenReturn(resultSet);
 
-        try (MockedStatic<DBConnection> dbConnection =
-                     mockStatic(DBConnection.class)) {
+        try (
+                MockedStatic<DBConnection> dbConnection =
+                        mockStatic(DBConnection.class)
+        ) {
 
             dbConnection.when(
                     DBConnection::getConnection
@@ -120,13 +133,17 @@ class ClientDAOTest {
                 mock(Connection.class);
 
         when(
-                connection.prepareStatement(anyString())
+                connection.prepareStatement(
+                        anyString()
+                )
         ).thenThrow(
                 new SQLException("Erreur SQL")
         );
 
-        try (MockedStatic<DBConnection> dbConnection =
-                     mockStatic(DBConnection.class)) {
+        try (
+                MockedStatic<DBConnection> dbConnection =
+                        mockStatic(DBConnection.class)
+        ) {
 
             dbConnection.when(
                     DBConnection::getConnection
@@ -155,7 +172,9 @@ class ClientDAOTest {
         when(
                 connection.prepareStatement(
                         anyString(),
-                        1
+                        eq(
+                                Statement.RETURN_GENERATED_KEYS
+                        )
                 )
         ).thenReturn(statement);
 
@@ -171,8 +190,10 @@ class ClientDAOTest {
                 keys.getInt(1)
         ).thenReturn(10);
 
-        try (MockedStatic<DBConnection> dbConnection =
-                     mockStatic(DBConnection.class)) {
+        try (
+                MockedStatic<DBConnection> dbConnection =
+                        mockStatic(DBConnection.class)
+        ) {
 
             dbConnection.when(
                     DBConnection::getConnection
@@ -191,27 +212,32 @@ class ClientDAOTest {
                     resultat
             );
 
-            verify(statement).setString(
-                    1,
-                    "Dupont"
-            );
+            verify(statement)
+                    .setString(
+                            1,
+                            "Dupont"
+                    );
 
-            verify(statement).setString(
-                    2,
-                    "Jean"
-            );
+            verify(statement)
+                    .setString(
+                            2,
+                            "Jean"
+                    );
 
-            verify(statement).setString(
-                    3,
-                    "jean@test.com"
-            );
+            verify(statement)
+                    .setString(
+                            3,
+                            "jean@test.com"
+                    );
 
-            verify(statement).setString(
-                    4,
-                    "Tunis"
-            );
+            verify(statement)
+                    .setString(
+                            4,
+                            "Tunis"
+                    );
 
-            verify(statement).executeUpdate();
+            verify(statement)
+                    .executeUpdate();
         }
     }
 
@@ -231,7 +257,9 @@ class ClientDAOTest {
         when(
                 connection.prepareStatement(
                         anyString(),
-                        1
+                        eq(
+                                Statement.RETURN_GENERATED_KEYS
+                        )
                 )
         ).thenReturn(statement);
 
@@ -243,8 +271,10 @@ class ClientDAOTest {
                 keys.next()
         ).thenReturn(false);
 
-        try (MockedStatic<DBConnection> dbConnection =
-                     mockStatic(DBConnection.class)) {
+        try (
+                MockedStatic<DBConnection> dbConnection =
+                        mockStatic(DBConnection.class)
+        ) {
 
             dbConnection.when(
                     DBConnection::getConnection
@@ -275,14 +305,18 @@ class ClientDAOTest {
         when(
                 connection.prepareStatement(
                         anyString(),
-                        1
+                        eq(
+                                Statement.RETURN_GENERATED_KEYS
+                        )
                 )
         ).thenThrow(
                 new SQLException("Erreur SQL")
         );
 
-        try (MockedStatic<DBConnection> dbConnection =
-                     mockStatic(DBConnection.class)) {
+        try (
+                MockedStatic<DBConnection> dbConnection =
+                        mockStatic(DBConnection.class)
+        ) {
 
             dbConnection.when(
                     DBConnection::getConnection

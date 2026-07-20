@@ -8,15 +8,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import main.PharmacieApplication;
 import service.AuthService;
 
-@WebMvcTest(AuthController.class)
+@SpringBootTest(
+        classes = PharmacieApplication.class
+)
+@AutoConfigureMockMvc
 class AuthControllerTest {
 
     @Autowired
@@ -26,7 +30,7 @@ class AuthControllerTest {
     private AuthService authService;
 
     @Test
-    void loginDoitRetourner200SiIdentifiantsValides()
+    void loginValideDoitRetourner200()
             throws Exception {
 
         when(
@@ -39,7 +43,7 @@ class AuthControllerTest {
         mockMvc.perform(
                 post("/api/auth/login")
                         .contentType(
-                                MediaType.APPLICATION_JSON
+                                "application/json"
                         )
                         .content(
                                 """
@@ -64,26 +68,26 @@ class AuthControllerTest {
     }
 
     @Test
-    void loginDoitRetourner401SiIdentifiantsInvalides()
+    void loginInvalideDoitRetourner401()
             throws Exception {
 
         when(
                 authService.login(
                         "pharma",
-                        "incorrect"
+                        "wrong"
                 )
         ).thenReturn("ECHEC");
 
         mockMvc.perform(
                 post("/api/auth/login")
                         .contentType(
-                                MediaType.APPLICATION_JSON
+                                "application/json"
                         )
                         .content(
                                 """
                                 {
                                     "login": "pharma",
-                                    "pwd": "incorrect"
+                                    "pwd": "wrong"
                                 }
                                 """
                         )
@@ -94,40 +98,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void logoutDoitRetourner204AvecSession()
-            throws Exception {
-
-        MockHttpSession session =
-                new MockHttpSession();
-
-        session.setAttribute(
-                AuthController.ATTR_LOGIN,
-                "pharma"
-        );
-
-        mockMvc.perform(
-                post("/api/auth/logout")
-                        .session(session)
-        )
-        .andExpect(
-                status().isNoContent()
-        );
-    }
-
-    @Test
-    void logoutDoitRetourner204SansSession()
-            throws Exception {
-
-        mockMvc.perform(
-                post("/api/auth/logout")
-        )
-        .andExpect(
-                status().isNoContent()
-        );
-    }
-
-    @Test
-    void meDoitRetourner401SansSession()
+    void meSansSessionDoitRetourner401()
             throws Exception {
 
         mockMvc.perform(
@@ -139,7 +110,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void meDoitRetournerUtilisateurConnecte()
+    void meAvecSessionDoitRetourner200()
             throws Exception {
 
         MockHttpSession session =
@@ -169,6 +140,32 @@ class AuthControllerTest {
         .andExpect(
                 jsonPath("$.role")
                         .value("PHARMACIEN")
+        );
+    }
+
+    @Test
+    void logoutDoitRetourner204()
+            throws Exception {
+
+        MockHttpSession session =
+                new MockHttpSession();
+
+        session.setAttribute(
+                AuthController.ATTR_LOGIN,
+                "pharma"
+        );
+
+        session.setAttribute(
+                AuthController.ATTR_ROLE,
+                "PHARMACIEN"
+        );
+
+        mockMvc.perform(
+                post("/api/auth/logout")
+                        .session(session)
+        )
+        .andExpect(
+                status().isNoContent()
         );
     }
 }
