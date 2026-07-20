@@ -5,8 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import controller.AuthController;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,8 +48,13 @@ class AuthInterceptorTest {
         assertFalse(resultat);
     }
 
-    @Test
-    void doitAutoriserGestionnairePourMedicaments()
+    @ParameterizedTest
+    @MethodSource("casAutorisationEtRefus")
+    void doitGererAccesSelonRoleEtUrl(
+            String login,
+            String role,
+            String url,
+            boolean accesAttendu)
             throws Exception {
 
         HttpSession session =
@@ -55,14 +65,14 @@ class AuthInterceptorTest {
 
         when(session.getAttribute(
                 AuthController.ATTR_LOGIN))
-                .thenReturn("gestionnaire");
+                .thenReturn(login);
 
         when(session.getAttribute(
                 AuthController.ATTR_ROLE))
-                .thenReturn("GESTIONNAIRE");
+                .thenReturn(role);
 
         when(request.getRequestURI())
-                .thenReturn("/api/medicaments");
+                .thenReturn(url);
 
         boolean resultat =
                 interceptor.preHandle(
@@ -71,99 +81,41 @@ class AuthInterceptorTest {
                         new Object()
                 );
 
-        assertTrue(resultat);
+        if (accesAttendu) {
+            assertTrue(resultat);
+        } else {
+            assertFalse(resultat);
+        }
     }
 
-    @Test
-    void doitRefuserPharmacienPourMedicaments()
-            throws Exception {
+    private static Stream<Arguments>
+    casAutorisationEtRefus() {
 
-        HttpSession session =
-                mock(HttpSession.class);
-
-        when(request.getSession(false))
-                .thenReturn(session);
-
-        when(session.getAttribute(
-                AuthController.ATTR_LOGIN))
-                .thenReturn("pharma");
-
-        when(session.getAttribute(
-                AuthController.ATTR_ROLE))
-                .thenReturn("PHARMACIEN");
-
-        when(request.getRequestURI())
-                .thenReturn("/api/medicaments");
-
-        boolean resultat =
-                interceptor.preHandle(
-                        request,
-                        response,
-                        new Object()
-                );
-
-        assertFalse(resultat);
-    }
-
-    @Test
-    void doitAutoriserPharmacienPourVentes()
-            throws Exception {
-
-        HttpSession session =
-                mock(HttpSession.class);
-
-        when(request.getSession(false))
-                .thenReturn(session);
-
-        when(session.getAttribute(
-                AuthController.ATTR_LOGIN))
-                .thenReturn("pharma");
-
-        when(session.getAttribute(
-                AuthController.ATTR_ROLE))
-                .thenReturn("PHARMACIEN");
-
-        when(request.getRequestURI())
-                .thenReturn("/api/ventes");
-
-        boolean resultat =
-                interceptor.preHandle(
-                        request,
-                        response,
-                        new Object()
-                );
-
-        assertTrue(resultat);
-    }
-
-    @Test
-    void doitAutoriserUrlSansRegleSpecifique()
-            throws Exception {
-
-        HttpSession session =
-                mock(HttpSession.class);
-
-        when(request.getSession(false))
-                .thenReturn(session);
-
-        when(session.getAttribute(
-                AuthController.ATTR_LOGIN))
-                .thenReturn("pharma");
-
-        when(session.getAttribute(
-                AuthController.ATTR_ROLE))
-                .thenReturn("PHARMACIEN");
-
-        when(request.getRequestURI())
-                .thenReturn("/api/stock/historique");
-
-        boolean resultat =
-                interceptor.preHandle(
-                        request,
-                        response,
-                        new Object()
-                );
-
-        assertTrue(resultat);
+        return Stream.of(
+                Arguments.of(
+                        "gestionnaire",
+                        "GESTIONNAIRE",
+                        "/api/medicaments",
+                        true
+                ),
+                Arguments.of(
+                        "pharma",
+                        "PHARMACIEN",
+                        "/api/medicaments",
+                        false
+                ),
+                Arguments.of(
+                        "pharma",
+                        "PHARMACIEN",
+                        "/api/ventes",
+                        true
+                ),
+                Arguments.of(
+                        "pharma",
+                        "PHARMACIEN",
+                        "/api/stock/historique",
+                        true
+                )
+        );
     }
 }
