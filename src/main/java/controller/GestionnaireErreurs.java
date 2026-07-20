@@ -21,20 +21,24 @@ public class GestionnaireErreurs {
     private static final Logger LOGGER =
             Logger.getLogger(GestionnaireErreurs.class.getName());
 
+    private static final String MESSAGE_ERREUR_DONNEES =
+            "Erreur d'accès aux données";
+
+    private static final String MESSAGE_REPONSE_CLIENT =
+            "Erreur interne : opération impossible sur la base de données";
 
     @ExceptionHandler(AccesDonneesException.class)
     public ResponseEntity<MessageResponse> gererAccesDonnees(
-            AccesDonneesException e) {
+            AccesDonneesException exception) {
 
         LOGGER.log(
                 Level.SEVERE,
-                "Erreur d'accès aux données",
-                e
+                MESSAGE_ERREUR_DONNEES,
+                exception
         );
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new MessageResponse(
-                        "Erreur interne : opération impossible sur la base de données"));
+                .body(new MessageResponse(MESSAGE_REPONSE_CLIENT));
     }
 }
