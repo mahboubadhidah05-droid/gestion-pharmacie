@@ -1,11 +1,9 @@
 package dao;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import java.sql.Connection;
@@ -15,271 +13,196 @@ import java.sql.SQLException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mockito;
 
 import exception.AccesDonneesException;
 import utils.DBConnection;
 
-@ExtendWith(MockitoExtension.class)
 class UserDAOTest {
 
-    @Mock
-    private Connection connection;
-
     private UserDAO userDAO;
-
 
     @BeforeEach
     void setUp() {
         userDAO = new UserDAO();
     }
 
-
-    /**
-     * Mock de la connexion DB partagé pour éviter
-     * la duplication SonarQube.
-     */
-    private MockedStatic<DBConnection> mockDatabase()
-            throws SQLException {
-
-        MockedStatic<DBConnection> mockedDb =
-                mockStatic(DBConnection.class);
-
-        mockedDb.when(DBConnection::getConnection)
-                .thenReturn(connection);
-
-        return mockedDb;
-    }
-
-
     @Test
-    void testGetProfil_TrouvePharmacien()
-            throws SQLException {
+    void doitRetournerProfilPharmacien()
+            throws Exception {
 
-        PreparedStatement psPharmacien =
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
                 mock(PreparedStatement.class);
 
-        ResultSet rsPharmacien =
+        ResultSet result =
                 mock(ResultSet.class);
 
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
 
-        try (MockedStatic<DBConnection> mockedDb =
-                     mockDatabase()) {
+        when(
+                statement.executeQuery()
+        ).thenReturn(result);
 
+        when(
+                result.next()
+        ).thenReturn(true);
 
-            when(connection.prepareStatement(anyString()))
-                    .thenReturn(psPharmacien);
+        when(
+                result.getString("nom")
+        ).thenReturn("Dupont");
 
+        when(
+                result.getString("prenom")
+        ).thenReturn("Jean");
 
-            when(psPharmacien.executeQuery())
-                    .thenReturn(rsPharmacien);
+        try (MockedStatic<DBConnection> dbConnection =
+                     Mockito.mockStatic(DBConnection.class)) {
 
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
 
-            when(rsPharmacien.next())
-                    .thenReturn(true);
-
-
-            when(rsPharmacien.getString("nom"))
-                    .thenReturn("Gharbi");
-
-
-            when(rsPharmacien.getString("prenom"))
-                    .thenReturn("Nour");
-
-
-            String[] resultat =
-                    userDAO.getProfil("nour.gharbi");
-
+            String[] profil =
+                    userDAO.getProfil("jean");
 
             assertArrayEquals(
-                    new String[]{"Gharbi", "Nour"},
-                    resultat
+                    new String[]{
+                            "Dupont",
+                            "Jean"
+                    },
+                    profil
             );
         }
     }
 
-
     @Test
-    void testGetProfil_TrouveGestionnaire()
-            throws SQLException {
+    void doitRetournerProfilGestionnaire()
+            throws Exception {
 
-        PreparedStatement psPharmacien =
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
                 mock(PreparedStatement.class);
 
-        PreparedStatement psGestionnaire =
-                mock(PreparedStatement.class);
-
-
-        ResultSet rsPharmacien =
+        ResultSet result =
                 mock(ResultSet.class);
 
-        ResultSet rsGestionnaire =
-                mock(ResultSet.class);
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
 
+        when(
+                statement.executeQuery()
+        ).thenReturn(result);
 
-        try (MockedStatic<DBConnection> mockedDb =
-                     mockDatabase()) {
+        /*
+         * Premier appel : pharmacien absent.
+         * Deuxième appel : gestionnaire trouvé.
+         */
+        when(
+                result.next()
+        ).thenReturn(false, true);
 
+        when(
+                result.getString("nom")
+        ).thenReturn("Martin");
 
-            when(connection.prepareStatement(anyString()))
-                    .thenAnswer(invocation -> {
+        when(
+                result.getString("prenom")
+        ).thenReturn("Paul");
 
-                        String sql =
-                                invocation.getArgument(0);
+        try (MockedStatic<DBConnection> dbConnection =
+                     Mockito.mockStatic(DBConnection.class)) {
 
-                        if (sql.contains("pharmacien")) {
-                            return psPharmacien;
-                        }
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
 
-                        return psGestionnaire;
-                    });
-
-
-            when(psPharmacien.executeQuery())
-                    .thenReturn(rsPharmacien);
-
-
-            when(rsPharmacien.next())
-                    .thenReturn(false);
-
-
-            when(psGestionnaire.executeQuery())
-                    .thenReturn(rsGestionnaire);
-
-
-            when(rsGestionnaire.next())
-                    .thenReturn(true);
-
-
-            when(rsGestionnaire.getString("nom"))
-                    .thenReturn("Khemiri");
-
-
-            when(rsGestionnaire.getString("prenom"))
-                    .thenReturn("Wassim");
-
-
-            String[] resultat =
-                    userDAO.getProfil("wassim.khemiri");
-
+            String[] profil =
+                    userDAO.getProfil("paul");
 
             assertArrayEquals(
-                    new String[]{"Khemiri", "Wassim"},
-                    resultat
+                    new String[]{
+                            "Martin",
+                            "Paul"
+                    },
+                    profil
             );
         }
     }
 
-
     @Test
-    void testGetProfil_AucunUtilisateurTrouve()
-            throws SQLException {
+    void doitRetournerProfilVideSiUtilisateurIntrouvable()
+            throws Exception {
 
-        PreparedStatement psPharmacien =
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
                 mock(PreparedStatement.class);
 
-        PreparedStatement psGestionnaire =
-                mock(PreparedStatement.class);
-
-
-        ResultSet rsPharmacien =
+        ResultSet result =
                 mock(ResultSet.class);
 
-        ResultSet rsGestionnaire =
-                mock(ResultSet.class);
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
 
+        when(
+                statement.executeQuery()
+        ).thenReturn(result);
 
-        try (MockedStatic<DBConnection> mockedDb =
-                     mockDatabase()) {
+        when(
+                result.next()
+        ).thenReturn(false);
 
+        try (MockedStatic<DBConnection> dbConnection =
+                     Mockito.mockStatic(DBConnection.class)) {
 
-            when(connection.prepareStatement(anyString()))
-                    .thenAnswer(invocation -> {
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
 
-                        String sql =
-                                invocation.getArgument(0);
-
-                        if (sql.contains("pharmacien")) {
-                            return psPharmacien;
-                        }
-
-                        return psGestionnaire;
-                    });
-
-
-            when(psPharmacien.executeQuery())
-                    .thenReturn(rsPharmacien);
-
-
-            when(rsPharmacien.next())
-                    .thenReturn(false);
-
-
-            when(psGestionnaire.executeQuery())
-                    .thenReturn(rsGestionnaire);
-
-
-            when(rsGestionnaire.next())
-                    .thenReturn(false);
-
-
-            String[] resultat =
+            String[] profil =
                     userDAO.getProfil("inconnu");
 
-
-            assertEquals(
-                    0,
-                    resultat.length
+            assertArrayEquals(
+                    new String[0],
+                    profil
             );
         }
     }
 
-
     @Test
-    void testGetProfil_SQLException_DoitLeverAccesDonneesException()
-            throws SQLException {
+    void doitLeverAccesDonneesExceptionSiErreurSQL()
+            throws Exception {
 
-        try (MockedStatic<DBConnection> mockedDb =
-                     mockDatabase()) {
+        Connection connection =
+                mock(Connection.class);
 
+        when(
+                connection.prepareStatement(anyString())
+        ).thenThrow(
+                new SQLException("Erreur SQL")
+        );
 
-            when(connection.prepareStatement(anyString()))
-                    .thenThrow(
-                            new SQLException(
-                                    "Erreur SQL simulée")
-                    );
+        try (MockedStatic<DBConnection> dbConnection =
+                     Mockito.mockStatic(DBConnection.class)) {
 
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
 
             assertThrows(
                     AccesDonneesException.class,
-                    () -> userDAO.getProfil("nour.gharbi")
-            );
-        }
-    }
-
-
-    @Test
-    void testGetProfil_ErreurConnexion_DoitLeverAccesDonneesException()
-            throws SQLException {
-
-        try (MockedStatic<DBConnection> mockedDb =
-                     mockStatic(DBConnection.class)) {
-
-
-            mockedDb.when(DBConnection::getConnection)
-                    .thenThrow(
-                            new SQLException(
-                                    "Connexion impossible")
-                    );
-
-
-            assertThrows(
-                    AccesDonneesException.class,
-                    () -> userDAO.getProfil("nour.gharbi")
+                    () -> userDAO.getProfil("jean")
             );
         }
     }

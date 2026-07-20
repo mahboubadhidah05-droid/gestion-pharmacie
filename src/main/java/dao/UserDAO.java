@@ -4,15 +4,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Logger;
 
 import exception.AccesDonneesException;
 import utils.DBConnection;
 
 public class UserDAO {
-
-    private static final Logger LOGGER =
-            Logger.getLogger(UserDAO.class.getName());
 
     private static final String NOM_COLUMN =
             "nom";
@@ -21,10 +17,14 @@ public class UserDAO {
             "prenom";
 
     private static final String SQL_PHARMACIEN =
-            "SELECT nom, prenom FROM pharmacien WHERE login=?";
+            "SELECT nom, prenom "
+                    + "FROM pharmacien "
+                    + "WHERE login=?";
 
     private static final String SQL_GESTIONNAIRE =
-            "SELECT nom, prenom FROM gestionnaire WHERE login=?";
+            "SELECT nom, prenom "
+                    + "FROM gestionnaire "
+                    + "WHERE login=?";
 
     public String[] getProfil(String login) {
 
@@ -52,7 +52,8 @@ public class UserDAO {
 
             throw new AccesDonneesException(
                     "Échec de la récupération du profil "
-                            + "pour l'utilisateur : " + login,
+                            + "pour l'utilisateur : "
+                            + login,
                     exception
             );
         }
@@ -67,7 +68,10 @@ public class UserDAO {
         try (PreparedStatement ps =
                      connection.prepareStatement(sql)) {
 
-            ps.setString(1, login);
+            ps.setString(
+                    1,
+                    login
+            );
 
             try (ResultSet rs =
                          ps.executeQuery()) {
@@ -75,8 +79,12 @@ public class UserDAO {
                 if (rs.next()) {
 
                     return new String[]{
-                            rs.getString(NOM_COLUMN),
-                            rs.getString(PRENOM_COLUMN)
+                            rs.getString(
+                                    NOM_COLUMN
+                            ),
+                            rs.getString(
+                                    PRENOM_COLUMN
+                            )
                     };
                 }
             }
@@ -84,8 +92,4 @@ public class UserDAO {
 
         return new String[0];
     }
-
-	public static Logger getLogger() {
-		return LOGGER;
-	}
 }

@@ -1,42 +1,25 @@
 package dao;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+
 import exception.AccesDonneesException;
 import utils.DBConnection;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
-
-@ExtendWith(MockitoExtension.class)
 class UtilisateurDAOTest {
-
-    @Mock
-    private Connection connection;
-
-    @Mock
-    private PreparedStatement psPharmacien;
-
-    @Mock
-    private PreparedStatement psGestionnaire;
-
-    @Mock
-    private ResultSet rsPharmacien;
-
-    @Mock
-    private ResultSet rsGestionnaire;
 
     private UtilisateurDAO utilisateurDAO;
 
@@ -46,71 +29,171 @@ class UtilisateurDAOTest {
     }
 
     @Test
-    void getRole_pharmacien_doitRetournerPharmacien() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
+    void doitRetournerRolePharmacien()
+            throws Exception {
 
-            when(connection.prepareStatement(contains("pharmacien"))).thenReturn(psPharmacien);
-            when(psPharmacien.executeQuery()).thenReturn(rsPharmacien);
-            when(rsPharmacien.next()).thenReturn(true);
+        Connection connection =
+                mock(Connection.class);
 
-            String role = utilisateurDAO.getRole("phar1", "motdepasse");
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
 
-            assertEquals("PHARMACIEN", role);
+        ResultSet result =
+                mock(ResultSet.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
+
+        when(
+                statement.executeQuery()
+        ).thenReturn(result);
+
+        when(
+                result.next()
+        ).thenReturn(true);
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     Mockito.mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            String role =
+                    utilisateurDAO.getRole(
+                            "pharma",
+                            "123"
+                    );
+
+            assertEquals(
+                    "PHARMACIEN",
+                    role
+            );
         }
     }
 
     @Test
-    void getRole_gestionnaire_doitRetournerGestionnaire() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
+    void doitRetournerRoleGestionnaire()
+            throws Exception {
 
-            when(connection.prepareStatement(contains("pharmacien"))).thenReturn(psPharmacien);
-            when(psPharmacien.executeQuery()).thenReturn(rsPharmacien);
-            when(rsPharmacien.next()).thenReturn(false);
+        Connection connection =
+                mock(Connection.class);
 
-            when(connection.prepareStatement(contains("gestionnaire"))).thenReturn(psGestionnaire);
-            when(psGestionnaire.executeQuery()).thenReturn(rsGestionnaire);
-            when(rsGestionnaire.next()).thenReturn(true);
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
 
-            String role = utilisateurDAO.getRole("gest1", "motdepasse");
+        ResultSet result =
+                mock(ResultSet.class);
 
-            assertEquals("GESTIONNAIRE", role);
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
+
+        when(
+                statement.executeQuery()
+        ).thenReturn(result);
+
+        /*
+         * Premier appel : pharmacien non trouvé.
+         * Deuxième appel : gestionnaire trouvé.
+         */
+        when(
+                result.next()
+        ).thenReturn(false, true);
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     Mockito.mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            String role =
+                    utilisateurDAO.getRole(
+                            "gestionnaire",
+                            "123"
+                    );
+
+            assertEquals(
+                    "GESTIONNAIRE",
+                    role
+            );
         }
     }
 
     @Test
-    void getRole_identifiantsInvalides_doitRetournerEchec() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
+    void doitRetournerEchecSiIdentifiantsInvalides()
+            throws Exception {
 
-            when(connection.prepareStatement(contains("pharmacien"))).thenReturn(psPharmacien);
-            when(psPharmacien.executeQuery()).thenReturn(rsPharmacien);
-            when(rsPharmacien.next()).thenReturn(false);
+        Connection connection =
+                mock(Connection.class);
 
-            when(connection.prepareStatement(contains("gestionnaire"))).thenReturn(psGestionnaire);
-            when(psGestionnaire.executeQuery()).thenReturn(rsGestionnaire);
-            when(rsGestionnaire.next()).thenReturn(false);
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
 
-            String role = utilisateurDAO.getRole("inconnu", "faux");
+        ResultSet result =
+                mock(ResultSet.class);
 
-            assertEquals("ECHEC", role);
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
+
+        when(
+                statement.executeQuery()
+        ).thenReturn(result);
+
+        when(
+                result.next()
+        ).thenReturn(false);
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     Mockito.mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            String role =
+                    utilisateurDAO.getRole(
+                            "inconnu",
+                            "incorrect"
+                    );
+
+            assertEquals(
+                    "ECHEC",
+                    role
+            );
         }
     }
 
     @Test
-    void getRole_erreurSQL_doitLeverAccesDonneesException() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection)
-                    .thenThrow(new SQLException("Erreur connexion"));
+    void doitLeverAccesDonneesExceptionSiErreurSQL()
+            throws Exception {
 
-            assertThrows(AccesDonneesException.class,
-                    () -> utilisateurDAO.getRole("phar1", "motdepasse"));
+        Connection connection =
+                mock(Connection.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenThrow(
+                new SQLException("Erreur SQL")
+        );
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     Mockito.mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> utilisateurDAO.getRole(
+                            "pharma",
+                            "123"
+                    )
+            );
         }
-    }
-
-    // Petit matcher utilitaire pour cibler la bonne requête SQL selon la table visée
-    private static String contains(String texte) {
-        return org.mockito.ArgumentMatchers.matches(".*" + texte + ".*");
     }
 }

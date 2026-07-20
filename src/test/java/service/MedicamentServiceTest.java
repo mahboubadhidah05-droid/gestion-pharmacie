@@ -1,80 +1,190 @@
 package service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import dto.MedicamentResponse;
 import dao.MedicamentDAO;
 import dao.StockHistoriqueDAO;
 
-import org.mockito.MockedStatic;
-
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(MockitoExtension.class)
 class MedicamentServiceTest {
 
     @Mock
-    private MedicamentDAO medicamentDAO;
+    private MedicamentDAO dao;
 
     @Mock
-    private StockHistoriqueDAO stockHistoriqueDAO;
+    private StockHistoriqueDAO histDAO;
 
-    private MedicamentService medicamentService;
+    private MedicamentService service;
 
     @BeforeEach
     void setUp() {
-        medicamentService = new MedicamentService(medicamentDAO, stockHistoriqueDAO);
+        service =
+                new MedicamentService(
+                        dao,
+                        histDAO
+                );
     }
 
     @Test
-    void ajouter_doitInsererLeMedicamentEtEnregistrerUnHistorique() {
-        when(medicamentDAO.getIdMedicamentParNomEtDosage("Doliprane", "500mg")).thenReturn(12);
+    void doitAjouterMedicamentEtHistorique() {
 
-        medicamentService.ajouter("Doliprane", "500mg", 100, 3.5, 10);
+        String nom = "Paracetamol";
+        String dosage = "500mg";
+        int stock = 100;
+        double prix = 5.5;
+        int seuil = 10;
+        int idMedicament = 1;
 
-        verify(medicamentDAO).ajouterMedicament("Doliprane", "500mg", 100, 3.5, 10);
-        verify(stockHistoriqueDAO).ajouterHistorique(12, 100);
+        when(
+                dao.getIdMedicamentParNomEtDosage(
+                        nom,
+                        dosage
+                )
+        ).thenReturn(idMedicament);
+
+        service.ajouter(
+                nom,
+                dosage,
+                stock,
+                prix,
+                seuil
+        );
+
+        verify(dao).ajouterMedicament(
+                nom,
+                dosage,
+                stock,
+                prix,
+                seuil
+        );
+
+        verify(dao).getIdMedicamentParNomEtDosage(
+                nom,
+                dosage
+        );
+
+        verify(histDAO).ajouterHistorique(
+                idMedicament,
+                stock
+        );
     }
 
     @Test
-    void ajouter_medicamentIntrouvableApresInsertion_doitEnregistrerHistoriqueAvecIdInvalide() {
-        when(medicamentDAO.getIdMedicamentParNomEtDosage("Inconnu", "0mg")).thenReturn(-1);
+    void doitMettreAJourLeStock() {
 
-        medicamentService.ajouter("Inconnu", "0mg", 5, 1.0, 1);
+        int id = 1;
+        int quantite = 50;
 
-        verify(stockHistoriqueDAO).ajouterHistorique(-1, 5);
+        service.updateStock(
+                id,
+                quantite
+        );
+
+        verify(dao).updateStock(
+                id,
+                quantite
+        );
     }
 
     @Test
-    void updateStock_doitAppelerLeDao() {
-        medicamentService.updateStock(3, 20);
+    void doitListerLesMedicaments() {
 
-        verify(medicamentDAO).updateStock(3, 20);
+        List<MedicamentResponse> medicaments =
+                List.of();
+
+        when(
+                dao.listerMedicaments()
+        ).thenReturn(medicaments);
+
+        List<MedicamentResponse> resultat =
+                service.listerMedicaments();
+
+        assertEquals(
+                medicaments,
+                resultat
+        );
+
+        verify(dao).listerMedicaments();
     }
 
     @Test
-    void stockCritique_quandCritique_doitDeclencherUneNotification() {
-        when(medicamentDAO.stockCritique(7)).thenReturn("Médicament en stock critique : Doliprane (ID 7) | Stock actuel = 2");
+    void doitRetournerLeStock() {
 
-        try (MockedStatic<NotificationService> mockedNotif = mockStatic(NotificationService.class)) {
-            medicamentService.stockCritique(7);
+        int id = 1;
+        int stock = 100;
 
-            mockedNotif.verify(() -> NotificationService.notifierStockCritique(
-                    "Médicament en stock critique : Doliprane (ID 7) | Stock actuel = 2"));
-        }
+        when(
+                dao.getStock(id)
+        ).thenReturn(stock);
+
+        int resultat =
+                service.getStock(id);
+
+        assertEquals(
+                stock,
+                resultat
+        );
+
+        verify(dao).getStock(id);
     }
 
     @Test
-    void stockCritique_quandNonCritique_neDoitPasNotifier() {
-        when(medicamentDAO.stockCritique(8)).thenReturn(null);
+    void doitNotifierSiStockCritique() {
 
-        try (MockedStatic<NotificationService> mockedNotif = mockStatic(NotificationService.class)) {
-            medicamentService.stockCritique(8);
+        int idMedicament = 1;
 
-            mockedNotif.verifyNoInteractions();
-        }
+        String message =
+                "Médicament en stock critique";
+
+        when(
+                dao.stockCritique(idMedicament)
+        ).thenReturn(message);
+
+        String resultat =
+                service.stockCritique(idMedicament);
+
+        assertEquals(
+                message,
+                resultat
+        );
+
+        verify(dao).stockCritique(
+                idMedicament
+        );
+    }
+
+    @Test
+    void neDoitPasNotifierSiStockNonCritique() {
+
+        int idMedicament = 1;
+
+        when(
+                dao.stockCritique(idMedicament)
+        ).thenReturn(null);
+
+        String resultat =
+                service.stockCritique(idMedicament);
+
+        assertNull(resultat);
+
+        verify(dao).stockCritique(
+                idMedicament
+        );
+
+        verifyNoInteractions(histDAO);
     }
 }

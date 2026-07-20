@@ -1,102 +1,355 @@
 package service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import dao.MedicamentDAO;
 import dao.StockHistoriqueDAO;
 import dao.VenteDAO;
+import dto.VenteResponse;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
-
-@ExtendWith(MockitoExtension.class)
 class VenteServiceTest {
 
-    @Mock
-    private MedicamentDAO medicamentDAO;
-
-    @Mock
+    private MedicamentDAO medDAO;
     private VenteDAO venteDAO;
-
-    @Mock
-    private StockHistoriqueDAO stockHistoriqueDAO;
-
+    private StockHistoriqueDAO histDAO;
     private VenteService venteService;
 
     @BeforeEach
     void setUp() {
-        venteService = new VenteService(medicamentDAO, venteDAO, stockHistoriqueDAO);
+        medDAO = org.mockito.Mockito.mock(
+                MedicamentDAO.class
+        );
+
+        venteDAO = org.mockito.Mockito.mock(
+                VenteDAO.class
+        );
+
+        histDAO = org.mockito.Mockito.mock(
+                StockHistoriqueDAO.class
+        );
+
+        venteService = new VenteService(
+                medDAO,
+                venteDAO,
+                histDAO
+        );
     }
 
     @Test
-    void vendre_stockSuffisant_doitEnregistrerVenteEtMettreAJourStock() {
-        when(medicamentDAO.getStock(1)).thenReturn(10);
-        when(venteDAO.enregistrerVente(2, 3, 1, 4)).thenReturn(true);
+    void vendreDoitRetournerFalseSiStockInsuffisant() {
 
-        venteService.vendre(2, 3, 1, 4);
+        when(
+                medDAO.getStock(1)
+        ).thenReturn(5);
 
-        verify(venteDAO).enregistrerVente(2, 3, 1, 4);
-        verify(medicamentDAO).updateStock(1, 6);
-        verify(stockHistoriqueDAO).ajouterHistorique(1, -4);
-    }
-
-    @Test
-    void vendre_echecEnregistrement_neDoitPasMettreAJourStock() {
-        when(medicamentDAO.getStock(1)).thenReturn(10);
-        when(venteDAO.enregistrerVente(2, 3, 1, 4)).thenReturn(false);
-
-        venteService.vendre(2, 3, 1, 4);
-
-        verify(venteDAO).enregistrerVente(2, 3, 1, 4);
-        verify(medicamentDAO, never()).updateStock(anyInt(), anyInt());
-        verify(stockHistoriqueDAO, never()).ajouterHistorique(anyInt(), anyInt());
-    }
-
-    @Test
-    void vendre_stockInsuffisant_neDoitRienEnregistrer() {
-        when(medicamentDAO.getStock(1)).thenReturn(2);
-
-        venteService.vendre(2, 3, 1, 10);
-
-        verify(venteDAO, never()).enregistrerVente(anyInt(), anyInt(), anyInt(), anyInt());
-        verify(medicamentDAO, never()).updateStock(anyInt(), anyInt());
-        verify(stockHistoriqueDAO, never()).ajouterHistorique(anyInt(), anyInt());
-    }
-
-    @Test
-    void annulerVente_doitAppelerLeDaoEtRetournerVrai() {
-        when(venteDAO.annulerVente(99)).thenReturn(true);
-
-        boolean resultat = venteService.annulerVente(99);
-
-        assertTrue(resultat);
-        verify(venteDAO).annulerVente(99);
-    }
-
-    @Test
-    void annulerVente_venteInexistante_doitRetournerFaux() {
-        when(venteDAO.annulerVente(999)).thenReturn(false);
-
-        boolean resultat = venteService.annulerVente(999);
+        boolean resultat =
+                venteService.vendre(
+                        10,
+                        20,
+                        1,
+                        10
+                );
 
         assertFalse(resultat);
-        verify(venteDAO).annulerVente(999);
+
+        verify(
+                venteDAO,
+                never()
+        ).enregistrerVente(
+                10,
+                20,
+                1,
+                10
+        );
+
+        verify(
+                medDAO,
+                never()
+        ).updateStock(
+                1,
+                -5
+        );
+
+        verify(
+                histDAO,
+                never()
+        ).ajouterHistorique(
+                1,
+                -10
+        );
     }
 
     @Test
-    void ventesParMedicament_doitDelegueeAuDao() {
-        venteService.ventesParMedicament(1);
-        verify(venteDAO).ventesParMedicament(1);
+    void vendreDoitEnregistrerVenteEtMettreAJourStock() {
+
+        when(
+                medDAO.getStock(1)
+        ).thenReturn(100);
+
+        when(
+                venteDAO.enregistrerVente(
+                        10,
+                        20,
+                        1,
+                        30
+                )
+        ).thenReturn(true);
+
+        when(
+                medDAO.stockCritique(1)
+        ).thenReturn(null);
+
+        boolean resultat =
+                venteService.vendre(
+                        10,
+                        20,
+                        1,
+                        30
+                );
+
+        assertTrue(resultat);
+
+        verify(
+                venteDAO
+        ).enregistrerVente(
+                10,
+                20,
+                1,
+                30
+        );
+
+        verify(
+                medDAO
+        ).updateStock(
+                1,
+                70
+        );
+
+        verify(
+                histDAO
+        ).ajouterHistorique(
+                1,
+                -30
+        );
+
+        verify(
+                medDAO
+        ).stockCritique(1);
     }
 
     @Test
-    void ventesParPeriode_doitDelegueeAuDao() {
-        venteService.ventesParPeriode("2026-01-01", "2026-01-31");
-        verify(venteDAO).ventesParPeriode("2026-01-01", "2026-01-31");
+    void vendreDoitRetournerFalseSiEnregistrementEchoue() {
+
+        when(
+                medDAO.getStock(1)
+        ).thenReturn(100);
+
+        when(
+                venteDAO.enregistrerVente(
+                        10,
+                        20,
+                        1,
+                        30
+                )
+        ).thenReturn(false);
+
+        boolean resultat =
+                venteService.vendre(
+                        10,
+                        20,
+                        1,
+                        30
+                );
+
+        assertFalse(resultat);
+
+        verify(
+                venteDAO
+        ).enregistrerVente(
+                10,
+                20,
+                1,
+                30
+        );
+
+        verify(
+                medDAO,
+                never()
+        ).updateStock(
+                1,
+                70
+        );
+
+        verify(
+                histDAO,
+                never()
+        ).ajouterHistorique(
+                1,
+                -30
+        );
+
+        verify(
+                medDAO,
+                never()
+        ).stockCritique(1);
+    }
+
+    @Test
+    void vendreDoitVerifierStockCritiqueApresVente() {
+
+        when(
+                medDAO.getStock(1)
+        ).thenReturn(100);
+
+        when(
+                venteDAO.enregistrerVente(
+                        10,
+                        20,
+                        1,
+                        95
+                )
+        ).thenReturn(true);
+
+        when(
+                medDAO.stockCritique(1)
+        ).thenReturn(
+                "Stock critique"
+        );
+
+        boolean resultat =
+                venteService.vendre(
+                        10,
+                        20,
+                        1,
+                        95
+                );
+
+        assertTrue(resultat);
+
+        verify(
+                medDAO
+        ).stockCritique(1);
+    }
+
+    @Test
+    void ventesParMedicamentDoitDeleguerAuDAO() {
+
+        List<VenteResponse> ventes =
+                List.of();
+
+        when(
+                venteDAO.ventesParMedicament(1)
+        ).thenReturn(ventes);
+
+        List<VenteResponse> resultat =
+                venteService.ventesParMedicament(1);
+
+        assertEquals(
+                ventes,
+                resultat
+        );
+
+        verify(
+                venteDAO
+        ).ventesParMedicament(1);
+    }
+
+    @Test
+    void ventesParClientDoitDeleguerAuDAO() {
+
+        List<VenteResponse> ventes =
+                List.of();
+
+        when(
+                venteDAO.ventesParClient(2)
+        ).thenReturn(ventes);
+
+        List<VenteResponse> resultat =
+                venteService.ventesParClient(2);
+
+        assertEquals(
+                ventes,
+                resultat
+        );
+
+        verify(
+                venteDAO
+        ).ventesParClient(2);
+    }
+
+    @Test
+    void ventesParPeriodeDoitDeleguerAuDAO() {
+
+        List<VenteResponse> ventes =
+                List.of();
+
+        when(
+                venteDAO.ventesParPeriode(
+                        "2026-01-01",
+                        "2026-01-31"
+                )
+        ).thenReturn(ventes);
+
+        List<VenteResponse> resultat =
+                venteService.ventesParPeriode(
+                        "2026-01-01",
+                        "2026-01-31"
+                );
+
+        assertEquals(
+                ventes,
+                resultat
+        );
+
+        verify(
+                venteDAO
+        ).ventesParPeriode(
+                "2026-01-01",
+                "2026-01-31"
+        );
+    }
+
+    @Test
+    void annulerVenteDoitDeleguerAuDAO() {
+
+        when(
+                venteDAO.annulerVente(5)
+        ).thenReturn(true);
+
+        boolean resultat =
+                venteService.annulerVente(5);
+
+        assertTrue(resultat);
+
+        verify(
+                venteDAO
+        ).annulerVente(5);
+    }
+
+    @Test
+    void annulerVenteDoitRetournerFalseSiDAOEchoue() {
+
+        when(
+                venteDAO.annulerVente(5)
+        ).thenReturn(false);
+
+        boolean resultat =
+                venteService.annulerVente(5);
+
+        assertFalse(resultat);
+
+        verify(
+                venteDAO
+        ).annulerVente(5);
     }
 }

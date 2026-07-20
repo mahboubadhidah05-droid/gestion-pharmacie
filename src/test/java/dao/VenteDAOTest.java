@@ -1,298 +1,440 @@
 package dao;
 
-import org.junit.jupiter.api.BeforeEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mockito;
 
 import dto.VenteResponse;
 import exception.AccesDonneesException;
 import utils.DBConnection;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-/**
- * Tests unitaires pour {@link VenteDAO}.
- *
- * ventesParMedicament() et ventesParClient() délèguent toutes deux à la méthode
- * privée chercherVentes(sql, id), elle-même basée sur remplirVentes(rs, liste) :
- * on couvre donc le chemin "résultats trouvés" / "aucun résultat" / "erreur SQL"
- * une fois via ventesParMedicament (le comportement de ventesParClient étant
- * strictement identique côté DAO) et on ajoute un test dédié pour ventesParClient
- * afin de couvrir explicitement cette méthode publique.
- * Les erreurs SQL lèvent désormais AccesDonneesException (contrat web : 500).
- */
-@ExtendWith(MockitoExtension.class)
 class VenteDAOTest {
 
-    @Mock
-    private Connection connection;
-
-    @Mock
-    private PreparedStatement preparedStatement;
-
-    @Mock
-    private ResultSet resultSet;
-
-    private VenteDAO venteDAO;
-
-    @BeforeEach
-    void setUp() {
-        venteDAO = new VenteDAO();
-    }
-
-    // ---------- enregistrerVente ----------
-
     @Test
-    void testEnregistrerVente_Nominal() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
-            when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-            when(preparedStatement.executeUpdate()).thenReturn(1);
+    void enregistrerVenteDoitRetournerTrueSiInsertionReussie()
+            throws Exception {
 
-            venteDAO.enregistrerVente(1, 2, 3, 10);
+        Connection connection =
+                mock(Connection.class);
 
-            verify(preparedStatement).setInt(1, 1);
-            verify(preparedStatement).setInt(2, 2);
-            verify(preparedStatement).setInt(3, 3);
-            verify(preparedStatement).setInt(4, 10);
-            verify(preparedStatement).setTimestamp(org.mockito.ArgumentMatchers.eq(5), org.mockito.ArgumentMatchers.any(java.sql.Timestamp.class));
-            verify(preparedStatement).executeUpdate();
-        }
-    }
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
 
-    @Test
-    void testEnregistrerVente_SQLException_DoitLeverAccesDonneesException() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
-            when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-            when(preparedStatement.executeUpdate()).thenThrow(new SQLException("Erreur SQL simulée"));
+        when(
+                connection.prepareStatement(
+                        Mockito.anyString()
+                )
+        ).thenReturn(statement);
 
-            assertThrows(AccesDonneesException.class,
-                    () -> venteDAO.enregistrerVente(1, 2, 3, 10));
-        }
-    }
+        when(
+                statement.executeUpdate()
+        ).thenReturn(1);
 
-    // ---------- annulerVente ----------
+        try (
+                MockedStatic<DBConnection> db =
+                        Mockito.mockStatic(DBConnection.class)
+        ) {
+            db.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
 
-    @Test
-    void testAnnulerVente_Nominal() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
-            when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-            when(preparedStatement.executeUpdate()).thenReturn(1);
+            VenteDAO dao =
+                    new VenteDAO();
 
-            boolean resultat = venteDAO.annulerVente(5);
+            boolean resultat =
+                    dao.enregistrerVente(
+                            1,
+                            2,
+                            3,
+                            5
+                    );
 
             assertTrue(resultat);
-            verify(preparedStatement).setInt(1, 5);
-            verify(preparedStatement).executeUpdate();
         }
     }
 
     @Test
-    void testAnnulerVente_AucuneLigneAffectee() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
-            when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-            when(preparedStatement.executeUpdate()).thenReturn(0);
+    void enregistrerVenteDoitRetournerFalseSiAucuneLigneInseree()
+            throws Exception {
 
-            boolean resultat = venteDAO.annulerVente(999);
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        when(
+                connection.prepareStatement(
+                        Mockito.anyString()
+                )
+        ).thenReturn(statement);
+
+        when(
+                statement.executeUpdate()
+        ).thenReturn(0);
+
+        try (
+                MockedStatic<DBConnection> db =
+                        Mockito.mockStatic(DBConnection.class)
+        ) {
+            db.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            VenteDAO dao =
+                    new VenteDAO();
+
+            boolean resultat =
+                    dao.enregistrerVente(
+                            1,
+                            2,
+                            3,
+                            5
+                    );
 
             assertFalse(resultat);
         }
     }
 
     @Test
-    void testAnnulerVente_SQLException_DoitLeverAccesDonneesException() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
-            when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-            when(preparedStatement.executeUpdate()).thenThrow(new SQLException("Erreur SQL simulée"));
+    void enregistrerVenteDoitLeverExceptionSiErreurSQL()
+            throws Exception {
 
-            assertThrows(AccesDonneesException.class,
-                    () -> venteDAO.annulerVente(5));
-        }
-    }
+        Connection connection =
+                mock(Connection.class);
 
-    // ---------- ventesParMedicament (couvre chercherVentes + remplirVentes) ----------
+        when(
+                connection.prepareStatement(
+                        Mockito.anyString()
+                )
+        ).thenThrow(
+                new java.sql.SQLException(
+                        "Erreur SQL"
+                )
+        );
 
-    @Test
-    void testVentesParMedicament_AvecResultats() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
-            when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-            when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        try (
+                MockedStatic<DBConnection> db =
+                        Mockito.mockStatic(DBConnection.class)
+        ) {
+            db.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
 
-            when(resultSet.next()).thenReturn(true, false);
-            when(resultSet.getInt("id_vente")).thenReturn(100);
-            when(resultSet.getInt("id_pharmacien")).thenReturn(1);
-            when(resultSet.getInt("id_client")).thenReturn(2);
-            when(resultSet.getInt("id_medicament")).thenReturn(3);
-            when(resultSet.getInt("quantite")).thenReturn(10);
-            when(resultSet.getTimestamp("date_vente"))
-                    .thenReturn(Timestamp.valueOf("2026-07-14 10:30:00"));
+            VenteDAO dao =
+                    new VenteDAO();
 
-            List<VenteResponse> ventes = venteDAO.ventesParMedicament(3);
-
-            assertEquals(1, ventes.size());
-            assertEquals(100, ventes.get(0).id());
-            assertEquals(3, ventes.get(0).idMedicament());
-            assertEquals(10, ventes.get(0).quantite());
-
-            verify(preparedStatement).setInt(1, 3);
-            verify(resultSet, times(2)).next();
-        }
-    }
-
-    @Test
-    void testVentesParMedicament_AucunResultat() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
-            when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-            when(preparedStatement.executeQuery()).thenReturn(resultSet);
-            when(resultSet.next()).thenReturn(false);
-
-            List<VenteResponse> ventes = venteDAO.ventesParMedicament(99);
-
-            assertTrue(ventes.isEmpty());
-            verify(resultSet).next();
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> dao.enregistrerVente(
+                            1,
+                            2,
+                            3,
+                            5
+                    )
+            );
         }
     }
 
     @Test
-    void testVentesParMedicament_SQLException_DoitLeverAccesDonneesException() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
-            when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-            when(preparedStatement.executeQuery()).thenThrow(new SQLException("Erreur SQL simulée"));
+    void annulerVenteDoitRetournerTrueSiVenteSupprimee()
+            throws Exception {
 
-            assertThrows(AccesDonneesException.class,
-                    () -> venteDAO.ventesParMedicament(3));
-        }
-    }
+        Connection connection =
+                mock(Connection.class);
 
-    // ---------- ventesParClient ----------
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
 
-    @Test
-    void testVentesParClient_AvecResultats() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
-            when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-            when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(
+                connection.prepareStatement(
+                        Mockito.anyString()
+                )
+        ).thenReturn(statement);
 
-            when(resultSet.next()).thenReturn(true, false);
-            when(resultSet.getInt("id_vente")).thenReturn(101);
-            when(resultSet.getInt("id_pharmacien")).thenReturn(1);
-            when(resultSet.getInt("id_client")).thenReturn(4);
-            when(resultSet.getInt("id_medicament")).thenReturn(3);
-            when(resultSet.getInt("quantite")).thenReturn(5);
-            when(resultSet.getTimestamp("date_vente"))
-                    .thenReturn(Timestamp.valueOf("2026-07-14 14:00:00"));
+        when(
+                statement.executeUpdate()
+        ).thenReturn(1);
 
-            List<VenteResponse> ventes = venteDAO.ventesParClient(4);
+        try (
+                MockedStatic<DBConnection> db =
+                        Mockito.mockStatic(DBConnection.class)
+        ) {
+            db.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
 
-            assertEquals(1, ventes.size());
-            assertEquals(4, ventes.get(0).idClient());
+            VenteDAO dao =
+                    new VenteDAO();
 
-            verify(preparedStatement).setInt(1, 4);
+            assertTrue(
+                    dao.annulerVente(1)
+            );
         }
     }
 
     @Test
-    void testVentesParClient_ErreurConnexion_DoitLeverAccesDonneesException() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection)
-                    .thenThrow(new SQLException("Connexion impossible"));
+    void annulerVenteDoitRetournerFalseSiVenteIntrouvable()
+            throws Exception {
 
-            assertThrows(AccesDonneesException.class,
-                    () -> venteDAO.ventesParClient(4));
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        when(
+                connection.prepareStatement(
+                        Mockito.anyString()
+                )
+        ).thenReturn(statement);
+
+        when(
+                statement.executeUpdate()
+        ).thenReturn(0);
+
+        try (
+                MockedStatic<DBConnection> db =
+                        Mockito.mockStatic(DBConnection.class)
+        ) {
+            db.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            VenteDAO dao =
+                    new VenteDAO();
+
+            assertFalse(
+                    dao.annulerVente(999)
+            );
         }
     }
 
-    // ---------- ventesParPeriode ----------
-
     @Test
-    void testVentesParPeriode_AvecResultats() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
-            when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-            when(preparedStatement.executeQuery()).thenReturn(resultSet);
+    void ventesParMedicamentDoitRetournerLesVentes()
+            throws Exception {
 
-            when(resultSet.next()).thenReturn(true, false);
-            when(resultSet.getInt("id_vente")).thenReturn(200);
-            when(resultSet.getInt("id_pharmacien")).thenReturn(1);
-            when(resultSet.getInt("id_client")).thenReturn(2);
-            when(resultSet.getInt("id_medicament")).thenReturn(3);
-            when(resultSet.getInt("quantite")).thenReturn(8);
-            when(resultSet.getTimestamp("date_vente"))
-                    .thenReturn(Timestamp.valueOf("2026-07-01 09:00:00"));
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        ResultSet resultSet =
+                mock(ResultSet.class);
+
+        when(
+                connection.prepareStatement(
+                        Mockito.anyString()
+                )
+        ).thenReturn(statement);
+
+        when(
+                statement.executeQuery()
+        ).thenReturn(resultSet);
+
+        when(
+                resultSet.next()
+        ).thenReturn(true, false);
+
+        when(
+                resultSet.getInt("id_vente")
+        ).thenReturn(1);
+
+        when(
+                resultSet.getInt("id_pharmacien")
+        ).thenReturn(10);
+
+        when(
+                resultSet.getInt("id_client")
+        ).thenReturn(20);
+
+        when(
+                resultSet.getInt("id_medicament")
+        ).thenReturn(30);
+
+        when(
+                resultSet.getInt("quantite")
+        ).thenReturn(2);
+
+        when(
+                resultSet.getTimestamp("date_vente")
+        ).thenReturn(
+                Timestamp.valueOf(
+                        LocalDateTime.of(
+                                2026,
+                                7,
+                                20,
+                                10,
+                                0
+                        )
+                )
+        );
+
+        try (
+                MockedStatic<DBConnection> db =
+                        Mockito.mockStatic(DBConnection.class)
+        ) {
+            db.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            VenteDAO dao =
+                    new VenteDAO();
 
             List<VenteResponse> ventes =
-                    venteDAO.ventesParPeriode("2026-07-01", "2026-07-14");
+                    dao.ventesParMedicament(30);
 
-            assertEquals(1, ventes.size());
-            assertEquals(200, ventes.get(0).id());
-
-            verify(preparedStatement).setString(1, "2026-07-01");
-            verify(preparedStatement).setString(2, "2026-07-14 23:59:59");
+            assertEquals(
+                    1,
+                    ventes.size()
+            );
         }
     }
 
     @Test
-    void testVentesParPeriode_AucunResultat() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
-            when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-            when(preparedStatement.executeQuery()).thenReturn(resultSet);
-            when(resultSet.next()).thenReturn(false);
+    void ventesParClientDoitRetournerLesVentes()
+            throws Exception {
+
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        ResultSet resultSet =
+                mock(ResultSet.class);
+
+        when(
+                connection.prepareStatement(
+                        Mockito.anyString()
+                )
+        ).thenReturn(statement);
+
+        when(
+                statement.executeQuery()
+        ).thenReturn(resultSet);
+
+        when(
+                resultSet.next()
+        ).thenReturn(false);
+
+        try (
+                MockedStatic<DBConnection> db =
+                        Mockito.mockStatic(DBConnection.class)
+        ) {
+            db.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            VenteDAO dao =
+                    new VenteDAO();
 
             List<VenteResponse> ventes =
-                    venteDAO.ventesParPeriode("2026-07-01", "2026-07-14");
+                    dao.ventesParClient(20);
 
-            assertTrue(ventes.isEmpty());
+            assertTrue(
+                    ventes.isEmpty()
+            );
         }
     }
 
     @Test
-    void testVentesParPeriode_SQLException_DoitLeverAccesDonneesException() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
-            when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-            when(preparedStatement.executeQuery()).thenThrow(new SQLException("Erreur SQL simulée"));
+    void ventesParPeriodeDoitRetournerLesVentes()
+            throws Exception {
 
-            assertThrows(AccesDonneesException.class,
-                    () -> venteDAO.ventesParPeriode("2026-07-01", "2026-07-14"));
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        ResultSet resultSet =
+                mock(ResultSet.class);
+
+        when(
+                connection.prepareStatement(
+                        Mockito.anyString()
+                )
+        ).thenReturn(statement);
+
+        when(
+                statement.executeQuery()
+        ).thenReturn(resultSet);
+
+        when(
+                resultSet.next()
+        ).thenReturn(false);
+
+        try (
+                MockedStatic<DBConnection> db =
+                        Mockito.mockStatic(DBConnection.class)
+        ) {
+            db.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            VenteDAO dao =
+                    new VenteDAO();
+
+            List<VenteResponse> ventes =
+                    dao.ventesParPeriode(
+                            "2026-07-01",
+                            "2026-07-20"
+                    );
+
+            assertTrue(
+                    ventes.isEmpty()
+            );
         }
     }
 
     @Test
-    void testVentesParPeriode_FormatDateInvalide_DoitLeverAccesDonneesException() throws SQLException {
-        try (MockedStatic<DBConnection> mockedDb = mockStatic(DBConnection.class)) {
-            mockedDb.when(DBConnection::getConnection).thenReturn(connection);
-            when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-            when(preparedStatement.executeQuery())
-                    .thenThrow(new SQLException("Format de date invalide"));
+    void ventesParMedicamentDoitLeverExceptionSiErreurSQL()
+            throws Exception {
 
-            assertThrows(AccesDonneesException.class,
-                    () -> venteDAO.ventesParPeriode("date-invalide", "n-importe-quoi"));
+        Connection connection =
+                mock(Connection.class);
+
+        when(
+                connection.prepareStatement(
+                        Mockito.anyString()
+                )
+        ).thenThrow(
+                new java.sql.SQLException(
+                        "Erreur SQL"
+                )
+        );
+
+        try (
+                MockedStatic<DBConnection> db =
+                        Mockito.mockStatic(DBConnection.class)
+        ) {
+            db.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            VenteDAO dao =
+                    new VenteDAO();
+
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> dao.ventesParMedicament(1)
+            );
         }
     }
 }

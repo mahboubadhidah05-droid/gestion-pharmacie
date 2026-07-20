@@ -1,46 +1,122 @@
 package service;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import dao.UserDAO;
 
-import static org.mockito.Mockito.*;
-
-@ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
-    @Mock
     private UserDAO userDAO;
-
     private UserService userService;
 
     @BeforeEach
     void setUp() {
+        userDAO = mock(UserDAO.class);
         userService = new UserService(userDAO);
     }
 
     @Test
-    void consulterProfil_loginExistant_doitAppelerLeDao() {
+    void consulterProfilDoitAfficherProfilValide() {
 
-        when(userDAO.getProfil("mahbouba"))
-                .thenReturn(new String[]{"Ben Salah", "Mahbouba"});
+        String[] profil = {
+                "Dupont",
+                "Jean"
+        };
 
-        userService.consulterProfil("mahbouba");
+        when(
+                userDAO.getProfil("jean")
+        ).thenReturn(profil);
 
-        verify(userDAO).getProfil("mahbouba");
+        userService.consulterProfil("jean");
+
+        verify(userDAO).getProfil("jean");
     }
 
     @Test
-    void consulterProfil_loginInconnu_neDoitPasPlanter() {
+    void consulterProfilDoitGererProfilNull() {
 
-        when(userDAO.getProfil("inconnu"))
-                .thenReturn(null);
+        when(
+                userDAO.getProfil("inconnu")
+        ).thenReturn(null);
 
         userService.consulterProfil("inconnu");
+
+        verify(userDAO).getProfil("inconnu");
+    }
+
+    @Test
+    void consulterProfilDoitGererProfilVide() {
+
+        when(
+                userDAO.getProfil("inconnu")
+        ).thenReturn(new String[0]);
+
+        userService.consulterProfil("inconnu");
+
+        verify(userDAO).getProfil("inconnu");
+    }
+
+    @Test
+    void consulterProfilDoitGererProfilAvecUnSeulElement() {
+
+        when(
+                userDAO.getProfil("test")
+        ).thenReturn(
+                new String[]{"Dupont"}
+        );
+
+        userService.consulterProfil("test");
+
+        verify(userDAO).getProfil("test");
+    }
+
+    @Test
+    void getProfilDoitRetournerLeProfil() {
+
+        String[] profil = {
+                "Dupont",
+                "Jean"
+        };
+
+        when(
+                userDAO.getProfil("jean")
+        ).thenReturn(profil);
+
+        String[] resultat =
+                userService.getProfil("jean");
+
+        assertSame(
+                profil,
+                resultat
+        );
+
+        verify(userDAO).getProfil("jean");
+    }
+
+    @Test
+    void getProfilDoitRetournerProfilVide() {
+
+        String[] profilVide =
+                new String[0];
+
+        when(
+                userDAO.getProfil("inconnu")
+        ).thenReturn(profilVide);
+
+        String[] resultat =
+                userService.getProfil("inconnu");
+
+        assertArrayEquals(
+                profilVide,
+                resultat
+        );
 
         verify(userDAO).getProfil("inconnu");
     }

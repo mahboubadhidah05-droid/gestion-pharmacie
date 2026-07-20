@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,35 +13,17 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
 
+import dto.MedicamentResponse;
 import exception.AccesDonneesException;
 import utils.DBConnection;
 
-@ExtendWith(MockitoExtension.class)
 class MedicamentDAOTest {
-
-    private static final String NOM = "Doliprane";
-    private static final String DOSAGE = "500mg";
-    private static final int STOCK = 100;
-    private static final double PRIX = 3.5;
-    private static final int SEUIL = 10;
-
-    @Mock
-    private Connection connection;
-
-    @Mock
-    private PreparedStatement preparedStatement;
-
-    @Mock
-    private ResultSet resultSet;
 
     private MedicamentDAO medicamentDAO;
 
@@ -49,128 +32,207 @@ class MedicamentDAOTest {
         medicamentDAO = new MedicamentDAO();
     }
 
-
     @Test
-    void ajouterMedicament_casNominal_executeInsertion()
-            throws SQLException {
+    void doitAjouterMedicament() throws Exception {
 
-        try (MockedStatic<DBConnection> mockedDb =
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
+
+        try (MockedStatic<DBConnection> dbConnection =
                      mockStatic(DBConnection.class)) {
 
-            mockedDb.when(DBConnection::getConnection)
-                    .thenReturn(connection);
-
-            when(connection.prepareStatement(anyString()))
-                    .thenReturn(preparedStatement);
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
 
             medicamentDAO.ajouterMedicament(
-                    NOM,
-                    DOSAGE,
-                    STOCK,
-                    PRIX,
-                    SEUIL
+                    "Paracetamol",
+                    "500mg",
+                    100,
+                    5.5,
+                    10
             );
 
-            verify(preparedStatement).setString(1, NOM);
-            verify(preparedStatement).setString(2, DOSAGE);
-            verify(preparedStatement).setInt(3, STOCK);
-            verify(preparedStatement).setDouble(4, PRIX);
-            verify(preparedStatement).setInt(5, SEUIL);
-            verify(preparedStatement).executeUpdate();
+            verify(statement).setString(
+                    1,
+                    "Paracetamol"
+            );
+
+            verify(statement).setString(
+                    2,
+                    "500mg"
+            );
+
+            verify(statement).setInt(
+                    3,
+                    100
+            );
+
+            verify(statement).setDouble(
+                    4,
+                    5.5
+            );
+
+            verify(statement).setInt(
+                    5,
+                    10
+            );
+
+            verify(statement).executeUpdate();
         }
     }
 
-
     @Test
-    void ajouterMedicament_erreurSQL_doitLeverAccesDonneesException()
-            throws SQLException {
+    void doitLeverExceptionLorsAjoutMedicament()
+            throws Exception {
 
-        try (MockedStatic<DBConnection> mockedDb =
+        Connection connection =
+                mock(Connection.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenThrow(
+                new SQLException("Erreur SQL")
+        );
+
+        try (MockedStatic<DBConnection> dbConnection =
                      mockStatic(DBConnection.class)) {
 
-            mockedDb.when(DBConnection::getConnection)
-                    .thenThrow(new SQLException("Erreur connexion"));
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
 
             assertThrows(
                     AccesDonneesException.class,
                     () -> medicamentDAO.ajouterMedicament(
-                            NOM,
-                            DOSAGE,
-                            STOCK,
-                            PRIX,
-                            SEUIL
+                            "Paracetamol",
+                            "500mg",
+                            100,
+                            5.5,
+                            10
                     )
             );
         }
     }
 
-
     @Test
-    void getStock_medicamentExiste_retourneStock()
-            throws SQLException {
+    void doitRetournerStock() throws Exception {
 
-        try (MockedStatic<DBConnection> mockedDb =
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        ResultSet result =
+                mock(ResultSet.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
+
+        when(
+                statement.executeQuery()
+        ).thenReturn(result);
+
+        when(
+                result.next()
+        ).thenReturn(true);
+
+        when(
+                result.getInt("stock")
+        ).thenReturn(100);
+
+        try (MockedStatic<DBConnection> dbConnection =
                      mockStatic(DBConnection.class)) {
 
-            mockedDb.when(DBConnection::getConnection)
-                    .thenReturn(connection);
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
 
-            when(connection.prepareStatement(anyString()))
-                    .thenReturn(preparedStatement);
-
-            when(preparedStatement.executeQuery())
-                    .thenReturn(resultSet);
-
-            when(resultSet.next())
-                    .thenReturn(true);
-
-            when(resultSet.getInt("stock"))
-                    .thenReturn(50);
+            int stock =
+                    medicamentDAO.getStock(1);
 
             assertEquals(
-                    50,
-                    medicamentDAO.getStock(1)
+                    100,
+                    stock
+            );
+
+            verify(statement).setInt(
+                    1,
+                    1
             );
         }
     }
 
-
     @Test
-    void getStock_medicamentAbsent_retourneMoinsUn()
-            throws SQLException {
+    void doitRetournerMoinsUnSiMedicamentIntrouvable()
+            throws Exception {
 
-        try (MockedStatic<DBConnection> mockedDb =
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        ResultSet result =
+                mock(ResultSet.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
+
+        when(
+                statement.executeQuery()
+        ).thenReturn(result);
+
+        when(
+                result.next()
+        ).thenReturn(false);
+
+        try (MockedStatic<DBConnection> dbConnection =
                      mockStatic(DBConnection.class)) {
 
-            mockedDb.when(DBConnection::getConnection)
-                    .thenReturn(connection);
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
 
-            when(connection.prepareStatement(anyString()))
-                    .thenReturn(preparedStatement);
-
-            when(preparedStatement.executeQuery())
-                    .thenReturn(resultSet);
-
-            when(resultSet.next())
-                    .thenReturn(false);
+            int stock =
+                    medicamentDAO.getStock(1);
 
             assertEquals(
                     -1,
-                    medicamentDAO.getStock(999)
+                    stock
             );
         }
     }
 
-
     @Test
-    void getStock_erreurConnexion_doitLeverAccesDonneesException()
-            throws SQLException {
+    void doitLeverExceptionLorsRecuperationStock()
+            throws Exception {
 
-        try (MockedStatic<DBConnection> mockedDb =
+        Connection connection =
+                mock(Connection.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenThrow(
+                new SQLException("Erreur SQL")
+        );
+
+        try (MockedStatic<DBConnection> dbConnection =
                      mockStatic(DBConnection.class)) {
 
-            mockedDb.when(DBConnection::getConnection)
-                    .thenThrow(new SQLException("Erreur connexion"));
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
 
             assertThrows(
                     AccesDonneesException.class,
@@ -179,106 +241,421 @@ class MedicamentDAOTest {
         }
     }
 
-
     @Test
-    void updateStock_casNominal_executeMiseAJour()
-            throws SQLException {
+    void doitListerMedicaments() throws Exception {
 
-        try (MockedStatic<DBConnection> mockedDb =
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        ResultSet result =
+                mock(ResultSet.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
+
+        when(
+                statement.executeQuery()
+        ).thenReturn(result);
+
+        when(
+                result.next()
+        ).thenReturn(true, false);
+
+        when(
+                result.getInt("id_medicament")
+        ).thenReturn(1);
+
+        when(
+                result.getString("nom")
+        ).thenReturn("Paracetamol");
+
+        when(
+                result.getString("dosage")
+        ).thenReturn("500mg");
+
+        when(
+                result.getInt("stock")
+        ).thenReturn(100);
+
+        when(
+                result.getDouble("prix")
+        ).thenReturn(5.5);
+
+        when(
+                result.getInt("seuil_critique")
+        ).thenReturn(10);
+
+        try (MockedStatic<DBConnection> dbConnection =
                      mockStatic(DBConnection.class)) {
 
-            mockedDb.when(DBConnection::getConnection)
-                    .thenReturn(connection);
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
 
-            when(connection.prepareStatement(anyString()))
-                    .thenReturn(preparedStatement);
+            List<MedicamentResponse> resultat =
+                    medicamentDAO.listerMedicaments();
 
-            medicamentDAO.updateStock(5, 80);
-
-            verify(preparedStatement)
-                    .setInt(1, 80);
-
-            verify(preparedStatement)
-                    .setInt(2, 5);
-
-            verify(preparedStatement)
-                    .executeUpdate();
+            assertEquals(
+                    1,
+                    resultat.size()
+            );
         }
     }
 
-
     @Test
-    void updateStock_erreurConnexion_doitLeverAccesDonneesException()
-            throws SQLException {
+    void doitLeverExceptionLorsListeMedicaments()
+            throws Exception {
 
-        try (MockedStatic<DBConnection> mockedDb =
+        Connection connection =
+                mock(Connection.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenThrow(
+                new SQLException("Erreur SQL")
+        );
+
+        try (MockedStatic<DBConnection> dbConnection =
                      mockStatic(DBConnection.class)) {
 
-            mockedDb.when(DBConnection::getConnection)
-                    .thenThrow(new SQLException("Erreur connexion"));
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
 
             assertThrows(
                     AccesDonneesException.class,
-                    () -> medicamentDAO.updateStock(5, 80)
+                    () -> medicamentDAO.listerMedicaments()
             );
         }
     }
 
-
     @Test
-    void stockCritique_nonCritique_retourneNull()
-            throws SQLException {
+    void doitMettreAJourStock() throws Exception {
 
-        try (MockedStatic<DBConnection> mockedDb =
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
+
+        try (MockedStatic<DBConnection> dbConnection =
                      mockStatic(DBConnection.class)) {
 
-            mockedDb.when(DBConnection::getConnection)
-                    .thenReturn(connection);
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
 
-            when(connection.prepareStatement(anyString()))
-                    .thenReturn(preparedStatement);
+            medicamentDAO.updateStock(
+                    1,
+                    50
+            );
 
-            when(preparedStatement.executeQuery())
-                    .thenReturn(resultSet);
+            verify(statement).setInt(
+                    1,
+                    50
+            );
 
-            when(resultSet.next())
-                    .thenReturn(false);
+            verify(statement).setInt(
+                    2,
+                    1
+            );
 
-            assertNull(
-                    medicamentDAO.stockCritique(8)
+            verify(statement).executeUpdate();
+        }
+    }
+
+    @Test
+    void doitLeverExceptionLorsMiseAJourStock()
+            throws Exception {
+
+        Connection connection =
+                mock(Connection.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenThrow(
+                new SQLException("Erreur SQL")
+        );
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> medicamentDAO.updateStock(
+                            1,
+                            50
+                    )
             );
         }
     }
 
-
     @Test
-    void getIdMedicamentParNomEtDosage_trouve_retourneId()
-            throws SQLException {
+    void doitRetournerMessageSiStockCritique()
+            throws Exception {
 
-        try (MockedStatic<DBConnection> mockedDb =
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        ResultSet result =
+                mock(ResultSet.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
+
+        when(
+                statement.executeQuery()
+        ).thenReturn(result);
+
+        when(
+                result.next()
+        ).thenReturn(true);
+
+        when(
+                result.getString("nom")
+        ).thenReturn("Paracetamol");
+
+        when(
+                result.getInt("id_medicament")
+        ).thenReturn(1);
+
+        when(
+                result.getInt("stock")
+        ).thenReturn(5);
+
+        try (MockedStatic<DBConnection> dbConnection =
                      mockStatic(DBConnection.class)) {
 
-            mockedDb.when(DBConnection::getConnection)
-                    .thenReturn(connection);
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
 
-            when(connection.prepareStatement(anyString()))
-                    .thenReturn(preparedStatement);
-
-            when(preparedStatement.executeQuery())
-                    .thenReturn(resultSet);
-
-            when(resultSet.next())
-                    .thenReturn(true);
-
-            when(resultSet.getInt("id_medicament"))
-                    .thenReturn(12);
+            String resultat =
+                    medicamentDAO.stockCritique(1);
 
             assertEquals(
-                    12,
-                    medicamentDAO.getIdMedicamentParNomEtDosage(
-                            NOM,
-                            DOSAGE
-                    )
+                    "Médicament en stock critique : "
+                            + "Paracetamol (ID 1) "
+                            + "| Stock actuel = 5",
+                    resultat
+            );
+        }
+    }
+
+    @Test
+    void doitRetournerNullSiStockNonCritique()
+            throws Exception {
+
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        ResultSet result =
+                mock(ResultSet.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
+
+        when(
+                statement.executeQuery()
+        ).thenReturn(result);
+
+        when(
+                result.next()
+        ).thenReturn(false);
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            assertNull(
+                    medicamentDAO.stockCritique(1)
+            );
+        }
+    }
+
+    @Test
+    void doitLeverExceptionLorsVerificationStockCritique()
+            throws Exception {
+
+        Connection connection =
+                mock(Connection.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenThrow(
+                new SQLException("Erreur SQL")
+        );
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> medicamentDAO.stockCritique(1)
+            );
+        }
+    }
+
+    @Test
+    void doitRetournerIdParNomEtDosage()
+            throws Exception {
+
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        ResultSet result =
+                mock(ResultSet.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
+
+        when(
+                statement.executeQuery()
+        ).thenReturn(result);
+
+        when(
+                result.next()
+        ).thenReturn(true);
+
+        when(
+                result.getInt("id_medicament")
+        ).thenReturn(1);
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            int resultat =
+                    medicamentDAO
+                            .getIdMedicamentParNomEtDosage(
+                                    "Paracetamol",
+                                    "500mg"
+                            );
+
+            assertEquals(
+                    1,
+                    resultat
+            );
+
+            verify(statement).setString(
+                    1,
+                    "Paracetamol"
+            );
+
+            verify(statement).setString(
+                    2,
+                    "500mg"
+            );
+        }
+    }
+
+    @Test
+    void doitRetournerMoinsUnSiMedicamentNonTrouve()
+            throws Exception {
+
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        ResultSet result =
+                mock(ResultSet.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
+
+        when(
+                statement.executeQuery()
+        ).thenReturn(result);
+
+        when(
+                result.next()
+        ).thenReturn(false);
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            int resultat =
+                    medicamentDAO
+                            .getIdMedicamentParNomEtDosage(
+                                    "Paracetamol",
+                                    "500mg"
+                            );
+
+            assertEquals(
+                    -1,
+                    resultat
+            );
+        }
+    }
+
+    @Test
+    void doitLeverExceptionLorsRechercheMedicament()
+            throws Exception {
+
+        Connection connection =
+                mock(Connection.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenThrow(
+                new SQLException("Erreur SQL")
+        );
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> medicamentDAO
+                            .getIdMedicamentParNomEtDosage(
+                                    "Paracetamol",
+                                    "500mg"
+                            )
             );
         }
     }

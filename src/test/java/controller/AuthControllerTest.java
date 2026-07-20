@@ -1,94 +1,174 @@
 package controller;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import service.AuthService;
-
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(MockitoExtension.class)
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import service.AuthService;
+
+@WebMvcTest(AuthController.class)
 class AuthControllerTest {
 
-    private static final String CONTENT_TYPE = "application/json";
-
-    @Mock
-    private AuthService authService;
-
+    @Autowired
     private MockMvc mockMvc;
 
-
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders
-                .standaloneSetup(new AuthController(authService))
-                .build();
-    }
-
+    @MockitoBean
+    private AuthService authService;
 
     @Test
-    void login_identifiantsValides_doitRetourner200EtLeRole() throws Exception {
-        when(authService.login("pharma", "123")).thenReturn("PHARMACIEN");
+    void loginDoitRetourner200SiIdentifiantsValides()
+            throws Exception {
 
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(CONTENT_TYPE)
-                        .content("{\"login\":\"pharma\",\"pwd\":\"123\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.login").value("pharma"))
-                .andExpect(jsonPath("$.role").value("PHARMACIEN"));
+        when(
+                authService.login(
+                        "pharma",
+                        "123"
+                )
+        ).thenReturn("PHARMACIEN");
+
+        mockMvc.perform(
+                post("/api/auth/login")
+                        .contentType(
+                                MediaType.APPLICATION_JSON
+                        )
+                        .content(
+                                """
+                                {
+                                    "login": "pharma",
+                                    "pwd": "123"
+                                }
+                                """
+                        )
+        )
+        .andExpect(
+                status().isOk()
+        )
+        .andExpect(
+                jsonPath("$.login")
+                        .value("pharma")
+        )
+        .andExpect(
+                jsonPath("$.role")
+                        .value("PHARMACIEN")
+        );
     }
 
-
     @Test
-    void login_identifiantsInvalides_doitRetourner401() throws Exception {
-        when(authService.login("pharma", "faux")).thenReturn("ECHEC");
+    void loginDoitRetourner401SiIdentifiantsInvalides()
+            throws Exception {
 
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(CONTENT_TYPE)
-                        .content("{\"login\":\"pharma\",\"pwd\":\"faux\"}"))
-                .andExpect(status().isUnauthorized());
+        when(
+                authService.login(
+                        "pharma",
+                        "incorrect"
+                )
+        ).thenReturn("ECHEC");
+
+        mockMvc.perform(
+                post("/api/auth/login")
+                        .contentType(
+                                MediaType.APPLICATION_JSON
+                        )
+                        .content(
+                                """
+                                {
+                                    "login": "pharma",
+                                    "pwd": "incorrect"
+                                }
+                                """
+                        )
+        )
+        .andExpect(
+                status().isUnauthorized()
+        );
     }
 
-
     @Test
-    void me_sansSession_doitRetourner401() throws Exception {
-        mockMvc.perform(get("/api/auth/me"))
-                .andExpect(status().isUnauthorized());
+    void logoutDoitRetourner204AvecSession()
+            throws Exception {
+
+        MockHttpSession session =
+                new MockHttpSession();
+
+        session.setAttribute(
+                AuthController.ATTR_LOGIN,
+                "pharma"
+        );
+
+        mockMvc.perform(
+                post("/api/auth/logout")
+                        .session(session)
+        )
+        .andExpect(
+                status().isNoContent()
+        );
     }
 
-
     @Test
-    void me_avecSession_doitRetournerLUtilisateur() throws Exception {
-        when(authService.login("gest", "133")).thenReturn("GESTIONNAIRE");
+    void logoutDoitRetourner204SansSession()
+            throws Exception {
 
-        var session = mockMvc.perform(post("/api/auth/login")
-                        .contentType(CONTENT_TYPE)
-                        .content("{\"login\":\"gest\",\"pwd\":\"133\"}"))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getRequest()
-                .getSession();
-
-        mockMvc.perform(get("/api/auth/me")
-                        .session((org.springframework.mock.web.MockHttpSession) session))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.login").value("gest"))
-                .andExpect(jsonPath("$.role").value("GESTIONNAIRE"));
+        mockMvc.perform(
+                post("/api/auth/logout")
+        )
+        .andExpect(
+                status().isNoContent()
+        );
     }
 
+    @Test
+    void meDoitRetourner401SansSession()
+            throws Exception {
+
+        mockMvc.perform(
+                get("/api/auth/me")
+        )
+        .andExpect(
+                status().isUnauthorized()
+        );
+    }
 
     @Test
-    void logout_doitRetourner204() throws Exception {
-        mockMvc.perform(post("/api/auth/logout"))
-                .andExpect(status().isNoContent());
+    void meDoitRetournerUtilisateurConnecte()
+            throws Exception {
+
+        MockHttpSession session =
+                new MockHttpSession();
+
+        session.setAttribute(
+                AuthController.ATTR_LOGIN,
+                "pharma"
+        );
+
+        session.setAttribute(
+                AuthController.ATTR_ROLE,
+                "PHARMACIEN"
+        );
+
+        mockMvc.perform(
+                get("/api/auth/me")
+                        .session(session)
+        )
+        .andExpect(
+                status().isOk()
+        )
+        .andExpect(
+                jsonPath("$.login")
+                        .value("pharma")
+        )
+        .andExpect(
+                jsonPath("$.role")
+                        .value("PHARMACIEN")
+        );
     }
 }
