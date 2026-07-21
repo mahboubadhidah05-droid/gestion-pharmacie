@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClientDAO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pharmacie-corrige</a> &gt; <a href="index.source.html" class="el_package">dao</a> &gt; <span class="el_source">ClientDAO.java</span></div><h1>ClientDAO.java</h1><pre class="source lang-java linenums">package dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import exception.AccesDonneesException;
+import utils.DBConnection;
+
+/**
+ * DAO pour la gestion des clients.
+ */
+<span class="fc" id="L15">public class ClientDAO {</span>
+
+    private static final String INSERT_CLIENT =
+            &quot;INSERT INTO client VALUES(NULL,?,?,?,?)&quot;;
+
+    private static final String EXISTE_CLIENT =
+            &quot;SELECT 1 FROM client WHERE id_client=?&quot;;
+
+    private static final int ID_INVALIDE = -1;
+
+    /**
+     * Vérifie si un client existe déjà avec cet ID.
+     *
+     * @param idClient identifiant du client
+     * @return true si le client existe
+     * @throws AccesDonneesException en cas d'erreur d'accès aux données
+     */
+    public boolean existeClient(int idClient) {
+
+<span class="fc" id="L34">        try (Connection connection = DBConnection.getConnection();</span>
+<span class="fc" id="L35">             PreparedStatement statement =</span>
+<span class="fc" id="L36">                     connection.prepareStatement(EXISTE_CLIENT)) {</span>
+
+<span class="fc" id="L38">            statement.setInt(1, idClient);</span>
+
+<span class="fc" id="L40">            try (ResultSet rs = statement.executeQuery()) {</span>
+<span class="fc" id="L41">                return rs.next();</span>
+            }
+
+<span class="fc" id="L44">        } catch (SQLException exception) {</span>
+
+<span class="fc" id="L46">            throw new AccesDonneesException(</span>
+                    &quot;Échec de la vérification du client avec l'identifiant : &quot;
+                            + idClient,
+                    exception
+            );
+        }
+    }
+
+    /**
+     * Ajoute un client et retourne son nouvel ID généré.
+     *
+     * @param nom nom du client
+     * @param prenom prénom du client
+     * @param email adresse email
+     * @param adresse adresse du client
+     * @return nouvel identifiant généré ou -1 si aucun ID n'a été généré
+     * @throws AccesDonneesException en cas d'erreur d'accès aux données
+     */
+    public int ajouterClient(
+            String nom,
+            String prenom,
+            String email,
+            String adresse) {
+
+<span class="fc" id="L70">        try (Connection connection = DBConnection.getConnection();</span>
+<span class="fc" id="L71">             PreparedStatement statement =</span>
+<span class="fc" id="L72">                     connection.prepareStatement(</span>
+                             INSERT_CLIENT,
+                             Statement.RETURN_GENERATED_KEYS)) {
+
+<span class="fc" id="L76">            statement.setString(1, nom);</span>
+<span class="fc" id="L77">            statement.setString(2, prenom);</span>
+<span class="fc" id="L78">            statement.setString(3, email);</span>
+<span class="fc" id="L79">            statement.setString(4, adresse);</span>
+
+<span class="fc" id="L81">            statement.executeUpdate();</span>
+
+<span class="fc" id="L83">            try (ResultSet keys = statement.getGeneratedKeys()) {</span>
+
+<span class="fc bfc" id="L85" title="All 2 branches covered.">                if (keys.next()) {</span>
+<span class="fc" id="L86">                    return keys.getInt(1);</span>
+                }
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">            }</span>
+
+<span class="pc bpc" id="L90" title="2 of 4 branches missed.">        } catch (SQLException exception) {</span>
+
+<span class="fc" id="L92">            throw new AccesDonneesException(</span>
+                    &quot;Échec de l'ajout du client : &quot;
+                            + nom + &quot; &quot; + prenom,
+                    exception
+            );
+<span class="fc" id="L97">        }</span>
+
+<span class="fc" id="L99">        return ID_INVALIDE;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StockHistoriqueDAO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pharmacie-corrige</a> &gt; <a href="index.source.html" class="el_package">dao</a> &gt; <span class="el_source">StockHistoriqueDAO.java</span></div><h1>StockHistoriqueDAO.java</h1><pre class="source lang-java linenums">package dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import dto.StockHistoriqueResponse;
+import exception.AccesDonneesException;
+import utils.DBConnection;
+
+<span class="fc" id="L17">public class StockHistoriqueDAO {</span>
+
+<span class="fc" id="L19">    private static final Logger LOGGER =</span>
+<span class="fc" id="L20">            Logger.getLogger(StockHistoriqueDAO.class.getName());</span>
+
+    private static final String ID_MEDICAMENT =
+            &quot;id_medicament&quot;;
+
+    private static final String QUANTITE =
+            &quot;quantite&quot;;
+
+    private static final String DATE_MODIFICATION =
+            &quot;date_modification&quot;;
+
+    private static final String INSERT_HISTORIQUE =
+            &quot;INSERT INTO stock_historique &quot;
+            + &quot;(id_medicament, quantite, date_modification) &quot;
+            + &quot;VALUES (?, ?, NOW())&quot;;
+
+    private static final String SELECT_HISTORIQUE =
+            &quot;SELECT * FROM stock_historique&quot;;
+
+    public void ajouterHistorique(
+            int idMedicament,
+            int quantite) {
+
+<span class="fc" id="L43">        try (Connection connection = DBConnection.getConnection();</span>
+<span class="fc" id="L44">             PreparedStatement statement =</span>
+<span class="fc" id="L45">                     connection.prepareStatement(INSERT_HISTORIQUE)) {</span>
+
+<span class="fc" id="L47">            statement.setInt(1, idMedicament);</span>
+<span class="fc" id="L48">            statement.setInt(2, quantite);</span>
+
+<span class="fc" id="L50">            statement.executeUpdate();</span>
+
+<span class="fc" id="L52">            LOGGER.log(</span>
+                    Level.INFO,
+                    &quot;Historique stock enregistré : idMed={0} qte={1}&quot;,
+                    new Object[]{
+<span class="fc" id="L56">                            idMedicament,</span>
+<span class="fc" id="L57">                            quantite</span>
+                    }
+            );
+
+<span class="fc" id="L61">        } catch (SQLException exception) {</span>
+
+<span class="fc" id="L63">            throw new AccesDonneesException(</span>
+                    &quot;Échec de l'enregistrement de l'historique du stock &quot;
+                            + &quot;pour le médicament avec l'ID : &quot;
+                            + idMedicament
+                            + &quot;, quantité : &quot;
+                            + quantite,
+                    exception
+            );
+<span class="fc" id="L71">        }</span>
+<span class="fc" id="L72">    }</span>
+
+    public List&lt;StockHistoriqueResponse&gt; afficherHistorique() {
+
+<span class="fc" id="L76">        List&lt;StockHistoriqueResponse&gt; historique =</span>
+                new ArrayList&lt;&gt;();
+
+<span class="fc" id="L79">        try (Connection connection = DBConnection.getConnection();</span>
+<span class="fc" id="L80">             Statement statement = connection.createStatement();</span>
+<span class="fc" id="L81">             ResultSet resultSet =</span>
+<span class="fc" id="L82">                     statement.executeQuery(SELECT_HISTORIQUE)) {</span>
+
+<span class="fc bfc" id="L84" title="All 2 branches covered.">            while (resultSet.next()) {</span>
+
+<span class="fc" id="L86">                historique.add(</span>
+                        new StockHistoriqueResponse(
+<span class="fc" id="L88">                                resultSet.getInt(ID_MEDICAMENT),</span>
+<span class="fc" id="L89">                                resultSet.getInt(QUANTITE),</span>
+<span class="fc" id="L90">                                resultSet.getTimestamp(DATE_MODIFICATION)</span>
+                        )
+                );
+            }
+
+<span class="fc" id="L95">        } catch (SQLException exception) {</span>
+
+<span class="fc" id="L97">            throw new AccesDonneesException(</span>
+                    &quot;Échec de la récupération de l'historique du stock&quot;,
+                    exception
+            );
+<span class="fc" id="L101">        }</span>
+
+<span class="fc" id="L103">        return historique;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

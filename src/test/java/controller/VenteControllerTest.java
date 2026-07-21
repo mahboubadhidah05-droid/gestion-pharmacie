@@ -86,11 +86,11 @@ class VenteControllerTest {
 
     @Test
     void ventesParMedicament_doitRetournerLaListe() throws Exception {
-        when(venteService.ventesParMedicament(2)).thenReturn(
+        when(venteService.ventesParNomMedicament("Amoxicilline")).thenReturn(
                 List.of(new VenteResponse(6, 1, 6, 2, 15,
                         LocalDateTime.of(2026, 7, 15, 0, 0))));
 
-        mockMvc.perform(get("/api/ventes").param("medicament", "2"))
+        mockMvc.perform(get("/api/ventes").param("medicament", "Amoxicilline"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(6))
                 .andExpect(jsonPath("$[0].idMedicament").value(2));
@@ -103,6 +103,20 @@ class VenteControllerTest {
 
         mockMvc.perform(get("/api/ventes").param("client", "6"))
                 .andExpect(status().isOk());
+    }
+
+
+    @Test
+    void ventesParNomClient_doitRetournerLaListe() throws Exception {
+        when(venteService.ventesParNomClient("Ben Ali", "Sami")).thenReturn(
+                List.of(new VenteResponse(9, 1, 4, 2, 3,
+                        LocalDateTime.of(2026, 7, 18, 0, 0))));
+
+        mockMvc.perform(get("/api/ventes")
+                        .param("clientNom", "Ben Ali")
+                        .param("clientPrenom", "Sami"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(9));
     }
 
 

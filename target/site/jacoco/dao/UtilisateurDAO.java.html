@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UtilisateurDAO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pharmacie-corrige</a> &gt; <a href="index.source.html" class="el_package">dao</a> &gt; <span class="el_source">UtilisateurDAO.java</span></div><h1>UtilisateurDAO.java</h1><pre class="source lang-java linenums">package dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import exception.AccesDonneesException;
+import utils.DBConnection;
+
+/**
+ * DAO responsable de l'authentification des utilisateurs.
+ */
+<span class="fc" id="L14">public class UtilisateurDAO {</span>
+
+    private static final String ROLE_PHARMACIEN =
+            &quot;PHARMACIEN&quot;;
+
+    private static final String ROLE_GESTIONNAIRE =
+            &quot;GESTIONNAIRE&quot;;
+
+    private static final String ROLE_ECHEC =
+            &quot;ECHEC&quot;;
+
+    private static final String SQL_PHARMACIEN =
+            &quot;SELECT * FROM pharmacien WHERE login=? AND pwd=?&quot;;
+
+    private static final String SQL_GESTIONNAIRE =
+            &quot;SELECT * FROM gestionnaire WHERE login=? AND pwd=?&quot;;
+
+    /**
+     * Vérifie le login et le mot de passe et retourne le rôle,
+     * ou ROLE_ECHEC si les identifiants sont invalides.
+     */
+    public String getRole(String login, String pwd) {
+
+        try (Connection connection =
+<span class="fc" id="L38">                     DBConnection.getConnection()) {</span>
+
+<span class="fc bfc" id="L40" title="All 2 branches covered.">            if (verifierUtilisateur(</span>
+                    connection,
+                    SQL_PHARMACIEN,
+                    login,
+                    pwd)) {
+
+<span class="fc" id="L46">                return ROLE_PHARMACIEN;</span>
+            }
+
+<span class="fc bfc" id="L49" title="All 2 branches covered.">            if (verifierUtilisateur(</span>
+                    connection,
+                    SQL_GESTIONNAIRE,
+                    login,
+                    pwd)) {
+
+<span class="fc" id="L55">                return ROLE_GESTIONNAIRE;</span>
+            }
+
+<span class="pc bpc" id="L58" title="2 of 4 branches missed.">        } catch (SQLException exception) {</span>
+
+<span class="fc" id="L60">            throw new AccesDonneesException(</span>
+                    &quot;Échec de la vérification des identifiants &quot;
+                            + &quot;pour l'utilisateur : &quot; + login,
+                    exception
+            );
+<span class="fc" id="L65">        }</span>
+
+<span class="fc" id="L67">        return ROLE_ECHEC;</span>
+    }
+
+    private boolean verifierUtilisateur(
+            Connection connection,
+            String sql,
+            String login,
+            String pwd)
+            throws SQLException {
+
+<span class="fc" id="L77">        try (PreparedStatement ps =</span>
+<span class="fc" id="L78">                     connection.prepareStatement(sql)) {</span>
+
+<span class="fc" id="L80">            ps.setString(1, login);</span>
+<span class="fc" id="L81">            ps.setString(2, pwd);</span>
+
+<span class="fc" id="L83">            try (ResultSet rs =</span>
+<span class="fc" id="L84">                         ps.executeQuery()) {</span>
+
+<span class="fc" id="L86">                return rs.next();</span>
+            }
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

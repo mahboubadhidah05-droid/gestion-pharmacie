@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MedicamentDAO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pharmacie-corrige</a> &gt; <a href="index.source.html" class="el_package">dao</a> &gt; <span class="el_source">MedicamentDAO.java</span></div><h1>MedicamentDAO.java</h1><pre class="source lang-java linenums">package dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import dto.MedicamentResponse;
+import exception.AccesDonneesException;
+import utils.DBConnection;
+
+<span class="fc" id="L14">public class MedicamentDAO {</span>
+
+private static final String TABLE_MEDICAMENT =
+        &quot;medicament&quot;;
+
+private static final String COL_ID =
+        &quot;id_medicament&quot;;
+
+private static final String COL_NOM =
+        &quot;nom&quot;;
+
+private static final String COL_STOCK =
+        &quot;stock&quot;;
+
+private static final String WHERE_ID =
+        &quot; WHERE &quot; + COL_ID + &quot; = ?&quot;;
+
+private static final String CONTEXTE_MEDICAMENT =
+        &quot;du médicament avec l'ID : &quot;;
+
+public void ajouterMedicament(
+        String nom,
+        String dosage,
+        int stock,
+        double prix,
+        int seuil) {
+
+<span class="fc" id="L41">    String sql =</span>
+            &quot;INSERT INTO &quot;
+            + TABLE_MEDICAMENT
+            + &quot; (nom, dosage, stock, prix, seuil_critique)&quot;
+            + &quot; VALUES(?,?,?,?,?)&quot;;
+
+    try (Connection connection =
+<span class="fc" id="L48">                 DBConnection.getConnection();</span>
+<span class="fc" id="L49">         PreparedStatement statement =</span>
+<span class="fc" id="L50">                 connection.prepareStatement(sql)) {</span>
+
+<span class="fc" id="L52">        statement.setString(1, nom);</span>
+<span class="fc" id="L53">        statement.setString(2, dosage);</span>
+<span class="fc" id="L54">        statement.setInt(3, stock);</span>
+<span class="fc" id="L55">        statement.setDouble(4, prix);</span>
+<span class="fc" id="L56">        statement.setInt(5, seuil);</span>
+
+<span class="fc" id="L58">        statement.executeUpdate();</span>
+
+<span class="fc" id="L60">    } catch (SQLException exception) {</span>
+
+<span class="fc" id="L62">        throw new AccesDonneesException(</span>
+                &quot;Échec de l'ajout du médicament : &quot;
+                        + nom
+                        + &quot;, dosage : &quot;
+                        + dosage,
+                exception
+        );
+<span class="fc" id="L69">    }</span>
+<span class="fc" id="L70">}</span>
+
+public int getStock(int idMed) {
+
+<span class="fc" id="L74">    String sql =</span>
+            &quot;SELECT &quot;
+            + COL_STOCK
+            + &quot; FROM &quot;
+            + TABLE_MEDICAMENT
+            + WHERE_ID;
+
+    try (Connection connection =
+<span class="fc" id="L82">                 DBConnection.getConnection();</span>
+<span class="fc" id="L83">         PreparedStatement statement =</span>
+<span class="fc" id="L84">                 connection.prepareStatement(sql)) {</span>
+
+<span class="fc" id="L86">        statement.setInt(1, idMed);</span>
+
+<span class="fc" id="L88">        try (ResultSet result =</span>
+<span class="fc" id="L89">                     statement.executeQuery()) {</span>
+
+<span class="fc bfc" id="L91" title="All 2 branches covered.">            if (result.next()) {</span>
+<span class="fc" id="L92">                return result.getInt(COL_STOCK);</span>
+            }
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        }</span>
+
+<span class="pc bpc" id="L96" title="2 of 4 branches missed.">    } catch (SQLException exception) {</span>
+
+<span class="fc" id="L98">        throw new AccesDonneesException(</span>
+                &quot;Échec de la récupération du stock &quot;
+                        + CONTEXTE_MEDICAMENT
+                        + idMed,
+                exception
+        );
+<span class="fc" id="L104">    }</span>
+
+<span class="fc" id="L106">    return -1;</span>
+}
+
+public List&lt;MedicamentResponse&gt; listerMedicaments() {
+
+<span class="fc" id="L111">    String sql =</span>
+            &quot;SELECT * FROM &quot;
+            + TABLE_MEDICAMENT
+            + &quot; ORDER BY &quot;
+            + COL_ID;
+
+<span class="fc" id="L117">    List&lt;MedicamentResponse&gt; medicaments =</span>
+            new ArrayList&lt;&gt;();
+
+    try (Connection connection =
+<span class="fc" id="L121">                 DBConnection.getConnection();</span>
+<span class="fc" id="L122">         PreparedStatement statement =</span>
+<span class="fc" id="L123">                 connection.prepareStatement(sql);</span>
+<span class="fc" id="L124">         ResultSet result =</span>
+<span class="fc" id="L125">                 statement.executeQuery()) {</span>
+
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        while (result.next()) {</span>
+
+<span class="fc" id="L129">            medicaments.add(</span>
+                    new MedicamentResponse(
+<span class="fc" id="L131">                            result.getInt(COL_ID),</span>
+<span class="fc" id="L132">                            result.getString(COL_NOM),</span>
+<span class="fc" id="L133">                            result.getString(&quot;dosage&quot;),</span>
+<span class="fc" id="L134">                            result.getInt(COL_STOCK),</span>
+<span class="fc" id="L135">                            result.getDouble(&quot;prix&quot;),</span>
+<span class="fc" id="L136">                            result.getInt(&quot;seuil_critique&quot;)</span>
+                    )
+            );
+        }
+
+<span class="fc" id="L141">    } catch (SQLException exception) {</span>
+
+<span class="fc" id="L143">        throw new AccesDonneesException(</span>
+                &quot;Échec de la récupération de la liste &quot;
+                        + &quot;des médicaments&quot;,
+                exception
+        );
+<span class="fc" id="L148">    }</span>
+
+<span class="fc" id="L150">    return medicaments;</span>
+}
+
+public void updateStock(
+        int idMed,
+        int quantite) {
+
+<span class="fc" id="L157">    String sql =</span>
+            &quot;UPDATE &quot;
+            + TABLE_MEDICAMENT
+            + &quot; SET &quot;
+            + COL_STOCK
+            + &quot;=?&quot;
+            + WHERE_ID;
+
+    try (Connection connection =
+<span class="fc" id="L166">                 DBConnection.getConnection();</span>
+<span class="fc" id="L167">         PreparedStatement statement =</span>
+<span class="fc" id="L168">                 connection.prepareStatement(sql)) {</span>
+
+<span class="fc" id="L170">        statement.setInt(1, quantite);</span>
+<span class="fc" id="L171">        statement.setInt(2, idMed);</span>
+
+<span class="fc" id="L173">        statement.executeUpdate();</span>
+
+<span class="fc" id="L175">    } catch (SQLException exception) {</span>
+
+<span class="fc" id="L177">        throw new AccesDonneesException(</span>
+                &quot;Échec de la mise à jour du stock &quot;
+                        + CONTEXTE_MEDICAMENT
+                        + idMed
+                        + &quot;, nouvelle quantité : &quot;
+                        + quantite,
+                exception
+        );
+<span class="fc" id="L185">    }</span>
+<span class="fc" id="L186">}</span>
+
+public String stockCritique(
+        int idMed) {
+
+<span class="fc" id="L191">    String sql =</span>
+            &quot;SELECT * FROM &quot;
+            + TABLE_MEDICAMENT
+            + WHERE_ID
+            + &quot; AND &quot;
+            + COL_STOCK
+            + &quot; &lt;= seuil_critique&quot;;
+
+    try (Connection connection =
+<span class="fc" id="L200">                 DBConnection.getConnection();</span>
+<span class="fc" id="L201">         PreparedStatement statement =</span>
+<span class="fc" id="L202">                 connection.prepareStatement(sql)) {</span>
+
+<span class="fc" id="L204">        statement.setInt(1, idMed);</span>
+
+<span class="fc" id="L206">        try (ResultSet result =</span>
+<span class="fc" id="L207">                     statement.executeQuery()) {</span>
+
+<span class="fc bfc" id="L209" title="All 2 branches covered.">            if (result.next()) {</span>
+
+<span class="fc" id="L211">                return String.format(</span>
+                        &quot;Médicament en stock critique : %s (ID %d) &quot;
+                                + &quot;| Stock actuel = %d&quot;,
+<span class="fc" id="L214">                        result.getString(COL_NOM),</span>
+<span class="fc" id="L215">                        result.getInt(COL_ID),</span>
+<span class="fc" id="L216">                        result.getInt(COL_STOCK)</span>
+                );
+            }
+<span class="pc bpc" id="L219" title="1 of 2 branches missed.">        }</span>
+
+<span class="pc bpc" id="L221" title="2 of 4 branches missed.">    } catch (SQLException exception) {</span>
+
+<span class="fc" id="L223">        throw new AccesDonneesException(</span>
+                &quot;Échec de la vérification du stock critique &quot;
+                        + CONTEXTE_MEDICAMENT
+                        + idMed,
+                exception
+        );
+<span class="fc" id="L229">    }</span>
+
+<span class="fc" id="L231">    return null;</span>
+}
+
+public int getIdMedicamentParNomEtDosage(
+        String nom,
+        String dosage) {
+
+<span class="fc" id="L238">    String sql =</span>
+            &quot;SELECT &quot;
+            + COL_ID
+            + &quot; FROM &quot;
+            + TABLE_MEDICAMENT
+            + &quot; WHERE LOWER(TRIM(&quot;
+            + COL_NOM
+            + &quot;)) = LOWER(TRIM(?)) AND LOWER(TRIM(dosage)) = LOWER(TRIM(?))&quot;;
+
+    try (Connection connection =
+<span class="fc" id="L248">                 DBConnection.getConnection();</span>
+<span class="fc" id="L249">         PreparedStatement statement =</span>
+<span class="fc" id="L250">                 connection.prepareStatement(sql)) {</span>
+
+<span class="fc" id="L252">        statement.setString(1, nom);</span>
+<span class="fc" id="L253">        statement.setString(2, dosage);</span>
+
+<span class="fc" id="L255">        try (ResultSet result =</span>
+<span class="fc" id="L256">                     statement.executeQuery()) {</span>
+
+<span class="fc bfc" id="L258" title="All 2 branches covered.">            if (result.next()) {</span>
+<span class="fc" id="L259">                return result.getInt(COL_ID);</span>
+            }
+<span class="pc bpc" id="L261" title="1 of 2 branches missed.">        }</span>
+
+<span class="pc bpc" id="L263" title="2 of 4 branches missed.">    } catch (SQLException exception) {</span>
+
+<span class="fc" id="L265">        throw new AccesDonneesException(</span>
+                &quot;Échec de la recherche du médicament &quot;
+                        + &quot;avec le nom : &quot;
+                        + nom
+                        + &quot; et le dosage : &quot;
+                        + dosage,
+                exception
+        );
+<span class="fc" id="L273">    }</span>
+
+<span class="fc" id="L275">    return -1;</span>
+}
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

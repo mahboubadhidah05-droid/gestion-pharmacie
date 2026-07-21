@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Client.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pharmacie-corrige</a> &gt; <a href="index.source.html" class="el_package">model</a> &gt; <span class="el_source">Client.java</span></div><h1>Client.java</h1><pre class="source lang-java linenums">package model;
+
+/**
+ * Classe représentant un client de la pharmacie.
+ */
+public class Client {
+
+    private int id;
+    private String nom;
+    private String prenom;
+    private String email;
+    private String adresse;
+
+    public Client(int id, String nom, String prenom,
+<span class="nc" id="L15">                  String email, String adresse) {</span>
+<span class="nc" id="L16">        this.setId(id);</span>
+<span class="nc" id="L17">        this.setNom(nom);</span>
+<span class="nc" id="L18">        this.setPrenom(prenom);</span>
+<span class="nc" id="L19">        this.setEmail(email);</span>
+<span class="nc" id="L20">        this.setAdresse(adresse);</span>
+<span class="nc" id="L21">    }</span>
+
+	public int getId() {
+<span class="nc" id="L24">		return id;</span>
+	}
+
+	public void setId(int id) {
+<span class="nc" id="L28">		this.id = id;</span>
+<span class="nc" id="L29">	}</span>
+
+	public String getNom() {
+<span class="nc" id="L32">		return nom;</span>
+	}
+
+	public void setNom(String nom) {
+<span class="nc" id="L36">		this.nom = nom;</span>
+<span class="nc" id="L37">	}</span>
+
+	public String getPrenom() {
+<span class="nc" id="L40">		return prenom;</span>
+	}
+
+	public void setPrenom(String prenom) {
+<span class="nc" id="L44">		this.prenom = prenom;</span>
+<span class="nc" id="L45">	}</span>
+
+	public String getEmail() {
+<span class="nc" id="L48">		return email;</span>
+	}
+
+	public void setEmail(String email) {
+<span class="nc" id="L52">		this.email = email;</span>
+<span class="nc" id="L53">	}</span>
+
+	public String getAdresse() {
+<span class="nc" id="L56">		return adresse;</span>
+	}
+
+	public void setAdresse(String adresse) {
+<span class="nc" id="L60">		this.adresse = adresse;</span>
+<span class="nc" id="L61">	}</span>
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
