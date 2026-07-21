@@ -4,16 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion Pharmacie — Stock</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
+    <link rel="apple-touch-icon" href="favicon-180.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header class="topbar">
         <div class="croix" aria-hidden="true">
-            <span></span><span></span>
+            <img src="logo-pharmacie.png" alt="Logo pharmacie" width="30" height="30">
         </div>
         <div>
             <h1>Gestion Pharmacie</h1>
@@ -34,6 +37,7 @@
 
 		<!-- Enregistrer une vente -->
 		        <section class="carte" data-role="PHARMACIEN">
+		            <p class="etiquette">VENTES</p>
 		            <h2>Enregistrer une vente</h2>
 		            <form id="formVente">
 		                <div class="rangee">
@@ -58,20 +62,10 @@
 		        </section>
 
 
-		        <!-- Annuler une vente -->
-		        <section class="carte" data-role="PHARMACIEN">
-		            <h2>Annuler une vente</h2>
-		            <form id="formAnnulation">
-		                <label>ID de la vente
-		                    <input type="number" name="id" required min="1" placeholder="7">
-		                </label>
-		                <button type="submit">Annuler la vente</button>
-		            </form>
-		            <p class="alerte" id="alerteAnnulation" hidden></p>
-		        </section>
 				<!-- Créer un client -->
 				        <section class="carte" data-role="PHARMACIEN">
-				            <h2>Créer un client</h2>
+				            <p class="etiquette">CLIENTS</p>
+		            <h2>Créer un client</h2>
 				            <form id="formClient">
 				                <div class="rangee">
 				                    <label>Nom
@@ -97,18 +91,27 @@
 
 		        <!-- Consulter les ventes -->
 		        <section class="carte carte-large" data-role="PHARMACIEN">
+		            <p class="etiquette">VENTES</p>
 		            <h2>Consulter les ventes</h2>
 		            <form id="formConsulterVentes">
 		                <div class="rangee">
 		                    <label>Filtrer par
 		                        <select name="filtre" id="filtreVentes">
-		                            <option value="medicament">Médicament (ID)</option>
-		                            <option value="client">Client (ID)</option>
+		                            <option value="medicament">Médicament (nom)</option>
+		                            <option value="client">Client (nom + prénom)</option>
 		                            <option value="periode">Période</option>
 		                        </select>
 		                    </label>
-		                    <label id="champValeur">Valeur
-		                        <input type="number" name="valeur" min="1" placeholder="1">
+		                    <label id="champValeur">Nom du médicament
+		                        <input type="text" name="valeur" placeholder="Paracétamol" id="inputValeurVente">
+		                    </label>
+		                </div>
+		                <div class="rangee" id="champsClient" hidden>
+		                    <label>Nom
+		                        <input type="text" name="clientNom" placeholder="Ben Ali">
+		                    </label>
+		                    <label>Prénom
+		                        <input type="text" name="clientPrenom" placeholder="Sami">
 		                    </label>
 		                </div>
 		                <div class="rangee" id="champsPeriode" hidden>
@@ -131,6 +134,7 @@
 		                            <th>Médicament</th>
 		                            <th>Quantité</th>
 		                            <th>Date</th>
+		                            <th>Actions</th>
 		                        </tr>
 		                    </thead>
 		                    <tbody id="corpsTableVentes"></tbody>
@@ -141,7 +145,8 @@
 
         <!-- Ajouter un médicament -->
         <section class="carte" data-role="GESTIONNAIRE">
-            <h2>Ajouter un médicament</h2>
+            <p class="etiquette">STOCK</p>
+		            <h2>Ajouter un médicament</h2>
             <form id="formAjout">
                 <div class="rangee">
                     <label>Nom
@@ -169,11 +174,17 @@
 
         <!-- Consulter le stock -->
         <section class="carte" data-role="GESTIONNAIRE">
-            <h2>Consulter un stock</h2>
+            <p class="etiquette">STOCK</p>
+		            <h2>Consulter un stock</h2>
             <form id="formConsulter">
-                <label>ID du médicament
-                    <input type="number" name="id" required min="1" placeholder="1">
-                </label>
+                <div class="rangee">
+                    <label>Nom du médicament
+                        <input type="text" name="nom" required placeholder="Paracétamol">
+                    </label>
+                    <label>Dosage
+                        <input type="text" name="dosage" required placeholder="500mg">
+                    </label>
+                </div>
                 <button type="submit">Consulter</button>
             </form>
             <div class="resultat-stock" id="resultatStock" hidden>
@@ -185,11 +196,15 @@
 
         <!-- Mettre à jour le stock -->
         <section class="carte" data-role="GESTIONNAIRE">
-            <h2>Mettre à jour un stock</h2>
+            <p class="etiquette">STOCK</p>
+		            <h2>Mettre à jour un stock</h2>
             <form id="formMaj">
-                <div class="rangee">
-                    <label>ID du médicament
-                        <input type="number" name="id" required min="1" placeholder="1">
+                <div class="rangee rangee-3">
+                    <label>Nom du médicament
+                        <input type="text" name="nom" required placeholder="Paracétamol">
+                    </label>
+                    <label>Dosage
+                        <input type="text" name="dosage" required placeholder="500mg">
                     </label>
                     <label>Nouveau stock
                         <input type="number" name="stock" required min="0" placeholder="85">
@@ -200,6 +215,7 @@
         </section>
 		<!-- Créer une commande -->
 		        <section class="carte" data-role="GESTIONNAIRE">
+		            <p class="etiquette">COMMANDES</p>
 		            <h2>Créer une commande</h2>
 		            <form id="formCommande">
 		                <div class="rangee rangee-3">
@@ -221,17 +237,24 @@
 
         <!-- Vérifier le seuil critique -->
         <section class="carte" data-role="GESTIONNAIRE">
-            <h2>Vérifier le seuil critique</h2>
+            <p class="etiquette">STOCK</p>
+		            <h2>Vérifier le seuil critique</h2>
             <form id="formCritique">
-                <label>ID du médicament
-                    <input type="number" name="id" required min="1" placeholder="1">
-                </label>
+                <div class="rangee">
+                    <label>Nom du médicament
+                        <input type="text" name="nom" required placeholder="Paracétamol">
+                    </label>
+                    <label>Dosage
+                        <input type="text" name="dosage" required placeholder="500mg">
+                    </label>
+                </div>
                 <button type="submit">Vérifier</button>
             </form>
             <p class="alerte" id="alerteCritique" hidden></p>
         </section>
 		<!-- Liste des médicaments -->
 		        <section class="carte carte-large" data-role="GESTIONNAIRE">
+		            <p class="etiquette">STOCK</p>
 		            <h2>Liste des médicaments</h2>
 		            <button type="button" id="btnListeMedicaments">Actualiser la liste</button>
 		            <div class="tableau-conteneur">
@@ -254,15 +277,8 @@
     </main>
 
 
-    <!-- Journal : trace chaque appel API (pratique pour la démo de stage) -->
-    <section class="journal">
-        <h2>Journal des appels API</h2>
-        <div class="journal-corps" id="journal">
-            <p class="journal-vide">Aucun appel pour l'instant. Utilisez un formulaire ci-dessus.</p>
-        </div>
-    </section>
 
-
+    <script src="ui.js"></script>
     <script src="auth.js"></script>
     <script src="app.js"></script>
 </body>

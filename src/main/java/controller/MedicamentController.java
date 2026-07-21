@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import dto.MedicamentRequest;
@@ -69,10 +70,53 @@ public class MedicamentController {
     }
 
 
+    @GetMapping("/stock")
+    public ResponseEntity<StockResponse> consulterStockParNom(
+            @RequestParam String nom,
+            @RequestParam String dosage) {
+
+        int id = medicamentService.getIdParNomEtDosage(nom, dosage);
+
+        if (id == STOCK_INTROUVABLE) {
+            return ResponseEntity.notFound().build();
+        }
+
+        int stock = medicamentService.getStock(id);
+
+        if (stock == STOCK_INTROUVABLE) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(
+                new StockResponse(id, stock)
+        );
+    }
+
+
     @PutMapping("/{id}/stock")
     public ResponseEntity<MessageResponse> mettreAJourStock(
             @PathVariable int id,
             @RequestBody StockUpdateRequest request) {
+
+        medicamentService.updateStock(id, request.quantite());
+
+        return ResponseEntity.ok(
+                new MessageResponse("Stock mis à jour avec succès")
+        );
+    }
+
+
+    @PutMapping("/stock")
+    public ResponseEntity<MessageResponse> mettreAJourStockParNom(
+            @RequestParam String nom,
+            @RequestParam String dosage,
+            @RequestBody StockUpdateRequest request) {
+
+        int id = medicamentService.getIdParNomEtDosage(nom, dosage);
+
+        if (id == STOCK_INTROUVABLE) {
+            return ResponseEntity.notFound().build();
+        }
 
         medicamentService.updateStock(id, request.quantite());
 
@@ -91,6 +135,31 @@ public class MedicamentController {
     @GetMapping("/{id}/stock-critique")
     public ResponseEntity<StockCritiqueResponse> verifierStockCritique(
             @PathVariable int id) {
+
+        String message = medicamentService.stockCritique(id);
+
+        if (message != null) {
+            return ResponseEntity.ok(
+                    new StockCritiqueResponse(true, message)
+            );
+        }
+
+        return ResponseEntity.ok(
+                new StockCritiqueResponse(false, "Stock normal")
+        );
+    }
+
+
+    @GetMapping("/stock-critique")
+    public ResponseEntity<StockCritiqueResponse> verifierStockCritiqueParNom(
+            @RequestParam String nom,
+            @RequestParam String dosage) {
+
+        int id = medicamentService.getIdParNomEtDosage(nom, dosage);
+
+        if (id == STOCK_INTROUVABLE) {
+            return ResponseEntity.notFound().build();
+        }
 
         String message = medicamentService.stockCritique(id);
 

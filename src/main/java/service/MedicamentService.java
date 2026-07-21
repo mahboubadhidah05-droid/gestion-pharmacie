@@ -25,6 +25,10 @@ public class MedicamentService {
     public void updateStock(int id, int qte) {
         dao.updateStock(id, qte);
     }
+
+    public int getIdParNomEtDosage(String nom, String dosage) {
+        return dao.getIdMedicamentParNomEtDosage(nom, dosage);
+    }
     public List<MedicamentResponse> listerMedicaments() {
         return dao.listerMedicaments();
     }

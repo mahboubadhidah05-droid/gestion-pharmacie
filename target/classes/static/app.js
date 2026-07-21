@@ -1,403 +1,1133 @@
 /* ============================================================
    Gestion Pharmacie — appels à l'API REST
-   Le HTML est servi par Spring Boot (dossier static/), donc
-   même origine que l'API : pas de problème de CORS.
-   L'authentification est gérée par auth.js (chargé avant).
    ============================================================ */
 
+/* Repli si ui.js n'a pas pu être chargé (404, etc.) :
+   les actions continuent de fonctionner sans spinner ni toast. */
+if (typeof definirChargement !== "function") {
+
+    window.definirChargement = function (bouton, chargement) {
+
+        if (bouton) {
+            bouton.disabled = chargement;
+        }
+    };
+}
+
+if (typeof notifier !== "function") {
+
+    window.notifier = function (message) {
+        console.log(message);
+    };
+}
+
 const API = "/api/medicaments";
+const API_VENTES = "/api/ventes";
+const API_CLIENTS = "/api/clients";
 
 
-/* ---------- Journal des appels ---------- */
+/* ============================================================
+   Journal des appels API
+   ============================================================ */
 
 const journal = document.getElementById("journal");
 
 function loguer(methode, url, statut, corps) {
+
+    if (!journal) {
+        return;
+    }
+
     const vide = journal.querySelector(".journal-vide");
-    if (vide) vide.remove();
+
+    if (vide) {
+        vide.remove();
+    }
 
     const heure = new Date().toLocaleTimeString("fr-FR");
-    const classeStatut = statut >= 200 && statut < 300 ? "statut-ok" : "statut-erreur";
+
+    const classeStatut =
+        statut >= 200 && statut < 300
+            ? "statut-ok"
+            : "statut-erreur";
 
     const ligne = document.createElement("p");
+
     ligne.className = "journal-ligne";
+
     ligne.innerHTML =
-        `[${heure}] <span class="methode">${methode}</span> ${url} ` +
-        `<span class="${classeStatut}">→ ${statut}</span> ${corps}`;
+        `[${heure}] ` +
+        `<span class="methode">${methode}</span> ` +
+        `${url} ` +
+        `<span class="${classeStatut}">→ ${statut}</span> ` +
+        `${corps}`;
 
     journal.prepend(ligne);
 }
 
 
-/* ---------- Appel générique ---------- */
+/* ============================================================
+   Appel générique à l'API
+   ============================================================ */
 
 async function appelerApi(methode, url, donnees) {
-    const options = { method: methode };
+
+    const options = {
+        method: methode
+    };
 
     if (donnees) {
-        options.headers = { "Content-Type": "application/json" };
+
+        options.headers = {
+            "Content-Type": "application/json"
+        };
+
         options.body = JSON.stringify(donnees);
     }
 
     try {
+
         const reponse = await fetch(url, options);
 
-        /* Session expirée : retour à la page de connexion. */
         if (reponse.status === 401) {
+
             window.location.href = "login.html";
-            return { ok: false, statut: 401, donnees: null };
+
+            return {
+                ok: false,
+                statut: 401,
+                donnees: null
+            };
         }
 
         const texte = await reponse.text();
 
-        loguer(methode, url, reponse.status, texte);
+        loguer(
+            methode,
+            url,
+            reponse.status,
+            texte
+        );
+
+        let donneesRetour = null;
+
+        if (texte) {
+            donneesRetour = JSON.parse(texte);
+        }
 
         return {
             ok: reponse.ok,
             statut: reponse.status,
-            donnees: texte ? JSON.parse(texte) : null
+            donnees: donneesRetour
         };
 
     } catch (erreur) {
-        loguer(methode, url, 0, "Serveur injoignable");
-        return { ok: false, statut: 0, donnees: null };
+
+        console.error("Erreur API :", erreur);
+
+        loguer(
+            methode,
+            url,
+            0,
+            "Serveur injoignable"
+        );
+
+        return {
+            ok: false,
+            statut: 0,
+            donnees: null
+        };
     }
 }
 
 
-/* ---------- État de l'API au chargement ---------- */
+/* ============================================================
+   Vérification de l'API
+   ============================================================ */
 
 (async function verifierApi() {
+
     const etat = document.getElementById("etatApi");
     const texte = document.getElementById("etatApiTexte");
 
     try {
-        // Un simple appel : toute réponse HTTP prouve que le serveur répond.
-        await fetch("/api/auth/me");
-        etat.classList.add("ok");
-        texte.textContent = "API connectée";
+
+        const reponse = await fetch("/api/auth/me");
+
+        if (reponse.ok) {
+
+            etat.classList.add("ok");
+
+            texte.textContent =
+                "API connectée";
+
+        } else {
+
+            etat.classList.add("erreur");
+
+            texte.textContent =
+                "Session non authentifiée";
+        }
+
     } catch {
+
         etat.classList.add("erreur");
-        texte.textContent = "API injoignable";
+
+        texte.textContent =
+            "API injoignable";
     }
+
 })();
 
 
-/* ---------- Formulaire : ajouter ---------- */
+/* ============================================================
+   AJOUTER UN MÉDICAMENT
+   ============================================================ */
 
-document.getElementById("formAjout").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const f = new FormData(e.target);
+const formAjout =
+    document.getElementById("formAjout");
 
-    const resultat = await appelerApi("POST", API, {
-        nom: f.get("nom"),
-        dosage: f.get("dosage"),
-        stock: Number(f.get("stock")),
-        prix: Number(f.get("prix")),
-        seuil: Number(f.get("seuil"))
-    });
+if (formAjout) {
 
-    if (resultat.ok) e.target.reset();
-});
+    formAjout.addEventListener(
+        "submit",
+        async (e) => {
+
+            e.preventDefault();
+
+            const bouton = e.target.querySelector("button");
+            definirChargement(bouton, true);
+
+            const f =
+                new FormData(e.target);
+
+            const resultat =
+                await appelerApi(
+                    "POST",
+                    API,
+                    {
+                        nom: f.get("nom"),
+                        dosage: f.get("dosage"),
+                        stock: Number(f.get("stock")),
+                        prix: Number(f.get("prix")),
+                        seuil: Number(f.get("seuil"))
+                    }
+                );
+
+            definirChargement(bouton, false);
+
+            if (resultat.ok) {
+
+                e.target.reset();
+
+                notifier(
+                    "Médicament ajouté avec succès."
+                );
+
+            } else {
+
+                notifier(
+                    "Erreur lors de l'ajout du médicament.",
+                    "erreur"
+                );
+            }
+        }
+    );
+}
 
 
-/* ---------- Formulaire : consulter le stock ---------- */
+/* ============================================================
+   CONSULTER UN STOCK
+   ============================================================ */
 
-document.getElementById("formConsulter").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const id = new FormData(e.target).get("id");
+const formConsulter =
+    document.getElementById(
+        "formConsulter"
+    );
 
-    const resultat = await appelerApi("GET", `${API}/${id}/stock`);
+if (formConsulter) {
 
-    const bloc = document.getElementById("resultatStock");
-    const valeur = document.getElementById("stockValeur");
+    formConsulter.addEventListener(
+        "submit",
+        async (e) => {
 
-    bloc.hidden = false;
-    valeur.textContent = resultat.ok ? resultat.donnees.stock : "introuvable";
-});
+            e.preventDefault();
+
+            const bouton = e.target.querySelector("button");
+            definirChargement(bouton, true);
+
+            const f =
+                new FormData(e.target);
+
+            const nom = f.get("nom");
+            const dosage = f.get("dosage");
+
+            const resultat =
+                await appelerApi(
+                    "GET",
+                    `${API}/stock?nom=${encodeURIComponent(nom)}`
+                    + `&dosage=${encodeURIComponent(dosage)}`
+                );
+
+            definirChargement(bouton, false);
+
+            const bloc =
+                document.getElementById(
+                    "resultatStock"
+                );
+
+            const valeur =
+                document.getElementById(
+                    "stockValeur"
+                );
+
+            if (resultat.ok) {
+
+                bloc.hidden = false;
+
+                valeur.textContent =
+                    resultat.donnees.stock;
+
+            } else {
+
+                bloc.hidden = false;
+
+                valeur.textContent =
+                    "introuvable";
+            }
+        }
+    );
+}
 
 
-/* ---------- Formulaire : mettre à jour ---------- */
+/* ============================================================
+   METTRE À JOUR UN STOCK
+   ============================================================ */
 
-document.getElementById("formMaj").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const f = new FormData(e.target);
-    const id = f.get("id");
+const formMaj =
+    document.getElementById("formMaj");
 
-    const resultat = await appelerApi("PUT", `${API}/${id}/stock`, {
-        quantite: Number(f.get("stock"))
-    });
+if (formMaj) {
 
-    if (resultat.ok) e.target.reset();
-});
+    formMaj.addEventListener(
+        "submit",
+        async (e) => {
+
+            e.preventDefault();
+
+            const bouton = e.target.querySelector("button");
+            definirChargement(bouton, true);
+
+            const f =
+                new FormData(e.target);
+
+            const nom = f.get("nom");
+            const dosage = f.get("dosage");
+
+            const resultat =
+                await appelerApi(
+                    "PUT",
+                    `${API}/stock?nom=${encodeURIComponent(nom)}`
+                    + `&dosage=${encodeURIComponent(dosage)}`,
+                    {
+                        quantite:
+                            Number(f.get("stock"))
+                    }
+                );
+
+            definirChargement(bouton, false);
+
+            if (resultat.ok) {
+
+                e.target.reset();
+
+                notifier(
+                    "Stock mis à jour avec succès."
+                );
+
+            } else {
+
+                notifier(
+                    "Erreur lors de la mise à jour du stock.",
+                    "erreur"
+                );
+            }
+        }
+    );
+}
 
 
-/* ---------- Formulaire : seuil critique ---------- */
+/* ============================================================
+   VÉRIFIER LE SEUIL CRITIQUE
+   ============================================================ */
 
-document.getElementById("formCritique").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const id = new FormData(e.target).get("id");
+const formCritique =
+    document.getElementById(
+        "formCritique"
+    );
 
-    const resultat = await appelerApi("GET", `${API}/${id}/stock-critique`);
+if (formCritique) {
 
-    const alerte = document.getElementById("alerteCritique");
-    alerte.hidden = false;
+    formCritique.addEventListener(
+        "submit",
+        async (e) => {
 
-    if (resultat.ok && resultat.donnees.critique) {
-        alerte.textContent = resultat.donnees.message;
-        alerte.classList.remove("ok");
-    } else if (resultat.ok) {
-        alerte.textContent = "Stock au-dessus du seuil critique.";
-        alerte.classList.add("ok");
-    } else {
-        alerte.textContent = "Vérification impossible (voir le journal).";
-        alerte.classList.remove("ok");
-    }
-});
-/* ---------- Liste des médicaments ---------- */
+            e.preventDefault();
+
+            const bouton = e.target.querySelector("button");
+            definirChargement(bouton, true);
+
+            const f =
+                new FormData(e.target);
+
+            const nom = f.get("nom");
+            const dosage = f.get("dosage");
+
+            const resultat =
+                await appelerApi(
+                    "GET",
+                    `${API}/stock-critique?nom=${encodeURIComponent(nom)}`
+                    + `&dosage=${encodeURIComponent(dosage)}`
+                );
+
+            definirChargement(bouton, false);
+
+            const alerte =
+                document.getElementById(
+                    "alerteCritique"
+                );
+
+            alerte.hidden = false;
+
+            if (
+                resultat.ok &&
+                resultat.donnees.critique
+            ) {
+
+                alerte.textContent =
+                    resultat.donnees.message;
+
+                alerte.classList.remove(
+                    "ok"
+                );
+
+            } else if (resultat.ok) {
+
+                alerte.textContent =
+                    "Stock au-dessus du seuil critique.";
+
+                alerte.classList.add(
+                    "ok"
+                );
+
+            } else {
+
+                alerte.textContent =
+                    "Vérification impossible.";
+
+                alerte.classList.remove(
+                    "ok"
+                );
+            }
+        }
+    );
+}
+
+
+/* ============================================================
+   LISTE DES MÉDICAMENTS
+   ============================================================ */
 
 async function chargerMedicaments() {
-    const resultat = await appelerApi("GET", API);
 
-    if (!resultat.ok) return;
+    const bouton =
+        document.getElementById(
+            "btnListeMedicaments"
+        );
 
-    const table = document.getElementById("tableMedicaments");
-    const corps = document.getElementById("corpsTableMedicaments");
+    definirChargement(bouton, true);
+
+    const resultat =
+        await appelerApi(
+            "GET",
+            API
+        );
+
+    definirChargement(bouton, false);
+
+    if (!resultat.ok) {
+
+        notifier(
+            "Impossible de charger la liste des médicaments.",
+            "erreur"
+        );
+
+        return;
+    }
+
+    const table =
+        document.getElementById(
+            "tableMedicaments"
+        );
+
+    const corps =
+        document.getElementById(
+            "corpsTableMedicaments"
+        );
 
     corps.innerHTML = "";
 
-    resultat.donnees.forEach((med) => {
-        const ligne = document.createElement("tr");
+    resultat.donnees.forEach(
+        (med) => {
 
-        /* Ligne mise en évidence si le stock est au niveau critique */
-        if (med.stock <= med.seuilCritique) {
-            ligne.classList.add("ligne-critique");
+            const ligne =
+                document.createElement(
+                    "tr"
+                );
+
+            if (
+                med.stock <=
+                med.seuilCritique
+            ) {
+
+                ligne.classList.add(
+                    "ligne-critique"
+                );
+            }
+
+            [
+                med.id,
+                med.nom,
+                med.dosage,
+                med.stock,
+                Number(med.prix)
+                    .toFixed(2),
+                med.seuilCritique
+            ].forEach(
+                (valeur) => {
+
+                    const cellule =
+                        document.createElement(
+                            "td"
+                        );
+
+                    cellule.textContent =
+                        valeur;
+
+                    ligne.appendChild(
+                        cellule
+                    );
+                }
+            );
+
+            corps.appendChild(
+                ligne
+            );
         }
-
-        [med.id, med.nom, med.dosage, med.stock,
-         med.prix.toFixed(2), med.seuilCritique]
-            .forEach((valeur) => {
-                const cellule = document.createElement("td");
-                cellule.textContent = valeur;
-                ligne.appendChild(cellule);
-            });
-
-        corps.appendChild(ligne);
-    });
+    );
 
     table.hidden = false;
 }
 
-document.getElementById("btnListeMedicaments")
-    .addEventListener("click", chargerMedicaments);
-	/* ---------- Ventes (pharmacien) ---------- */
 
-	const API_VENTES = "/api/ventes";
+const btnListeMedicaments =
+    document.getElementById(
+        "btnListeMedicaments"
+    );
 
+if (btnListeMedicaments) {
 
-	/* Enregistrer une vente */
-
-	document.getElementById("formVente").addEventListener("submit", async (e) => {
-	    e.preventDefault();
-	    const f = new FormData(e.target);
-
-	    const resultat = await appelerApi("POST", API_VENTES, {
-	        idPharmacien: Number(f.get("idPharmacien")),
-	        idClient: Number(f.get("idClient")),
-	        idMedicament: Number(f.get("idMedicament")),
-	        quantite: Number(f.get("quantite"))
-	    });
-
-	    const alerte = document.getElementById("alerteVente");
-	    alerte.hidden = false;
-
-	    if (resultat.ok) {
-	        alerte.textContent = resultat.donnees.message;
-	        alerte.classList.add("ok");
-	        e.target.reset();
-	    } else if (resultat.statut === 409) {
-	        alerte.textContent = resultat.donnees.message;
-	        alerte.classList.remove("ok");
-	    } else {
-	        alerte.textContent = "Erreur lors de l'enregistrement (voir le journal).";
-	        alerte.classList.remove("ok");
-	    }
-	});
+    btnListeMedicaments.addEventListener(
+        "click",
+        chargerMedicaments
+    );
+}
 
 
-	/* Annuler une vente */
+/* ============================================================
+   ENREGISTRER UNE VENTE
+   ============================================================ */
 
-	document.getElementById("formAnnulation").addEventListener("submit", async (e) => {
-	    e.preventDefault();
-	    const id = new FormData(e.target).get("id");
+const formVente =
+    document.getElementById(
+        "formVente"
+    );
 
-	    const resultat = await appelerApi("DELETE", `${API_VENTES}/${id}`);
+if (formVente) {
 
-	    const alerte = document.getElementById("alerteAnnulation");
-	    alerte.hidden = false;
+    formVente.addEventListener(
+        "submit",
+        async (e) => {
 
-	    if (resultat.ok) {
-	        alerte.textContent = resultat.donnees.message;
-	        alerte.classList.add("ok");
-	        e.target.reset();
-	    } else if (resultat.statut === 404) {
-	        alerte.textContent = "Aucune vente trouvée avec cet ID.";
-	        alerte.classList.remove("ok");
-	    } else {
-	        alerte.textContent = "Erreur lors de l'annulation (voir le journal).";
-	        alerte.classList.remove("ok");
-	    }
-	});
+            e.preventDefault();
 
+            const bouton = e.target.querySelector("button");
+            definirChargement(bouton, true);
 
-	/* Consulter les ventes : bascule Valeur / Période selon le filtre */
+            const f =
+                new FormData(e.target);
 
-	document.getElementById("filtreVentes").addEventListener("change", (e) => {
-	    const periode = e.target.value === "periode";
+            const resultat =
+                await appelerApi(
+                    "POST",
+                    API_VENTES,
+                    {
+                        idPharmacien:
+                            Number(
+                                f.get(
+                                    "idPharmacien"
+                                )
+                            ),
 
-	    document.getElementById("champValeur").hidden = periode;
-	    document.getElementById("champsPeriode").hidden = !periode;
-	});
+                        idClient:
+                            Number(
+                                f.get(
+                                    "idClient"
+                                )
+                            ),
 
+                        idMedicament:
+                            Number(
+                                f.get(
+                                    "idMedicament"
+                                )
+                            ),
 
-	/* Consulter les ventes : recherche et affichage */
+                        quantite:
+                            Number(
+                                f.get(
+                                    "quantite"
+                                )
+                            )
+                    }
+                );
 
-	document.getElementById("formConsulterVentes").addEventListener("submit", async (e) => {
-	    e.preventDefault();
-	    const f = new FormData(e.target);
-	    const filtre = f.get("filtre");
+            definirChargement(bouton, false);
 
-	    let url;
+            const alerte =
+                document.getElementById(
+                    "alerteVente"
+                );
 
-	    if (filtre === "periode") {
-	        const debut = f.get("debut");
-	        const fin = f.get("fin");
-	        if (!debut || !fin) return;
-	        url = `${API_VENTES}?debut=${debut}&fin=${fin}`;
-	    } else {
-	        const valeur = f.get("valeur");
-	        if (!valeur) return;
-	        url = `${API_VENTES}?${filtre}=${valeur}`;
-	    }
+            alerte.hidden = false;
 
-	    const resultat = await appelerApi("GET", url);
+            if (resultat.ok) {
 
-	    if (!resultat.ok) return;
+                alerte.textContent =
+                    resultat.donnees.message;
 
-	    const table = document.getElementById("tableVentes");
-	    const corps = document.getElementById("corpsTableVentes");
-	    const aucune = document.getElementById("aucuneVente");
+                alerte.classList.add(
+                    "ok"
+                );
 
-	    corps.innerHTML = "";
+                e.target.reset();
 
-	    if (resultat.donnees.length === 0) {
-	        table.hidden = true;
-	        aucune.hidden = false;
-	        return;
-	    }
+            } else if (
+                resultat.statut === 409
+            ) {
 
-	    aucune.hidden = true;
+                alerte.textContent =
+                    resultat.donnees.message;
 
-	    resultat.donnees.forEach((vente) => {
-	        const ligne = document.createElement("tr");
+                alerte.classList.remove(
+                    "ok"
+                );
 
-	        [vente.id, vente.idPharmacien, vente.idClient,
-	         vente.idMedicament, vente.quantite,
-	         vente.dateVente.replace("T", " ")]
-	            .forEach((valeur) => {
-	                const cellule = document.createElement("td");
-	                cellule.textContent = valeur;
-	                ligne.appendChild(cellule);
-	            });
+            } else {
 
-	        corps.appendChild(ligne);
-	    });
+                alerte.textContent =
+                    "Erreur lors de l'enregistrement.";
 
-	    table.hidden = false;
-	});
-	/* ---------- Clients (pharmacien) ---------- */
-
-	const API_CLIENTS = "/api/clients";
-
-
-	/* Créer un client */
-
-	document.getElementById("formClient").addEventListener("submit", async (e) => {
-	    e.preventDefault();
-	    const f = new FormData(e.target);
-
-	    const resultat = await appelerApi("POST", API_CLIENTS, {
-	        nom: f.get("nom"),
-	        prenom: f.get("prenom"),
-	        email: f.get("email"),
-	        adresse: f.get("adresse")
-	    });
-
-	    const alerte = document.getElementById("alerteClient");
-	    alerte.hidden = false;
-
-	    if (resultat.ok) {
-	        alerte.textContent =
-	            resultat.donnees.message + " (ID : " + resultat.donnees.id + ")";
-	        alerte.classList.add("ok");
-	        e.target.reset();
-	    } else {
-	        alerte.textContent = "Erreur lors de la création (voir le journal).";
-	        alerte.classList.remove("ok");
-	    }
-	});
+                alerte.classList.remove(
+                    "ok"
+                );
+            }
+        }
+    );
+}
 
 
-	/* Vérification du client à la saisie dans le formulaire de vente,
-	   comme dans le menu CLI : on prévient si le client n'existe pas. */
+/* ============================================================
+   FILTRE DES VENTES
+   ============================================================ */
 
-	document.querySelector("#formVente [name='idClient']")
-	    .addEventListener("blur", async (e) => {
+const filtreVentes =
+    document.getElementById(
+        "filtreVentes"
+    );
 
-	        const id = e.target.value;
-	        if (!id) return;
+if (filtreVentes) {
 
-	        const resultat = await appelerApi(
-	            "GET",
-	            `${API_CLIENTS}/${id}/existe`
-	        );
+    filtreVentes.addEventListener(
+        "change",
+        (e) => {
 
-	        const alerte = document.getElementById("alerteVente");
+            const valeur = e.target.value;
 
-	        if (resultat.ok && !resultat.donnees.existe) {
-	            alerte.hidden = false;
-	            alerte.textContent =
-	                "Ce client n'existe pas. Créez-le d'abord avec la carte « Créer un client ».";
-	            alerte.classList.remove("ok");
-	        } else if (resultat.ok) {
-	            alerte.hidden = true;
-	        }
-	    });
-		/* ---------- Commandes (gestionnaire) ---------- */
+            document.getElementById(
+                "champValeur"
+            ).hidden = valeur !== "medicament";
 
-		document.getElementById("formCommande").addEventListener("submit", async (e) => {
-		    e.preventDefault();
-		    const f = new FormData(e.target);
+            document.getElementById(
+                "champsClient"
+            ).hidden = valeur !== "client";
 
-		    const resultat = await appelerApi("POST", "/api/commandes", {
-		        idGestionnaire: Number(f.get("idGestionnaire")),
-		        idMedicament: Number(f.get("idMedicament")),
-		        quantite: Number(f.get("quantite"))
-		    });
+            document.getElementById(
+                "champsPeriode"
+            ).hidden = valeur !== "periode";
+        }
+    );
+}
 
-		    const alerte = document.getElementById("alerteCommande");
-		    alerte.hidden = false;
 
-		    if (resultat.ok) {
-		        alerte.textContent = resultat.donnees.message;
-		        alerte.classList.add("ok");
-		        e.target.reset();
-		        chargerMedicaments();
-		    } else if (resultat.statut === 404) {
-		        alerte.textContent = resultat.donnees.message;
-		        alerte.classList.remove("ok");
-		    } else {
-		        alerte.textContent = "Erreur lors de la création (voir le journal).";
-		        alerte.classList.remove("ok");
-		    }
-		});
+/* ============================================================
+   CONSULTER LES VENTES
+   ============================================================ */
+
+const formConsulterVentes =
+    document.getElementById(
+        "formConsulterVentes"
+    );
+
+if (formConsulterVentes) {
+
+    formConsulterVentes.addEventListener(
+        "submit",
+        async (e) => {
+
+            e.preventDefault();
+
+            const bouton = e.target.querySelector("button");
+
+            const f =
+                new FormData(e.target);
+
+            const filtre =
+                f.get("filtre");
+
+            let url;
+
+            if (
+                filtre ===
+                "periode"
+            ) {
+
+                const debut =
+                    f.get("debut");
+
+                const fin =
+                    f.get("fin");
+
+                if (
+                    !debut ||
+                    !fin
+                ) {
+
+                    return;
+                }
+
+                url =
+                    `${API_VENTES}?debut=${debut}&fin=${fin}`;
+
+            } else if (
+                filtre ===
+                "client"
+            ) {
+
+                const clientNom =
+                    f.get("clientNom");
+
+                const clientPrenom =
+                    f.get("clientPrenom");
+
+                if (
+                    !clientNom ||
+                    !clientPrenom
+                ) {
+
+                    return;
+                }
+
+                url =
+                    `${API_VENTES}?clientNom=${encodeURIComponent(clientNom)}`
+                    + `&clientPrenom=${encodeURIComponent(clientPrenom)}`;
+
+            } else {
+
+                const valeur =
+                    f.get("valeur");
+
+                if (!valeur) {
+                    return;
+                }
+
+                url =
+                    `${API_VENTES}?${filtre}=${encodeURIComponent(valeur)}`;
+            }
+
+            definirChargement(bouton, true);
+
+            const resultat =
+                await appelerApi(
+                    "GET",
+                    url
+                );
+
+            definirChargement(bouton, false);
+
+            if (!resultat.ok) {
+
+                notifier(
+                    "Erreur lors de la recherche des ventes.",
+                    "erreur"
+                );
+
+                return;
+            }
+
+            const table =
+                document.getElementById(
+                    "tableVentes"
+                );
+
+            const corps =
+                document.getElementById(
+                    "corpsTableVentes"
+                );
+
+            const aucune =
+                document.getElementById(
+                    "aucuneVente"
+                );
+
+            corps.innerHTML = "";
+
+            if (
+                resultat.donnees.length ===
+                0
+            ) {
+
+                table.hidden = true;
+
+                aucune.hidden = false;
+
+                return;
+            }
+
+            aucune.hidden = true;
+
+            resultat.donnees.forEach(
+                (vente) => {
+
+                    const ligne =
+                        document.createElement(
+                            "tr"
+                        );
+
+                    [
+                        vente.id,
+                        vente.idPharmacien,
+                        vente.idClient,
+                        vente.idMedicament,
+                        vente.quantite,
+                        vente.dateVente
+                            .replace(
+                                "T",
+                                " "
+                            )
+                    ].forEach(
+                        (valeur) => {
+
+                            const cellule =
+                                document.createElement(
+                                    "td"
+                                );
+
+                            cellule.textContent =
+                                valeur;
+
+                            ligne.appendChild(
+                                cellule
+                            );
+                        }
+                    );
+
+                    const celluleActions =
+                        document.createElement("td");
+
+                    const btnAnnuler =
+                        document.createElement("button");
+
+                    btnAnnuler.type = "button";
+                    btnAnnuler.textContent = "Annuler";
+                    btnAnnuler.className = "bouton-danger-discret";
+
+                    btnAnnuler.addEventListener(
+                        "click",
+                        async () => {
+
+                            definirChargement(btnAnnuler, true);
+
+                            const resultatAnnulation =
+                                await appelerApi(
+                                    "DELETE",
+                                    `${API_VENTES}/${vente.id}`
+                                );
+
+                            definirChargement(btnAnnuler, false);
+
+                            if (resultatAnnulation.ok) {
+
+                                ligne.remove();
+
+                                notifier(
+                                    "Vente annulée avec succès."
+                                );
+
+                            } else {
+
+                                notifier(
+                                    "Erreur lors de l'annulation de la vente.",
+                                    "erreur"
+                                );
+                            }
+                        }
+                    );
+
+                    celluleActions.appendChild(btnAnnuler);
+                    ligne.appendChild(celluleActions);
+
+                    corps.appendChild(
+                        ligne
+                    );
+                }
+            );
+
+            table.hidden = false;
+        }
+    );
+}
+
+
+/* ============================================================
+   CRÉER UN CLIENT
+   ============================================================ */
+
+const formClient =
+    document.getElementById(
+        "formClient"
+    );
+
+if (formClient) {
+
+    formClient.addEventListener(
+        "submit",
+        async (e) => {
+
+            e.preventDefault();
+
+            const bouton = e.target.querySelector("button");
+            definirChargement(bouton, true);
+
+            const f =
+                new FormData(e.target);
+
+            const resultat =
+                await appelerApi(
+                    "POST",
+                    API_CLIENTS,
+                    {
+                        nom:
+                            f.get("nom"),
+
+                        prenom:
+                            f.get("prenom"),
+
+                        email:
+                            f.get("email"),
+
+                        adresse:
+                            f.get("adresse")
+                    }
+                );
+
+            definirChargement(bouton, false);
+
+            const alerte =
+                document.getElementById(
+                    "alerteClient"
+                );
+
+            alerte.hidden = false;
+
+            if (resultat.ok) {
+
+                alerte.textContent =
+                    resultat.donnees.message
+                    + " (ID : "
+                    + resultat.donnees.id
+                    + ")";
+
+                alerte.classList.add(
+                    "ok"
+                );
+
+                e.target.reset();
+
+            } else {
+
+                alerte.textContent =
+                    "Erreur lors de la création.";
+
+                alerte.classList.remove(
+                    "ok"
+                );
+            }
+        }
+    );
+}
+
+
+/* ============================================================
+   VÉRIFICATION D'UN CLIENT
+   ============================================================ */
+
+const champClient =
+    document.querySelector(
+        "#formVente [name='idClient']"
+    );
+
+if (champClient) {
+
+    champClient.addEventListener(
+        "blur",
+        async (e) => {
+
+            const id =
+                e.target.value;
+
+            if (!id) {
+                return;
+            }
+
+            const resultat =
+                await appelerApi(
+                    "GET",
+                    `${API_CLIENTS}/${id}/existe`
+                );
+
+            const alerte =
+                document.getElementById(
+                    "alerteVente"
+                );
+
+            if (
+                resultat.ok &&
+                !resultat.donnees.existe
+            ) {
+
+                alerte.hidden = false;
+
+                alerte.textContent =
+                    "Ce client n'existe pas.";
+
+                alerte.classList.remove(
+                    "ok"
+                );
+
+            } else if (
+                resultat.ok
+            ) {
+
+                alerte.hidden = true;
+            }
+        }
+    );
+}
+
+
+/* ============================================================
+   CRÉER UNE COMMANDE
+   ============================================================ */
+
+const formCommande =
+    document.getElementById(
+        "formCommande"
+    );
+
+if (formCommande) {
+
+    formCommande.addEventListener(
+        "submit",
+        async (e) => {
+
+            e.preventDefault();
+
+            const bouton = e.target.querySelector("button");
+            definirChargement(bouton, true);
+
+            const f =
+                new FormData(e.target);
+
+            const resultat =
+                await appelerApi(
+                    "POST",
+                    "/api/commandes",
+                    {
+                        idGestionnaire:
+                            Number(
+                                f.get(
+                                    "idGestionnaire"
+                                )
+                            ),
+
+                        idMedicament:
+                            Number(
+                                f.get(
+                                    "idMedicament"
+                                )
+                            ),
+
+                        quantite:
+                            Number(
+                                f.get(
+                                    "quantite"
+                                )
+                            )
+                    }
+                );
+
+            definirChargement(bouton, false);
+
+            const alerte =
+                document.getElementById(
+                    "alerteCommande"
+                );
+
+            alerte.hidden = false;
+
+            if (resultat.ok) {
+
+                alerte.textContent =
+                    resultat.donnees.message;
+
+                alerte.classList.add(
+                    "ok"
+                );
+
+                e.target.reset();
+
+                chargerMedicaments();
+
+            } else {
+
+                alerte.textContent =
+                    "Erreur lors de la création.";
+
+                alerte.classList.remove(
+                    "ok"
+                );
+            }
+        }
+    );
+}

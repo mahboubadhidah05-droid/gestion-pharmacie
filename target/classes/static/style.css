@@ -1,24 +1,60 @@
 /* ============================================================
    Gestion Pharmacie — feuille de style
+   Direction : « dossier clinique »
+     Identité empruntée aux dossiers patients et moniteurs
+     de suivi cliniques — pas au SaaS générique.
+
    Palette :
-     --vert       #0E7A5F   vert pharmacie (croix, actions)
-     --vert-fonce #113B30   encre verte (titres, journal)
-     --papier     #F6F8F5   fond général
-     --blanc      #FFFFFF   cartes
-     --ambre      #B4690E   alertes seuil critique
-     --trait      #DCE4DE   bordures
+     --vert        #1E8A5C   vert doux (accent, liens actifs)
+     --vert-fonce  #0A2540   encre navy (titres, en-têtes)
+     --vert-clair  #EAF2FA   fond de survol / tags
+     --papier      #F7F9FB   fond général (blanc froid clinique)
+     --blanc       #FFFFFF   cartes
+     --ambre       #B4690E   seuil critique
+     --rouge       #C0293B   erreurs
+     --vert-ok     #1D7A4C   valeurs normales / succès
+     --trait       #DCE6EE   bordures froides
+
    Typo :
-     Archivo (titres / interface), IBM Plex Mono (données, journal)
+     Inter (interface, très lisible — logiciels de santé réels)
+     IBM Plex Mono (données, tableaux — lecture façon moniteur)
+
+   Signature :
+     Ligne d'ECG animée traversant l'en-tête ; étiquettes de
+     module façon dossier patient au-dessus de chaque carte.
    ============================================================ */
 
 :root {
-    --vert: #0E7A5F;
-    --vert-fonce: #113B30;
-    --papier: #F6F8F5;
+    --vert: #1E8A5C;
+    --vert-hover: #166B47;
+    --vert-fonce: #123526;
+    --vert-clair: #E8F3ED;
+    --papier: #F7F9FB;
     --blanc: #FFFFFF;
     --ambre: #B4690E;
-    --trait: #DCE4DE;
-    --encre: #1C2420;
+    --ambre-clair: #FBF1E4;
+    --rouge: #C0293B;
+    --rouge-hover: #9E1F2F;
+    --vert-ok: #1D7A4C;
+    --vert-ok-clair: #E8F5EE;
+    --trait: #DCE6EE;
+    --trait-vif: #B9CBDA;
+    --encre: #10202E;
+    --gris-texte: #55677A;
+
+    --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+    --sp-5: 20px; --sp-6: 28px; --sp-7: 40px;
+
+    --r-sm: 4px;
+    --r-md: 8px;
+    --r-lg: 14px;
+
+    --ombre-sm: 0 1px 2px rgba(10, 37, 64, 0.06);
+    --ombre-md: 0 4px 12px -2px rgba(10, 37, 64, 0.12);
+    --ombre-lg: 0 16px 32px -8px rgba(10, 37, 64, 0.18);
+
+    --vitesse: 150ms;
+    --ressort: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 * { box-sizing: border-box; }
@@ -27,9 +63,10 @@ body {
     margin: 0;
     background: var(--papier);
     color: var(--encre);
-    font-family: "Archivo", system-ui, sans-serif;
+    font-family: "Inter", system-ui, sans-serif;
     font-size: 15px;
     line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
 }
 
 h1, h2 { margin: 0; }
@@ -38,71 +75,124 @@ h1, h2 { margin: 0; }
 /* ---------- Barre supérieure ---------- */
 
 .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 20px 28px;
+    padding: 16px 28px;
     background: var(--blanc);
     border-bottom: 1px solid var(--trait);
+    box-shadow: var(--ombre-sm);
 }
 
 .topbar h1 {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     font-weight: 700;
     letter-spacing: -0.01em;
+    color: var(--vert-fonce);
 }
 
 .soustitre {
     margin: 2px 0 0;
-    font-size: 0.8rem;
-    color: #5E6B64;
+    font-size: 0.78rem;
+    color: var(--gris-texte);
+    font-family: "IBM Plex Mono", monospace;
 }
 
-/* Croix de pharmacie */
+/* Marque : logo pharmacie (image fournie) */
 .croix {
-    position: relative;
-    width: 36px;
-    height: 36px;
     flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: var(--r-md);
+    background: var(--blanc);
+    border: 1px solid var(--trait);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.croix span {
+.croix img {
+    display: block;
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+/* Ligne d'ECG — élément signature, traverse l'en-tête */
+.topbar::after {
+    content: "";
     position: absolute;
-    background: var(--vert);
-    border-radius: 3px;
+    left: 0; right: 0; bottom: -1px;
+    height: 2px;
+    background:
+        linear-gradient(90deg,
+            transparent 0%, transparent 40%,
+            var(--vert) 40%, var(--vert) 42%,
+            transparent 42%, transparent 48%,
+            var(--vert) 48%, var(--vert) 50%,
+            var(--vert-ok) 50%, var(--vert-ok) 53%,
+            transparent 53%, transparent 100%);
+    background-size: 220px 100%;
+    animation: ecg-defiler 5.5s linear infinite;
+    opacity: 0.55;
 }
 
-.croix span:first-child {
-    left: 50%; top: 0;
-    width: 12px; height: 100%;
-    transform: translateX(-50%);
+@keyframes ecg-defiler {
+    from { background-position-x: 0; }
+    to   { background-position-x: -220px; }
 }
 
-.croix span:last-child {
-    top: 50%; left: 0;
-    height: 12px; width: 100%;
-    transform: translateY(-50%);
+@media (prefers-reduced-motion: reduce) {
+    .topbar::after { animation: none; }
 }
 
-/* Indicateur d'état API */
+
+/* ---------- Indicateur d'état API ---------- */
+
 .etat-api {
     margin-left: auto;
     display: flex;
     align-items: center;
     gap: 8px;
     font-family: "IBM Plex Mono", monospace;
-    font-size: 0.75rem;
-    color: #5E6B64;
+    font-size: 0.72rem;
+    color: var(--gris-texte);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .pastille {
-    width: 9px; height: 9px;
+    position: relative;
+    width: 8px; height: 8px;
     border-radius: 50%;
-    background: #A7B3AC;
+    background: #9FB2C2;
+    animation: respirer 1.4s ease-in-out infinite;
 }
 
-.etat-api.ok .pastille { background: var(--vert); }
-.etat-api.erreur .pastille { background: #B3261E; }
+.pastille::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: inherit;
+    opacity: 0.3;
+}
+
+.etat-api.ok .pastille,
+.etat-api.erreur .pastille { animation: none; }
+.etat-api.ok .pastille::after,
+.etat-api.erreur .pastille::after { display: none; }
+
+.etat-api.ok .pastille { background: var(--vert-ok); }
+.etat-api.erreur .pastille { background: var(--rouge); }
+
+@keyframes respirer {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 1; }
+}
 
 
 /* ---------- Session (header) ---------- */
@@ -117,15 +207,18 @@ h1, h2 { margin: 0; }
 .session #userInfo {
     margin: 0;
     font-family: "IBM Plex Mono", monospace;
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     font-weight: 500;
     color: var(--vert-fonce);
+    padding: 3px 8px;
+    background: var(--vert-clair);
+    border-radius: var(--r-sm);
 }
 
 .session #btnLogout {
     margin: 0;
     padding: 6px 12px;
-    font-size: 0.78rem;
+    font-size: 0.76rem;
 }
 
 
@@ -134,27 +227,71 @@ h1, h2 { margin: 0; }
 .grille {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 20px;
-    padding: 28px;
-    max-width: 1100px;
+    gap: 18px;
+    padding: 26px 28px;
+    max-width: 1120px;
     margin: 0 auto;
 }
 
 .carte {
     background: var(--blanc);
     border: 1px solid var(--trait);
-    border-radius: 10px;
-    padding: 22px;
+    border-top: 3px solid var(--vert);
+    border-radius: var(--r-md);
+    padding: 20px 22px 22px;
+    box-shadow: var(--ombre-sm);
+    transition: box-shadow var(--vitesse) var(--ressort), border-color var(--vitesse) var(--ressort);
+    animation: apparition 420ms var(--ressort) both;
+}
+
+.grille .carte:nth-child(1) { animation-delay: 0ms; }
+.grille .carte:nth-child(2) { animation-delay: 50ms; }
+.grille .carte:nth-child(3) { animation-delay: 100ms; }
+.grille .carte:nth-child(4) { animation-delay: 150ms; }
+.grille .carte:nth-child(5) { animation-delay: 200ms; }
+.grille .carte:nth-child(6) { animation-delay: 250ms; }
+.grille .carte:nth-child(7) { animation-delay: 300ms; }
+.grille .carte:nth-child(8) { animation-delay: 350ms; }
+.grille .carte:nth-child(9) { animation-delay: 400ms; }
+.grille .carte:nth-child(n+10) { animation-delay: 440ms; }
+
+@keyframes apparition {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .carte { animation: none; }
+}
+
+.carte:hover {
+    box-shadow: var(--ombre-md);
+    border-color: var(--trait-vif);
+}
+
+/* Étiquette de module façon dossier patient, au-dessus du titre */
+.etiquette {
+    display: inline-block;
+    margin: 0 0 6px;
+    padding: 2px 7px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--vert);
+    background: var(--vert-clair);
+    border-radius: var(--r-sm);
 }
 
 .carte h2 {
-    font-size: 0.95rem;
+    font-size: 0.98rem;
     font-weight: 700;
     color: var(--vert-fonce);
     margin-bottom: 16px;
     padding-bottom: 10px;
-    border-bottom: 2px solid var(--vert);
-    display: inline-block;
+    border-bottom: 1px solid var(--trait);
+    display: block;
 }
 
 
@@ -164,68 +301,82 @@ form { display: flex; flex-direction: column; gap: 12px; }
 
 .rangee { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .rangee-3 { grid-template-columns: 1fr 1fr 1fr; }
-.rangee label,
-.rangee-3 label {
-    min-width: 0;
-}
+.rangee label, .rangee-3 label { min-width: 0; }
+.rangee input, .rangee-3 input { width: 100%; min-width: 0; }
 
-.rangee input,
-.rangee-3 input {
-    width: 100%;
-    min-width: 0;
-}
+/* L'attribut natif [hidden] doit toujours l'emporter, même sur les
+   éléments qui ont par ailleurs une règle display: grid/flex. */
+[hidden] { display: none !important; }
+
 label {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     font-weight: 600;
-    color: #47554E;
+    color: var(--gris-texte);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
 }
 
-input {
+input, select {
     font: inherit;
+    text-transform: none;
+    letter-spacing: normal;
     padding: 9px 11px;
     border: 1px solid var(--trait);
-    border-radius: 6px;
+    border-radius: var(--r-sm);
     background: var(--papier);
     color: var(--encre);
+    transition: border-color var(--vitesse) var(--ressort), box-shadow var(--vitesse) var(--ressort);
 }
 
-input:focus {
-    outline: 2px solid var(--vert);
-    outline-offset: 1px;
+input:hover, select:hover { border-color: var(--trait-vif); }
+
+input:focus, select:focus {
+    outline: none;
     border-color: var(--vert);
-}
-select {
-    font: inherit;
-    padding: 9px 11px;
-    border: 1px solid var(--trait);
-    border-radius: 6px;
-    background: var(--papier);
-    color: var(--encre);
+    box-shadow: 0 0 0 3px var(--vert-clair);
 }
 
-select:focus {
-    outline: 2px solid var(--vert);
-    outline-offset: 1px;
-    border-color: var(--vert);
-}
+input:disabled, select:disabled { opacity: 0.6; cursor: not-allowed; }
 
 button {
+    position: relative;
     font: inherit;
     font-weight: 700;
-    padding: 10px 14px;
+    font-size: 0.85rem;
+    padding: 10px 16px;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--r-sm);
     background: var(--vert);
     color: var(--blanc);
     cursor: pointer;
     align-self: flex-start;
+    transition: background var(--vitesse) var(--ressort), transform 100ms var(--ressort);
 }
 
-button:hover { background: #0B6650; }
+button:hover { background: var(--vert-hover); }
+button:active { transform: translateY(1px) scale(0.98); }
 button:focus-visible { outline: 3px solid var(--vert-fonce); outline-offset: 2px; }
+
+button:disabled { cursor: not-allowed; opacity: 0.75; transform: none; }
+
+button.en-chargement { color: transparent; pointer-events: none; }
+
+button.en-chargement::after {
+    content: "";
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 16px; height: 16px;
+    margin: -8px 0 0 -8px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: var(--blanc);
+    animation: tourner 650ms linear infinite;
+}
+
+@keyframes tourner { to { transform: rotate(360deg); } }
 
 
 /* ---------- Résultats ---------- */
@@ -235,165 +386,172 @@ button:focus-visible { outline: 3px solid var(--vert-fonce); outline-offset: 2px
     display: flex;
     align-items: baseline;
     gap: 8px;
+    padding: 12px 14px;
+    background: var(--vert-clair);
+    border-radius: var(--r-sm);
+    border-left: 3px solid var(--vert);
 }
 
 .resultat-valeur {
     font-family: "IBM Plex Mono", monospace;
-    font-size: 2rem;
-    font-weight: 500;
+    font-size: 1.9rem;
+    font-weight: 600;
     color: var(--vert-fonce);
 }
 
 .resultat-libelle {
-    font-size: 0.8rem;
-    color: #5E6B64;
+    font-size: 0.78rem;
+    color: var(--gris-texte);
 }
 
 .alerte {
     margin: 16px 0 0;
     padding: 10px 12px;
-    border-left: 4px solid var(--ambre);
-    background: #FBF3E7;
+    border-left: 3px solid var(--ambre);
+    background: var(--ambre-clair);
     color: #6E430C;
     font-size: 0.85rem;
-    border-radius: 0 6px 6px 0;
+    border-radius: 0 var(--r-sm) var(--r-sm) 0;
+    animation: glisser-entree 200ms var(--ressort);
 }
 
 .alerte.ok {
-    border-left-color: var(--vert);
-    background: #EBF4F0;
-    color: var(--vert-fonce);
+    border-left-color: var(--vert-ok);
+    background: var(--vert-ok-clair);
+    color: var(--vert-ok);
+}
+
+@keyframes glisser-entree {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 
-/* ---------- Journal des appels API ---------- */
+/* ---------- Notifications (toasts) ---------- */
 
-.journal {
-    max-width: 1100px;
-    margin: 0 auto 40px;
-    padding: 0 28px;
+.toasts {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 340px;
 }
 
-.journal h2 {
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #5E6B64;
-    margin-bottom: 10px;
-}
-
-.journal-corps {
+.toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
     background: var(--vert-fonce);
-    color: #CFE4DB;
-    border-radius: 10px;
-    padding: 16px 18px;
-    font-family: "IBM Plex Mono", monospace;
-    font-size: 0.78rem;
-    line-height: 1.7;
-    min-height: 80px;
-    max-height: 260px;
-    overflow-y: auto;
+    color: var(--blanc);
+    border-radius: var(--r-md);
+    box-shadow: var(--ombre-lg);
+    font-size: 0.84rem;
+    line-height: 1.4;
+    animation: toast-entree 220ms var(--ressort);
 }
 
-.journal-vide { margin: 0; opacity: 0.55; }
+.toast.sortie { animation: toast-sortie 180ms var(--ressort) forwards; }
 
-.journal-ligne { margin: 0; white-space: pre-wrap; word-break: break-all; }
+.toast .toast-puce {
+    flex-shrink: 0;
+    width: 8px; height: 8px;
+    margin-top: 5px;
+    border-radius: 50%;
+    background: #6FD9A6;
+}
 
-.journal-ligne .methode { color: #7FD8BC; font-weight: 500; }
-.journal-ligne .statut-ok { color: #9BE3C6; }
-.journal-ligne .statut-erreur { color: #F2B8B5; }
+.toast.erreur .toast-puce { background: #F2A0AC; }
+
+.toast .toast-fermer {
+    all: unset;
+    margin-left: auto;
+    cursor: pointer;
+    color: #B9CBDA;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 2px;
+}
+
+.toast .toast-fermer:hover { color: var(--blanc); }
+
+@keyframes toast-entree {
+    from { opacity: 0; transform: translateY(10px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toast-sortie {
+    to { opacity: 0; transform: translateX(8px) scale(0.97); }
+}
+
+@media (max-width: 640px) {
+    .toasts { left: 16px; right: 16px; max-width: none; }
+}
 
 
 /* ---------- Connexion (login.html) ---------- */
 
 .connexion {
     grid-column: 1 / -1;
-    max-width: 420px;
-    margin: 40px auto 0;
+    max-width: 400px;
+    margin: 56px auto 0;
     width: 100%;
+    box-shadow: var(--ombre-lg);
 }
 
-.connexion form {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+.connexion form { display: flex; flex-direction: column; gap: 14px; }
+.connexion input { width: 100%; }
+.connexion button { align-self: stretch; margin-top: 4px; }
+
+#btnLogout { background: var(--rouge); }
+#btnLogout:hover { background: var(--rouge-hover); }
+
+
+/* ---------- Rôles ---------- */
+
+.menu-cache { display: none; }
+
+
+/* ---------- Tableaux ---------- */
+
+.carte-large { grid-column: 1 / -1; }
+
+.tableau-conteneur { margin-top: 16px; overflow-x: auto; }
+
+.tableau { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+
+.tableau th {
+    position: sticky;
+    top: 0;
+    text-align: left;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gris-texte);
+    background: var(--blanc);
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--vert);
 }
 
-.connexion input {
-    width: 100%;
+.tableau td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--trait);
+    font-family: "IBM Plex Mono", monospace;
 }
 
-#btnLogout {
-    background: #b91c1c;
-}
+.tableau tbody tr { transition: background var(--vitesse) var(--ressort); }
+.tableau tbody tr:hover { background: var(--vert-clair); }
 
-#btnLogout:hover {
-    background: #991b1b;
-}
-
-
-/* ---------- Rôles (étape 4 : menus conditionnels) ---------- */
-
-.menu-cache {
-    display: none;
-}
-
-.role-pharmacien {
-    border-left: 5px solid green;
-}
-
-.role-gestionnaire {
-    border-left: 5px solid blue;
-}
+.tableau .ligne-critique td { background: var(--ambre-clair); color: #6E430C; }
+.tableau .ligne-critique:hover td { background: #F5E4C8; }
 
 
 /* ---------- Responsive ---------- */
 
 @media (max-width: 640px) {
     .grille { padding: 16px; }
-    .journal { padding: 0 16px; }
     .rangee, .rangee-3 { grid-template-columns: 1fr; }
     .etat-api span:last-child { display: none; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; animation: none !important; }
-}
-/* ---------- Tableaux ---------- */
-
-.carte-large {
-    grid-column: 1 / -1;
-}
-
-.tableau-conteneur {
-    margin-top: 16px;
-    overflow-x: auto;
-}
-
-.tableau {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.85rem;
-}
-
-.tableau th {
-    text-align: left;
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #5E6B64;
-    padding: 8px 10px;
-    border-bottom: 2px solid var(--vert);
-}
-
-.tableau td {
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--trait);
-    font-family: "IBM Plex Mono", monospace;
-}
-
-.tableau .ligne-critique td {
-    background: #FBF3E7;
-    color: #6E430C;
 }

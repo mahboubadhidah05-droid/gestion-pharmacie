@@ -240,9 +240,9 @@ public int getIdMedicamentParNomEtDosage(
             + COL_ID
             + " FROM "
             + TABLE_MEDICAMENT
-            + " WHERE "
+            + " WHERE LOWER(TRIM("
             + COL_NOM
-            + "=? AND dosage=?";
+            + ")) = LOWER(TRIM(?)) AND LOWER(TRIM(dosage)) = LOWER(TRIM(?))";
 
     try (Connection connection =
                  DBConnection.getConnection();

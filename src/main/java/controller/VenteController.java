@@ -72,10 +72,10 @@ public class VenteController {
 
     @GetMapping(params = "medicament")
     public ResponseEntity<List<VenteResponse>> ventesParMedicament(
-            @RequestParam int medicament) {
+            @RequestParam String medicament) {
 
         return ResponseEntity.ok(
-                venteService.ventesParMedicament(medicament)
+                venteService.ventesParNomMedicament(medicament)
         );
     }
 
@@ -86,6 +86,17 @@ public class VenteController {
 
         return ResponseEntity.ok(
                 venteService.ventesParClient(client)
+        );
+    }
+
+
+    @GetMapping(params = {"clientNom", "clientPrenom"})
+    public ResponseEntity<List<VenteResponse>> ventesParNomClient(
+            @RequestParam String clientNom,
+            @RequestParam String clientPrenom) {
+
+        return ResponseEntity.ok(
+                venteService.ventesParNomClient(clientNom, clientPrenom)
         );
     }
 

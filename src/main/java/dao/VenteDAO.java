@@ -104,6 +104,78 @@ public class VenteDAO {
         );
     }
 
+    public List<VenteResponse> ventesParNomMedicament(
+            String nomMedicament) {
+
+        String sql =
+                "SELECT v.* FROM vente v "
+                + "JOIN medicament m ON v.id_medicament = m.id_medicament "
+                + "WHERE LOWER(TRIM(m.nom)) = LOWER(TRIM(?))";
+
+        List<VenteResponse> ventes =
+                new ArrayList<>();
+
+        try (Connection connection =
+                     DBConnection.getConnection();
+             PreparedStatement ps =
+                     connection.prepareStatement(sql)) {
+
+            ps.setString(1, nomMedicament);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                remplirVentes(rs, ventes);
+            }
+
+        } catch (SQLException exception) {
+
+            throw new AccesDonneesException(
+                    "Échec de la consultation des ventes "
+                            + "pour le médicament : " + nomMedicament,
+                    exception
+            );
+        }
+
+        return ventes;
+    }
+
+    public List<VenteResponse> ventesParNomClient(
+            String nomClient,
+            String prenomClient) {
+
+        String sql =
+                "SELECT v.* FROM vente v "
+                + "JOIN client c ON v.id_client = c.id_client "
+                + "WHERE LOWER(TRIM(c.nom)) = LOWER(TRIM(?)) "
+                + "AND LOWER(TRIM(c.prenom)) = LOWER(TRIM(?))";
+
+        List<VenteResponse> ventes =
+                new ArrayList<>();
+
+        try (Connection connection =
+                     DBConnection.getConnection();
+             PreparedStatement ps =
+                     connection.prepareStatement(sql)) {
+
+            ps.setString(1, nomClient);
+            ps.setString(2, prenomClient);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                remplirVentes(rs, ventes);
+            }
+
+        } catch (SQLException exception) {
+
+            throw new AccesDonneesException(
+                    "Échec de la consultation des ventes "
+                            + "pour le client : " + nomClient
+                            + " " + prenomClient,
+                    exception
+            );
+        }
+
+        return ventes;
+    }
+
     public List<VenteResponse> ventesParClient(
             int idClient) {
 
