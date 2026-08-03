@@ -90,9 +90,11 @@ stage('Deploy Application') {
             docker run -dit \
             --name pharmacie-app \
             --network pharmacie-net \
+            -p 9091:9091 \
             -e DB_URL="jdbc:mysql://mysql-container:3306/pharmacie" \
             -e DB_USER="root" \
             -e DB_PASSWORD="douaa" \
+            -e SERVER_PORT="9091" \
             pharmacie-app:latest
         '''
     }
