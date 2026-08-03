@@ -18,6 +18,7 @@ import org.mockito.Mockito;
 
 import exception.AccesDonneesException;
 import utils.DBConnection;
+import utils.MotDePasseUtils;
 
 class UtilisateurDAOTest {
 
@@ -53,6 +54,10 @@ class UtilisateurDAOTest {
                 result.next()
         ).thenReturn(true);
 
+        when(
+                result.getString("pwd")
+        ).thenReturn("123");
+
         try (MockedStatic<DBConnection> dbConnection =
                      Mockito.mockStatic(DBConnection.class)) {
 
@@ -64,6 +69,58 @@ class UtilisateurDAOTest {
                     utilisateurDAO.getRole(
                             "pharma",
                             "123"
+                    );
+
+            assertEquals(
+                    "PHARMACIEN",
+                    role
+            );
+        }
+    }
+
+    @Test
+    void doitRetournerRoleAvecMotDePasseHache()
+            throws Exception {
+
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        ResultSet result =
+                mock(ResultSet.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
+
+        when(
+                statement.executeQuery()
+        ).thenReturn(result);
+
+        when(
+                result.next()
+        ).thenReturn(true);
+
+        String hash =
+                MotDePasseUtils.hacher("motDePasse1");
+
+        when(
+                result.getString("pwd")
+        ).thenReturn(hash);
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     Mockito.mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            String role =
+                    utilisateurDAO.getRole(
+                            "pharma",
+                            "motDePasse1"
                     );
 
             assertEquals(
@@ -101,6 +158,10 @@ class UtilisateurDAOTest {
         when(
                 result.next()
         ).thenReturn(false, true);
+
+        when(
+                result.getString("pwd")
+        ).thenReturn("123");
 
         try (MockedStatic<DBConnection> dbConnection =
                      Mockito.mockStatic(DBConnection.class)) {
@@ -158,6 +219,57 @@ class UtilisateurDAOTest {
                     utilisateurDAO.getRole(
                             "inconnu",
                             "incorrect"
+                    );
+
+            assertEquals(
+                    "ECHEC",
+                    role
+            );
+        }
+    }
+
+    @Test
+    void doitRetournerEchecSiMotDePasseIncorrect()
+            throws Exception {
+
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        ResultSet result =
+                mock(ResultSet.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
+
+        when(
+                statement.executeQuery()
+        ).thenReturn(result);
+
+        /* Utilisateur trouvé dans les deux tables,
+           mais le mot de passe ne correspond jamais. */
+        when(
+                result.next()
+        ).thenReturn(true, true);
+
+        when(
+                result.getString("pwd")
+        ).thenReturn("123");
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     Mockito.mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            String role =
+                    utilisateurDAO.getRole(
+                            "pharma",
+                            "mauvais-mot-de-passe"
                     );
 
             assertEquals(

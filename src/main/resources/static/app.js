@@ -129,7 +129,7 @@ async function appelerApi(methode, url, donnees) {
             methode,
             url,
             0,
-            "Serveur injoignable"
+            traduire("serveurInjoignable")
         );
 
         return {
@@ -159,14 +159,14 @@ async function appelerApi(methode, url, donnees) {
             etat.classList.add("ok");
 
             texte.textContent =
-                "API connectée";
+                traduire("apiConnectee");
 
         } else {
 
             etat.classList.add("erreur");
 
             texte.textContent =
-                "Session non authentifiée";
+                traduire("sessionNonAuthentifiee");
         }
 
     } catch {
@@ -174,7 +174,7 @@ async function appelerApi(methode, url, donnees) {
         etat.classList.add("erreur");
 
         texte.textContent =
-            "API injoignable";
+            traduire("apiInjoignable");
     }
 
 })();
@@ -186,6 +186,29 @@ async function appelerApi(methode, url, donnees) {
 
 const formAjout =
     document.getElementById("formAjout");
+
+const checkConventionneCnam =
+    document.getElementById("checkConventionneCnam");
+
+if (checkConventionneCnam) {
+
+    checkConventionneCnam.addEventListener(
+        "change",
+        (e) => {
+
+            const label =
+                document.getElementById("labelTauxRemboursement");
+
+            label.hidden = !e.target.checked;
+
+            if (!e.target.checked) {
+                document.getElementById(
+                    "inputTauxRemboursement"
+                ).value = "";
+            }
+        }
+    );
+}
 
 if (formAjout) {
 
@@ -210,7 +233,13 @@ if (formAjout) {
                         dosage: f.get("dosage"),
                         stock: Number(f.get("stock")),
                         prix: Number(f.get("prix")),
-                        seuil: Number(f.get("seuil"))
+                        seuil: Number(f.get("seuil")),
+                        datePeremption:
+                            f.get("datePeremption") || null,
+                        conventionneCnam:
+                            f.get("conventionneCnam") === "on",
+                        tauxRemboursement:
+                            Number(f.get("tauxRemboursement")) || 0
                     }
                 );
 
@@ -221,13 +250,13 @@ if (formAjout) {
                 e.target.reset();
 
                 notifier(
-                    "Médicament ajouté avec succès."
+                    traduire("medicamentAjouteAvecSucces")
                 );
 
             } else {
 
                 notifier(
-                    "Erreur lors de l'ajout du médicament.",
+                    traduire("erreurAjoutMedicament"),
                     "erreur"
                 );
             }
@@ -342,13 +371,13 @@ if (formMaj) {
                 e.target.reset();
 
                 notifier(
-                    "Stock mis à jour avec succès."
+                    traduire("stockMisAJourAvecSucces")
                 );
 
             } else {
 
                 notifier(
-                    "Erreur lors de la mise à jour du stock.",
+                    traduire("erreurMajStock"),
                     "erreur"
                 );
             }
@@ -361,14 +390,12 @@ if (formMaj) {
    VÉRIFIER LE SEUIL CRITIQUE
    ============================================================ */
 
-const formCritique =
-    document.getElementById(
-        "formCritique"
-    );
+const formVerifier =
+    document.getElementById("formVerifier");
 
-if (formCritique) {
+if (formVerifier) {
 
-    formCritique.addEventListener(
+    formVerifier.addEventListener(
         "submit",
         async (e) => {
 
@@ -377,57 +404,136 @@ if (formCritique) {
             const bouton = e.target.querySelector("button");
             definirChargement(bouton, true);
 
-            const f =
-                new FormData(e.target);
-
+            const f = new FormData(e.target);
             const nom = f.get("nom");
             const dosage = f.get("dosage");
 
-            const resultat =
-                await appelerApi(
-                    "GET",
-                    `${API}/stock-critique?nom=${encodeURIComponent(nom)}`
-                    + `&dosage=${encodeURIComponent(dosage)}`
-                );
+            const resultat = await appelerApi(
+                "GET",
+                `${API}/verifier?nom=${encodeURIComponent(nom)}`
+                + `&dosage=${encodeURIComponent(dosage)}`
+            );
 
             definirChargement(bouton, false);
 
             const alerte =
-                document.getElementById(
-                    "alerteCritique"
-                );
+                document.getElementById("alerteVerifier");
+
+            const bloc =
+                document.getElementById("resultatVerifier");
+
+            if (!resultat.ok) {
+
+                bloc.hidden = true;
+                alerte.hidden = false;
+                alerte.textContent =
+                    traduire("medicamentIntrouvable");
+                alerte.classList.remove("ok");
+                return;
+            }
+
+            alerte.hidden = true;
+            bloc.hidden = false;
+
+            const d = resultat.donnees;
+
+            document.getElementById("verifierStock").textContent =
+                d.stock;
+
+            const carteCritique =
+                document.getElementById("carteVerifierCritique");
+
+            document.getElementById("verifierCritique").textContent =
+                d.stockCritique ? traduire("oui") : traduire("non");
+
+            carteCritique.classList.toggle(
+                "kpi-alerte", d.stockCritique
+            );
+
+            const cartePerime =
+                document.getElementById("carteVerifierPerime");
+
+            document.getElementById("verifierPerime").textContent =
+                `${d.quantitePerimee} / ${d.stock}`;
+
+            cartePerime.classList.toggle(
+                "kpi-alerte", d.quantitePerimee > 0
+            );
+
+            const infoDate =
+                document.getElementById("verifierDateInfo");
+
+            if (d.quantitePerimee > 0) {
+
+                infoDate.textContent =
+                    `${traduire("lotPerimeAncien")}${d.datePeremptionLaPlusProche}. `
+                    + traduire("utiliseRetirerStockPerime");
+
+            } else if (d.bientotPerime) {
+
+                infoDate.textContent =
+                    `${traduire("bientotPerimeMoinsDe30")}${d.datePeremptionLaPlusProche}${traduire("dansMoinsDe30Jours")}`;
+
+            } else if (d.datePeremptionLaPlusProche) {
+
+                infoDate.textContent =
+                    `${traduire("prochainePeremption")}${d.datePeremptionLaPlusProche}.`;
+
+            } else {
+
+                infoDate.textContent =
+                    traduire("aucuneDatePeremptionConnue");
+            }
+        }
+    );
+}
+
+
+
+const formStockPerime =
+    document.getElementById("formStockPerime");
+
+if (formStockPerime) {
+
+    formStockPerime.addEventListener(
+        "submit",
+        async (e) => {
+
+            e.preventDefault();
+
+            const bouton = e.target.querySelector("button");
+            definirChargement(bouton, true);
+
+            const f = new FormData(e.target);
+            const nom = f.get("nom");
+            const dosage = f.get("dosage");
+
+            const resultat = await appelerApi(
+                "PUT",
+                `${API}/stock-perime?nom=${encodeURIComponent(nom)}`
+                + `&dosage=${encodeURIComponent(dosage)}`
+            );
+
+            definirChargement(bouton, false);
+
+            const alerte =
+                document.getElementById("alerteStockPerime");
 
             alerte.hidden = false;
 
-            if (
-                resultat.ok &&
-                resultat.donnees.critique
-            ) {
+            if (resultat.ok) {
 
-                alerte.textContent =
-                    resultat.donnees.message;
-
-                alerte.classList.remove(
-                    "ok"
-                );
-
-            } else if (resultat.ok) {
-
-                alerte.textContent =
-                    "Stock au-dessus du seuil critique.";
-
-                alerte.classList.add(
-                    "ok"
-                );
+                alerte.textContent = resultat.donnees.message;
+                alerte.classList.add("ok");
+                e.target.reset();
 
             } else {
 
                 alerte.textContent =
-                    "Vérification impossible.";
+                    (resultat.donnees && resultat.donnees.message)
+                        || traduire("erreurRetraitStockPerime");
 
-                alerte.classList.remove(
-                    "ok"
-                );
+                alerte.classList.remove("ok");
             }
         }
     );
@@ -458,7 +564,7 @@ async function chargerMedicaments() {
     if (!resultat.ok) {
 
         notifier(
-            "Impossible de charger la liste des médicaments.",
+            traduire("impossibleChargerMedicaments"),
             "erreur"
         );
 
@@ -476,6 +582,31 @@ async function chargerMedicaments() {
         );
 
     corps.innerHTML = "";
+
+    if (resultat.donnees.length === 0) {
+
+        table.hidden = true;
+
+        let aucun = document.getElementById("aucunMedicament");
+
+        if (!aucun) {
+
+            aucun = document.createElement("p");
+            aucun.id = "aucunMedicament";
+            aucun.className = "alerte ok";
+            aucun.textContent = traduire("aucunMedicamentEnregistre");
+            table.insertAdjacentElement("afterend", aucun);
+        }
+
+        aucun.hidden = false;
+        return;
+    }
+
+    const aucunMedExistant = document.getElementById("aucunMedicament");
+
+    if (aucunMedExistant) {
+        aucunMedExistant.hidden = true;
+    }
 
     resultat.donnees.forEach(
         (med) => {
@@ -519,6 +650,49 @@ async function chargerMedicaments() {
                     );
                 }
             );
+
+            const celluleDate =
+                document.createElement("td");
+
+            if (med.quantitePerimee > 0) {
+
+                celluleDate.className = "texte-perime";
+                celluleDate.textContent =
+                    `${med.quantitePerimee} / ${med.stock} ${traduire("unitesPerimees").toLowerCase()}`;
+
+            } else if (med.datePeremption) {
+
+                const aujourdhui =
+                    new Date().toISOString().slice(0, 10);
+
+                const dans30Jours =
+                    new Date();
+
+                dans30Jours.setDate(
+                    dans30Jours.getDate() + 30
+                );
+
+                const limite =
+                    dans30Jours.toISOString().slice(0, 10);
+
+                celluleDate.textContent =
+                    med.datePeremption;
+
+                if (med.datePeremption <= limite) {
+
+                    celluleDate.className =
+                        "texte-bientot-perime";
+
+                    celluleDate.textContent +=
+                        traduire("bientotParenthese");
+                }
+
+            } else {
+
+                celluleDate.textContent = "—";
+            }
+
+            ligne.appendChild(celluleDate);
 
             corps.appendChild(
                 ligne
@@ -636,7 +810,7 @@ if (formVente) {
             } else {
 
                 alerte.textContent =
-                    "Erreur lors de l'enregistrement.";
+                    traduire("erreurEnregistrement");
 
                 alerte.classList.remove(
                     "ok"
@@ -650,6 +824,42 @@ if (formVente) {
 /* ============================================================
    FILTRE DES VENTES
    ============================================================ */
+
+const inputValeurVente =
+    document.getElementById("inputValeurVente");
+
+if (inputValeurVente) {
+
+    (async function peuplerNomsMedicaments() {
+
+        const resultat =
+            await appelerApi("GET", "/api/noms-medicaments");
+
+        if (!resultat.ok) {
+            return;
+        }
+
+        const datalist =
+            document.getElementById("listeMedicamentsVentes");
+
+        const nomsDejaAjoutes = new Set();
+
+        resultat.donnees.forEach((med) => {
+
+            if (nomsDejaAjoutes.has(med.nom)) {
+                return;
+            }
+
+            nomsDejaAjoutes.add(med.nom);
+
+            const option = document.createElement("option");
+            option.value = med.nom;
+            option.textContent = `${med.nom} (${med.dosage})`;
+
+            datalist.appendChild(option);
+        });
+    })();
+}
 
 const filtreVentes =
     document.getElementById(
@@ -778,7 +988,7 @@ if (formConsulterVentes) {
             if (!resultat.ok) {
 
                 notifier(
-                    "Erreur lors de la recherche des ventes.",
+                    traduire("erreurRechercheVentes"),
                     "erreur"
                 );
 
@@ -834,7 +1044,11 @@ if (formConsulterVentes) {
                             .replace(
                                 "T",
                                 " "
-                            )
+                            ),
+                        vente.montantRembourse > 0
+                            ? vente.montantRembourse.toFixed(2) + " DT"
+                            : "—",
+                        vente.ticketModerateur.toFixed(2) + " DT"
                     ].forEach(
                         (valeur) => {
 
@@ -881,13 +1095,13 @@ if (formConsulterVentes) {
                                 ligne.remove();
 
                                 notifier(
-                                    "Vente annulée avec succès."
+                                    traduire("venteAnnuleeAvecSucces")
                                 );
 
                             } else {
 
                                 notifier(
-                                    "Erreur lors de l'annulation de la vente.",
+                                    traduire("erreurAnnulationVente"),
                                     "erreur"
                                 );
                             }
@@ -947,7 +1161,10 @@ if (formClient) {
                             f.get("email"),
 
                         adresse:
-                            f.get("adresse")
+                            f.get("adresse"),
+
+                        numeroCnam:
+                            f.get("numeroCnam") || null
                     }
                 );
 
@@ -964,7 +1181,7 @@ if (formClient) {
 
                 alerte.textContent =
                     resultat.donnees.message
-                    + " (ID : "
+                    + traduire("idParenthese")
                     + resultat.donnees.id
                     + ")";
 
@@ -977,7 +1194,7 @@ if (formClient) {
             } else {
 
                 alerte.textContent =
-                    "Erreur lors de la création.";
+                    traduire("erreurCreation");
 
                 alerte.classList.remove(
                     "ok"
@@ -1029,7 +1246,7 @@ if (champClient) {
                 alerte.hidden = false;
 
                 alerte.textContent =
-                    "Ce client n'existe pas.";
+                    traduire("clientNexistePas");
 
                 alerte.classList.remove(
                     "ok"
@@ -1069,6 +1286,9 @@ if (formCommande) {
             const f =
                 new FormData(e.target);
 
+            const valeurFournisseur =
+                f.get("idFournisseur");
+
             const resultat =
                 await appelerApi(
                     "POST",
@@ -1093,7 +1313,15 @@ if (formCommande) {
                                 f.get(
                                     "quantite"
                                 )
-                            )
+                            ),
+
+                        idFournisseur:
+                            valeurFournisseur
+                                ? Number(valeurFournisseur)
+                                : null,
+
+                        datePeremption:
+                            f.get("datePeremption") || null
                     }
                 );
 
@@ -1122,12 +1350,1408 @@ if (formCommande) {
             } else {
 
                 alerte.textContent =
-                    "Erreur lors de la création.";
+                    traduire("erreurCreation");
 
                 alerte.classList.remove(
                     "ok"
                 );
             }
+        }
+    );
+}
+
+/* ============================================================
+   TABLEAU DE BORD
+   ============================================================ */
+
+const kpiTotalMedicaments =
+    document.getElementById("kpiTotalMedicaments");
+
+if (kpiTotalMedicaments) {
+
+    (async function chargerTableauDeBord() {
+
+        const resultat =
+            await appelerApi("GET", API);
+
+        const kpiUnites =
+            document.getElementById("kpiUnitesStock");
+
+        const kpiValeur =
+            document.getElementById("kpiValeurStock");
+
+        const kpiCritique =
+            document.getElementById("kpiStockCritique");
+
+        const kpiExpires =
+            document.getElementById("kpiBientotExpires");
+
+        const listeAlertes =
+            document.getElementById("listeAlertesDashboard");
+
+        if (!resultat.ok) {
+
+            kpiTotalMedicaments.textContent = "—";
+            kpiUnites.textContent = "—";
+            kpiValeur.textContent = "—";
+            kpiCritique.textContent = "—";
+
+            if (kpiExpires) {
+                kpiExpires.textContent = "—";
+            }
+
+            if (listeAlertes) {
+
+                listeAlertes.innerHTML =
+                    '<p class="kpi-sous-texte">'
+                    + traduire("statistiquesIndisponiblesRole")
+                    + "</p>";
+            }
+
+            return;
+        }
+
+        const medicaments = resultat.donnees;
+
+        const totalUnites =
+            medicaments.reduce(
+                (somme, m) => somme + m.stock,
+                0
+            );
+
+        const valeurStock =
+            medicaments.reduce(
+                (somme, m) => somme + (m.stock * m.prix),
+                0
+            );
+
+        const critiques =
+            medicaments.filter(
+                (m) => m.stock <= m.seuilCritique
+            );
+
+        if (kpiExpires) {
+
+            const dans30Jours = new Date();
+            dans30Jours.setDate(dans30Jours.getDate() + 30);
+            const limite = dans30Jours.toISOString().slice(0, 10);
+
+            const concernes =
+                medicaments.filter(
+                    (m) => m.quantitePerimee > 0
+                        || (m.datePeremption && m.datePeremption <= limite)
+                );
+
+            kpiExpires.textContent = concernes.length;
+        }
+
+        kpiTotalMedicaments.textContent =
+            medicaments.length;
+
+        kpiUnites.textContent = totalUnites;
+        kpiValeur.textContent = valeurStock.toFixed(2);
+        kpiCritique.textContent = critiques.length;
+
+        if (listeAlertes) {
+
+            if (critiques.length === 0) {
+
+                listeAlertes.innerHTML =
+                    '<p class="aucune-alerte">'
+                    + traduire("aucunMedicamentStockCritique")
+                    + "</p>";
+
+            } else {
+
+                listeAlertes.innerHTML = "";
+
+                critiques.forEach((m) => {
+
+                    const item =
+                        document.createElement("div");
+
+                    item.className = "item-alerte";
+
+                    item.innerHTML =
+                        `<span><strong>${m.nom}</strong> (${m.dosage})</span>`
+                        + `<span class="quantite">${m.stock} / ${traduire("champSeuilCritique")} ${m.seuilCritique}</span>`;
+
+                    listeAlertes.appendChild(item);
+                });
+            }
+        }
+
+        const listePeremption =
+            document.getElementById("listeAlertesPeremption");
+
+        if (listePeremption) {
+
+            const perimes =
+                medicaments.filter((m) => m.quantitePerimee > 0);
+
+            if (perimes.length === 0) {
+
+                listePeremption.innerHTML =
+                    '<p class="aucune-alerte">'
+                    + traduire("aucunLotPerimeARetirer")
+                    + "</p>";
+
+            } else {
+
+                listePeremption.innerHTML = "";
+
+                perimes.forEach((m) => {
+
+                    const item =
+                        document.createElement("div");
+
+                    item.className = "item-alerte";
+
+                    item.innerHTML =
+                        `<span><strong>${m.nom}</strong> (${m.dosage})</span>`
+                        + `<span class="quantite">${m.quantitePerimee} / ${m.stock} ${traduire("unitesPerimees").toLowerCase()}</span>`;
+
+                    listePeremption.appendChild(item);
+                });
+            }
+        }
+
+        const canvasStock =
+            document.getElementById("graphiqueStock");
+
+        if (canvasStock && typeof Chart !== "undefined") {
+
+            const rupture =
+                medicaments.filter((m) => m.stock === 0).length;
+
+            const critiqueNonNul =
+                critiques.length - rupture;
+
+            const normal =
+                medicaments.length - critiques.length;
+
+            const texteCentre = {
+                id: "texteCentre",
+                afterDraw(chart) {
+
+                    const { ctx, chartArea } = chart;
+
+                    if (!chartArea) {
+                        return;
+                    }
+
+                    const x = (chartArea.left + chartArea.right) / 2;
+                    const y = (chartArea.top + chartArea.bottom) / 2;
+
+                    ctx.save();
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+
+                    ctx.font = "700 22px 'IBM Plex Mono', monospace";
+                    ctx.fillStyle = "#123526";
+                    ctx.fillText(String(medicaments.length), x, y - 8);
+
+                    ctx.font = "600 11px Inter, sans-serif";
+                    ctx.fillStyle = "#55677A";
+                    ctx.fillText("Total", x, y + 14);
+
+                    ctx.restore();
+                }
+            };
+
+            new Chart(canvasStock, {
+                type: "doughnut",
+                data: {
+                    labels: [traduire("stockNormalLabel"), traduire("stockCritiqueLabel"), "Rupture"],
+                    datasets: [{
+                        data: [normal, critiqueNonNul, rupture],
+                        backgroundColor: ["#1E8A5C", "#B4690E", "#C0293B"],
+                        borderWidth: 3,
+                        borderColor: "#FFFFFF",
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    cutout: "68%",
+                    plugins: {
+                        legend: { position: "bottom", labels: { boxWidth: 10, padding: 14 } }
+                    }
+                },
+                plugins: [texteCentre]
+            });
+        }
+    })();
+}
+
+
+/* ============================================================
+   TABLEAU DE BORD — VENTES (pharmacien)
+   ============================================================ */
+
+const kpiVentesJour =
+    document.getElementById("kpiVentesJour");
+
+if (kpiVentesJour) {
+
+    (async function chargerDashboardVentes() {
+
+        const aujourdhui =
+            new Date().toISOString().slice(0, 10);
+
+        const septJours = new Date();
+        septJours.setDate(septJours.getDate() - 6);
+        const ilYA7Jours = septJours.toISOString().slice(0, 10);
+
+        const kpiUnitesVendues =
+            document.getElementById("kpiUnitesVenduesJour");
+
+        const resultatSemaine =
+            await appelerApi(
+                "GET",
+                `${API_VENTES}?debut=${ilYA7Jours}&fin=${aujourdhui}`
+            );
+
+        if (!resultatSemaine.ok) {
+
+            kpiVentesJour.textContent = "—";
+
+            if (kpiUnitesVendues) {
+                kpiUnitesVendues.textContent = "—";
+            }
+
+            return;
+        }
+
+        const ventes = resultatSemaine.donnees;
+
+        const ventesAujourdhui =
+            ventes.filter(
+                (v) => v.dateVente.slice(0, 10) === aujourdhui
+            );
+
+        kpiVentesJour.textContent =
+            ventesAujourdhui.length;
+
+        if (kpiUnitesVendues) {
+
+            kpiUnitesVendues.textContent =
+                ventesAujourdhui.reduce(
+                    (somme, v) => somme + v.quantite,
+                    0
+                );
+        }
+
+        /* Regroupement par jour pour le graphique en ligne */
+        const joursOrdonnes = [];
+
+        for (let i = 6; i >= 0; i--) {
+
+            const jour = new Date();
+            jour.setDate(jour.getDate() - i);
+            joursOrdonnes.push(jour.toISOString().slice(0, 10));
+        }
+
+        const quantitesParJour =
+            joursOrdonnes.map((jour) => {
+
+                return ventes
+                    .filter((v) => v.dateVente.slice(0, 10) === jour)
+                    .reduce((somme, v) => somme + v.quantite, 0);
+            });
+
+        const canvasVentes =
+            document.getElementById("graphiqueVentes");
+
+        const zoneVide =
+            document.getElementById("graphiqueVentesVide");
+
+        const totalPeriode =
+            quantitesParJour.reduce((a, b) => a + b, 0);
+
+        if (canvasVentes && typeof Chart !== "undefined") {
+
+            if (totalPeriode === 0 && zoneVide) {
+
+                canvasVentes.hidden = true;
+                zoneVide.hidden = false;
+
+            } else {
+
+                new Chart(canvasVentes, {
+                    type: "line",
+                    data: {
+                        labels: joursOrdonnes.map(
+                            (j) => j.slice(5).replace("-", "/")
+                        ),
+                        datasets: [{
+                            label: traduire("unitesVenduesLabel"),
+                            data: quantitesParJour,
+                            borderColor: "#1E8A5C",
+                            backgroundColor: "rgba(30, 138, 92, 0.12)",
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, ticks: { precision: 0 } }
+                        }
+                    }
+                });
+            }
+        }
+    })();
+}
+
+
+/* ============================================================
+   FOURNISSEURS
+   ============================================================ */
+
+const API_FOURNISSEURS = "/api/fournisseurs";
+
+const formFournisseur =
+    document.getElementById("formFournisseur");
+
+if (formFournisseur) {
+
+    formFournisseur.addEventListener(
+        "submit",
+        async (e) => {
+
+            e.preventDefault();
+
+            const bouton = e.target.querySelector("button");
+            definirChargement(bouton, true);
+
+            const f =
+                new FormData(e.target);
+
+            const resultat =
+                await appelerApi(
+                    "POST",
+                    API_FOURNISSEURS,
+                    {
+                        nom: f.get("nom"),
+                        telephone: f.get("telephone"),
+                        email: f.get("email"),
+                        adresse: f.get("adresse")
+                    }
+                );
+
+            definirChargement(bouton, false);
+
+            const alerte =
+                document.getElementById(
+                    "alerteFournisseur"
+                );
+
+            alerte.hidden = false;
+
+            if (resultat.ok) {
+
+                alerte.textContent =
+                    resultat.donnees.message
+                    + traduire("idParenthese")
+                    + resultat.donnees.id
+                    + ")";
+
+                alerte.classList.add("ok");
+
+                e.target.reset();
+
+            } else {
+
+                alerte.textContent =
+                    traduire("erreurCreationFournisseur");
+
+                alerte.classList.remove("ok");
+            }
+        }
+    );
+}
+
+
+async function chargerFournisseurs() {
+
+    const bouton =
+        document.getElementById(
+            "btnListeFournisseurs"
+        );
+
+    definirChargement(bouton, true);
+
+    const resultat =
+        await appelerApi(
+            "GET",
+            API_FOURNISSEURS
+        );
+
+    definirChargement(bouton, false);
+
+    const table =
+        document.getElementById(
+            "tableFournisseurs"
+        );
+
+    const aucun =
+        document.getElementById(
+            "aucunFournisseur"
+        );
+
+    if (!resultat.ok) {
+
+        notifier(
+            traduire("impossibleChargerFournisseurs"),
+            "erreur"
+        );
+
+        return;
+    }
+
+    const corps =
+        document.getElementById(
+            "corpsTableFournisseurs"
+        );
+
+    corps.innerHTML = "";
+
+    if (resultat.donnees.length === 0) {
+
+        table.hidden = true;
+        aucun.hidden = false;
+        return;
+    }
+
+    aucun.hidden = true;
+
+    resultat.donnees.forEach(
+        (fournisseur) => {
+
+            const ligne =
+                document.createElement(
+                    "tr"
+                );
+
+            [
+                fournisseur.id,
+                fournisseur.nom,
+                fournisseur.telephone || "—",
+                fournisseur.email || "—",
+                fournisseur.adresse || "—"
+            ].forEach(
+                (valeur) => {
+
+                    const cellule =
+                        document.createElement(
+                            "td"
+                        );
+
+                    cellule.textContent =
+                        valeur;
+
+                    ligne.appendChild(
+                        cellule
+                    );
+                }
+            );
+
+            corps.appendChild(
+                ligne
+            );
+        }
+    );
+
+    table.hidden = false;
+}
+
+
+const btnListeFournisseurs =
+    document.getElementById(
+        "btnListeFournisseurs"
+    );
+
+if (btnListeFournisseurs) {
+
+    btnListeFournisseurs.addEventListener(
+        "click",
+        chargerFournisseurs
+    );
+}
+
+
+/* ============================================================
+   MENU DÉROULANT FOURNISSEUR (page Commandes)
+   ============================================================ */
+
+const selectFournisseur =
+    document.getElementById("selectFournisseur");
+
+if (selectFournisseur) {
+
+    (async function chargerOptionsFournisseurs() {
+
+        const resultat =
+            await appelerApi(
+                "GET",
+                API_FOURNISSEURS
+            );
+
+        if (!resultat.ok) {
+            return;
+        }
+
+        resultat.donnees.forEach((fournisseur) => {
+
+            const option =
+                document.createElement("option");
+
+            option.value = fournisseur.id;
+            option.textContent = fournisseur.nom;
+
+            selectFournisseur.appendChild(option);
+        });
+    })();
+}
+
+
+/* ============================================================
+   HISTORIQUE DES MOUVEMENTS DE STOCK
+   ============================================================ */
+
+const API_HISTORIQUE = "/api/stock/historique";
+
+async function chargerHistorique() {
+
+    const bouton =
+        document.getElementById("btnListeHistorique");
+
+    definirChargement(bouton, true);
+
+    const resultat =
+        await appelerApi("GET", API_HISTORIQUE);
+
+    definirChargement(bouton, false);
+
+    if (!resultat.ok) {
+
+        notifier(
+            traduire("impossibleChargerHistorique"),
+            "erreur"
+        );
+
+        return;
+    }
+
+    const table =
+        document.getElementById("tableHistorique");
+
+    const aucun =
+        document.getElementById("aucunHistorique");
+
+    const corps =
+        document.getElementById("corpsTableHistorique");
+
+    corps.innerHTML = "";
+
+    if (resultat.donnees.length === 0) {
+
+        table.hidden = true;
+        aucun.hidden = false;
+        return;
+    }
+
+    aucun.hidden = true;
+
+    /* Les plus récents en premier */
+    const historiqueTrie =
+        [...resultat.donnees].reverse();
+
+    historiqueTrie.forEach((mouvement) => {
+
+        const ligne =
+            document.createElement("tr");
+
+        const celluleId =
+            document.createElement("td");
+
+        celluleId.textContent =
+            mouvement.idMedicament;
+
+        const celluleQuantite =
+            document.createElement("td");
+
+        const positif =
+            mouvement.quantite >= 0;
+
+        celluleQuantite.textContent =
+            (positif ? "+" : "") + mouvement.quantite;
+
+        celluleQuantite.className =
+            positif ? "texte-mouvement-plus" : "texte-mouvement-moins";
+
+        const celluleDate =
+            document.createElement("td");
+
+        celluleDate.textContent =
+            (mouvement.dateModification || "")
+                .toString()
+                .replace("T", " ");
+
+        ligne.appendChild(celluleId);
+        ligne.appendChild(celluleQuantite);
+        ligne.appendChild(celluleDate);
+
+        corps.appendChild(ligne);
+    });
+
+    table.hidden = false;
+}
+
+
+const btnListeHistorique =
+    document.getElementById("btnListeHistorique");
+
+if (btnListeHistorique) {
+
+    btnListeHistorique.addEventListener(
+        "click",
+        chargerHistorique
+    );
+}
+
+
+
+/* ============================================================
+   RAPPORTS
+   ============================================================ */
+
+const formRapport =
+    document.getElementById("formRapport");
+
+if (formRapport) {
+
+    let graphiqueTopMedicamentsInstance = null;
+
+    formRapport.addEventListener(
+        "submit",
+        async (e) => {
+
+            e.preventDefault();
+
+            const bouton = e.target.querySelector("button");
+            definirChargement(bouton, true);
+
+            const f = new FormData(e.target);
+            const debut = f.get("debut");
+            const fin = f.get("fin");
+
+            const resultatVentes =
+                await appelerApi(
+                    "GET",
+                    `${API_VENTES}?debut=${debut}&fin=${fin}`
+                );
+
+            const rapportVide =
+                document.getElementById("rapportVide");
+
+            const kpiGrille =
+                document.getElementById("kpiGrilleRapport");
+
+            const carteGraphique =
+                document.getElementById("carteGraphiqueRapport");
+
+            const carteTableau =
+                document.getElementById("carteTableauRapport");
+
+            if (!resultatVentes.ok) {
+
+                definirChargement(bouton, false);
+
+                notifier(
+                    traduire("erreurRapport"),
+                    "erreur"
+                );
+
+                return;
+            }
+
+            const ventes = resultatVentes.donnees;
+
+            if (ventes.length === 0) {
+
+                definirChargement(bouton, false);
+
+                kpiGrille.style.display = "none";
+                carteGraphique.style.display = "none";
+                carteTableau.style.display = "none";
+                rapportVide.hidden = false;
+
+                return;
+            }
+
+            rapportVide.hidden = true;
+
+            /* Essai de récupérer les médicaments pour les noms + prix
+               (réservé au Gestionnaire ; échec silencieux sinon) */
+            const resultatMedicaments =
+                await appelerApi("GET", API);
+
+            definirChargement(bouton, false);
+
+            const medicamentsParId = {};
+
+            if (resultatMedicaments.ok) {
+
+                resultatMedicaments.donnees.forEach((m) => {
+                    medicamentsParId[m.id] = m;
+                });
+            }
+
+            /* Agrégation par médicament */
+            const parMedicament = {};
+
+            ventes.forEach((v) => {
+
+                if (!parMedicament[v.idMedicament]) {
+
+                    parMedicament[v.idMedicament] = {
+                        nombreVentes: 0,
+                        unites: 0
+                    };
+                }
+
+                parMedicament[v.idMedicament].nombreVentes += 1;
+                parMedicament[v.idMedicament].unites += v.quantite;
+            });
+
+            const totalVentes = ventes.length;
+
+            const totalUnites =
+                ventes.reduce(
+                    (somme, v) => somme + v.quantite,
+                    0
+                );
+
+            document.getElementById("kpiNombreVentes")
+                .textContent = totalVentes;
+
+            document.getElementById("kpiUnitesVendues")
+                .textContent = totalUnites;
+
+            const kpiCA =
+                document.getElementById("kpiChiffreAffaires");
+
+            const kpiCANote =
+                document.getElementById("kpiChiffreAffairesNote");
+
+            if (resultatMedicaments.ok) {
+
+                const chiffreAffaires =
+                    ventes.reduce((somme, v) => {
+
+                        const med = medicamentsParId[v.idMedicament];
+
+                        return somme + (med ? med.prix * v.quantite : 0);
+                    }, 0);
+
+                kpiCA.textContent = chiffreAffaires.toFixed(2);
+                kpiCANote.textContent = traduire("dinarsTunisiens");
+
+            } else {
+
+                kpiCA.textContent = "—";
+                kpiCANote.textContent =
+                    traduire("indisponiblePourRole");
+            }
+
+            kpiGrille.style.display = "grid";
+
+            /* Tri du plus vendu au moins vendu */
+            const medicamentsTries =
+                Object.entries(parMedicament)
+                    .sort(
+                        (a, b) => b[1].unites - a[1].unites
+                    );
+
+            const nomMedicament = (id) => {
+
+                const med = medicamentsParId[id];
+
+                return med
+                    ? `${med.nom} (${med.dosage})`
+                    : `Médicament #${id}`;
+            };
+
+            /* Tableau détaillé */
+            const corpsTableau =
+                document.getElementById("corpsTableRapport");
+
+            corpsTableau.innerHTML = "";
+
+            medicamentsTries.forEach(([id, stats]) => {
+
+                const ligne =
+                    document.createElement("tr");
+
+                [
+                    nomMedicament(id),
+                    stats.nombreVentes,
+                    stats.unites
+                ].forEach((valeur) => {
+
+                    const cellule =
+                        document.createElement("td");
+
+                    cellule.textContent = valeur;
+                    ligne.appendChild(cellule);
+                });
+
+                corpsTableau.appendChild(ligne);
+            });
+
+            carteTableau.style.display = "block";
+
+            /* Graphique top médicaments (5 premiers) */
+            const top5 = medicamentsTries.slice(0, 5);
+
+            const canvas =
+                document.getElementById("graphiqueTopMedicaments");
+
+            if (canvas && typeof Chart !== "undefined") {
+
+                if (graphiqueTopMedicamentsInstance) {
+                    graphiqueTopMedicamentsInstance.destroy();
+                }
+
+                graphiqueTopMedicamentsInstance = new Chart(canvas, {
+                    type: "bar",
+                    data: {
+                        labels: top5.map(([id]) => nomMedicament(id)),
+                        datasets: [{
+                            label: traduire("unitesVenduesLabel"),
+                            data: top5.map(([, stats]) => stats.unites),
+                            backgroundColor: "#1E8A5C",
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, ticks: { precision: 0 } }
+                        }
+                    }
+                });
+
+                carteGraphique.style.display = "block";
+            }
+        }
+    );
+}
+
+
+/* ============================================================
+   COMPTES UTILISATEURS
+   ============================================================ */
+
+const API_COMPTES = "/api/comptes";
+
+const formCompte =
+    document.getElementById("formCompte");
+
+if (formCompte) {
+
+    let compteEnEdition = null;
+
+    const titreForm =
+        document.getElementById("titreFormCompte");
+
+    const btnSubmit =
+        document.getElementById("btnSubmitCompte");
+
+    const btnAnnuler =
+        document.getElementById("btnAnnulerEditionCompte");
+
+    const selectRole =
+        document.getElementById("selectRoleCompte");
+
+    const inputPwd =
+        document.getElementById("inputPwdCompte");
+
+    const labelPwd =
+        document.getElementById("labelMotDePasseCompte");
+
+    function reinitialiserFormCompte() {
+
+        compteEnEdition = null;
+
+        formCompte.reset();
+
+        titreForm.textContent = traduire("comptesCreerTitre");
+        btnSubmit.textContent = traduire("creerLUtilisateur");
+        btnAnnuler.hidden = true;
+
+        selectRole.disabled = false;
+        inputPwd.required = true;
+        labelPwd.firstChild.textContent = traduire("motDePasseChamp");
+        inputPwd.placeholder =
+            traduire("placeholderMotDePasseRegles");
+    }
+
+    function passerEnEdition(compte) {
+
+        compteEnEdition = {
+            id: compte.id,
+            role: compte.role
+        };
+
+        formCompte.nom.value = compte.nom;
+        formCompte.prenom.value = compte.prenom;
+        formCompte.login.value = compte.login;
+        selectRole.value = compte.role;
+        selectRole.disabled = true;
+
+        inputPwd.value = "";
+        inputPwd.required = false;
+        labelPwd.firstChild.textContent =
+            traduire("nouveauMotDePasseChamp");
+        inputPwd.placeholder =
+            traduire("laisserVideNePasChanger");
+
+        titreForm.textContent =
+            `Modifier ${compte.nom} ${compte.prenom}`;
+
+        btnSubmit.textContent = traduire("enregistrerLesModifications");
+        btnAnnuler.hidden = false;
+
+        formCompte.scrollIntoView({ behavior: "smooth" });
+    }
+
+    btnAnnuler.addEventListener(
+        "click",
+        reinitialiserFormCompte
+    );
+
+    formCompte.addEventListener(
+        "submit",
+        async (e) => {
+
+            e.preventDefault();
+
+            const bouton = e.target.querySelector("button[type=submit]");
+            definirChargement(bouton, true);
+
+            const f = new FormData(e.target);
+            const alerte = document.getElementById("alerteCompte");
+
+            let resultat;
+
+            if (compteEnEdition) {
+
+                resultat = await appelerApi(
+                    "PUT",
+                    `${API_COMPTES}/${compteEnEdition.role}/${compteEnEdition.id}`,
+                    {
+                        nom: f.get("nom"),
+                        prenom: f.get("prenom"),
+                        login: f.get("login"),
+                        pwd: f.get("pwd") || null
+                    }
+                );
+
+            } else {
+
+                resultat = await appelerApi(
+                    "POST",
+                    API_COMPTES,
+                    {
+                        nom: f.get("nom"),
+                        prenom: f.get("prenom"),
+                        login: f.get("login"),
+                        pwd: f.get("pwd"),
+                        role: f.get("role")
+                    }
+                );
+            }
+
+            definirChargement(bouton, false);
+
+            alerte.hidden = false;
+
+            if (resultat.ok) {
+
+                alerte.textContent =
+                    resultat.donnees.message;
+
+                alerte.classList.add("ok");
+
+                reinitialiserFormCompte();
+                chargerComptes();
+
+            } else {
+
+                alerte.textContent =
+                    (resultat.donnees && resultat.donnees.message)
+                        || traduire("erreurEnregistrement");
+
+                alerte.classList.remove("ok");
+            }
+        }
+    );
+
+    window.passerEnEditionCompte = passerEnEdition;
+}
+
+
+async function chargerComptes() {
+
+    const bouton =
+        document.getElementById("btnListeComptes");
+
+    definirChargement(bouton, true);
+
+    const resultat =
+        await appelerApi("GET", API_COMPTES);
+
+    definirChargement(bouton, false);
+
+    if (!resultat.ok) {
+
+        notifier(
+            traduire("impossibleChargerComptes"),
+            "erreur"
+        );
+
+        return;
+    }
+
+    const table =
+        document.getElementById("tableComptes");
+
+    const corps =
+        document.getElementById("corpsTableComptes");
+
+    corps.innerHTML = "";
+
+    if (resultat.donnees.length === 0) {
+
+        table.hidden = true;
+
+        let aucun = document.getElementById("aucunCompte");
+
+        if (!aucun) {
+
+            aucun = document.createElement("p");
+            aucun.id = "aucunCompte";
+            aucun.className = "alerte ok";
+            aucun.textContent = traduire("aucunCompteEnregistre");
+            table.insertAdjacentElement("afterend", aucun);
+        }
+
+        aucun.hidden = false;
+        return;
+    }
+
+    const aucunCompteExistant = document.getElementById("aucunCompte");
+
+    if (aucunCompteExistant) {
+        aucunCompteExistant.hidden = true;
+    }
+
+    resultat.donnees.forEach((compte) => {
+
+        const ligne =
+            document.createElement("tr");
+
+        [
+            compte.nom,
+            compte.prenom,
+            compte.login,
+            compte.role === "PHARMACIEN" ? traduire("pharmacienLabel") : traduire("gestionnaireLabel")
+        ].forEach((valeur) => {
+
+            const cellule =
+                document.createElement("td");
+
+            cellule.textContent = valeur;
+            ligne.appendChild(cellule);
+        });
+
+        const celluleActions =
+            document.createElement("td");
+
+        const btnModifier =
+            document.createElement("button");
+
+        btnModifier.type = "button";
+        btnModifier.textContent = "Modifier";
+        btnModifier.className = "bouton-danger-discret";
+        btnModifier.style.borderColor = "var(--vert)";
+        btnModifier.style.color = "var(--vert)";
+        btnModifier.style.marginRight = "6px";
+
+        btnModifier.addEventListener("click", () => {
+            window.passerEnEditionCompte(compte);
+        });
+
+        const btnSupprimer =
+            document.createElement("button");
+
+        btnSupprimer.type = "button";
+        btnSupprimer.textContent = "Supprimer";
+        btnSupprimer.className = "bouton-danger-discret";
+
+        btnSupprimer.addEventListener("click", async () => {
+
+            definirChargement(btnSupprimer, true);
+
+            const resultatSuppression = await appelerApi(
+                "DELETE",
+                `${API_COMPTES}/${compte.role}/${compte.id}`
+            );
+
+            definirChargement(btnSupprimer, false);
+
+            if (resultatSuppression.ok) {
+
+                ligne.remove();
+
+                notifier(traduire("utilisateurSupprimeAvecSucces"));
+
+            } else {
+
+                notifier(
+                    traduire("erreurSuppression"),
+                    "erreur"
+                );
+            }
+        });
+
+        celluleActions.appendChild(btnModifier);
+        celluleActions.appendChild(btnSupprimer);
+        ligne.appendChild(celluleActions);
+
+        corps.appendChild(ligne);
+    });
+
+    table.hidden = false;
+}
+
+
+const btnListeComptes =
+    document.getElementById("btnListeComptes");
+
+if (btnListeComptes) {
+
+    btnListeComptes.addEventListener(
+        "click",
+        chargerComptes
+    );
+}
+
+
+/* ============================================================
+   PARAMÈTRES — MES INFORMATIONS (nom, prénom, email)
+   ============================================================ */
+
+const formMesInfos =
+    document.getElementById("formMesInfos");
+
+if (formMesInfos) {
+
+    (async function chargerMesInfos() {
+
+        const resultat = await appelerApi("GET", "/api/mon-compte");
+
+        if (!resultat.ok) {
+            return;
+        }
+
+        document.getElementById("inputNomInfos").value =
+            resultat.donnees.nom || "";
+
+        document.getElementById("inputPrenomInfos").value =
+            resultat.donnees.prenom || "";
+
+        document.getElementById("inputLoginInfos").value =
+            resultat.donnees.login || "";
+
+        document.getElementById("inputEmailInfos").value =
+            resultat.donnees.email || "";
+    })();
+
+    formMesInfos.addEventListener(
+        "submit",
+        async (e) => {
+
+            e.preventDefault();
+
+            const bouton = e.target.querySelector("button");
+            definirChargement(bouton, true);
+
+            const f = new FormData(e.target);
+
+            const resultat = await appelerApi(
+                "PUT",
+                "/api/mon-compte/infos",
+                {
+                    nom: f.get("nom"),
+                    prenom: f.get("prenom"),
+                    email: f.get("email") || null
+                }
+            );
+
+            definirChargement(bouton, false);
+
+            const alerte = document.getElementById("alerteMesInfos");
+            alerte.hidden = false;
+
+            if (resultat.ok) {
+
+                alerte.textContent = resultat.donnees.message;
+                alerte.classList.add("ok");
+
+            } else {
+
+                alerte.textContent =
+                    (resultat.donnees && resultat.donnees.message)
+                        || traduire("erreurMaj");
+
+                alerte.classList.remove("ok");
+            }
+        }
+    );
+}
+
+
+/* ============================================================
+   PARAMÈTRES — CHANGER SON PROPRE MOT DE PASSE
+   ============================================================ */
+
+const formMotDePasse =
+    document.getElementById("formMotDePasse");
+
+if (formMotDePasse) {
+
+    formMotDePasse.addEventListener(
+        "submit",
+        async (e) => {
+
+            e.preventDefault();
+
+            const f = new FormData(e.target);
+            const alerte = document.getElementById("alerteMotDePasse");
+
+            const pwdNouveau = f.get("pwdNouveau");
+            const pwdConfirmation = f.get("pwdConfirmation");
+
+            if (pwdNouveau !== pwdConfirmation) {
+
+                alerte.hidden = false;
+                alerte.textContent =
+                    traduire("motsDePasseNeCorrespondentPas");
+                alerte.classList.remove("ok");
+                return;
+            }
+
+            const bouton = e.target.querySelector("button");
+            definirChargement(bouton, true);
+
+            const resultat = await appelerApi(
+                "PUT",
+                "/api/mon-compte/mot-de-passe",
+                {
+                    pwdActuel: f.get("pwdActuel"),
+                    pwdNouveau: pwdNouveau
+                }
+            );
+
+            definirChargement(bouton, false);
+
+            alerte.hidden = false;
+
+            if (resultat.ok) {
+
+                alerte.textContent =
+                    resultat.donnees.message;
+
+                alerte.classList.add("ok");
+
+                e.target.reset();
+
+            } else {
+
+                alerte.textContent =
+                    (resultat.donnees && resultat.donnees.message)
+                        || traduire("erreurChangementMotDePasse");
+
+                alerte.classList.remove("ok");
+            }
+        }
+    );
+}
+
+
+/* ============================================================
+   RAPPORT CNAM
+   ============================================================ */
+
+const formRapportCnam =
+    document.getElementById("formRapportCnam");
+
+if (formRapportCnam) {
+
+    formRapportCnam.addEventListener(
+        "submit",
+        async (e) => {
+
+            e.preventDefault();
+
+            const bouton = e.target.querySelector("button");
+            definirChargement(bouton, true);
+
+            const f = new FormData(e.target);
+            const debut = f.get("debut");
+            const fin = f.get("fin");
+
+            const resultat = await appelerApi(
+                "GET",
+                `/api/cnam/rapport?debut=${debut}&fin=${fin}`
+            );
+
+            definirChargement(bouton, false);
+
+            if (!resultat.ok) {
+
+                notifier(
+                    traduire("erreurRapportCnam"),
+                    "erreur"
+                );
+
+                return;
+            }
+
+            const d = resultat.donnees;
+
+            document.getElementById("cnamNombreVentes").textContent =
+                d.nombreVentesConcernees;
+
+            document.getElementById("cnamTotalRembourse").textContent =
+                d.totalMontantRembourse.toFixed(2);
+
+            document.getElementById("cnamTotalTicket").textContent =
+                d.totalTicketModerateur.toFixed(2);
+
+            document.getElementById("kpiGrilleCnam").style.display = "grid";
         }
     );
 }

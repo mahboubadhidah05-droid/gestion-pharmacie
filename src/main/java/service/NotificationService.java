@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import dao.NotificationDAO;
+
 public final class NotificationService {
 
     private static final Logger LOGGER =
@@ -17,6 +19,8 @@ public final class NotificationService {
 
     private static final String TITRE_FIN =
             "=== FIN DES NOTIFICATIONS ===";
+
+    private static final NotificationDAO DAO = new NotificationDAO();
 
 
     private NotificationService() {
@@ -57,6 +61,8 @@ public final class NotificationService {
                 "Notification : {0}",
                 medicament
         );
+
+        DAO.enregistrer(medicament);
     }
 
 

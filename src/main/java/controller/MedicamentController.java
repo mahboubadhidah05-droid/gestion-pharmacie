@@ -45,7 +45,10 @@ public class MedicamentController {
                 request.dosage(),
                 request.stock(),
                 request.prix(),
-                request.seuil()
+                request.seuil(),
+                request.datePeremption(),
+                request.conventionneCnam(),
+                request.tauxRemboursement()
         );
 
         return ResponseEntity
@@ -172,5 +175,47 @@ public class MedicamentController {
         return ResponseEntity.ok(
                 new StockCritiqueResponse(false, "Stock normal")
         );
+    }
+
+
+    @PutMapping("/stock-perime")
+    public ResponseEntity<MessageResponse> retirerStockPerime(
+            @RequestParam String nom,
+            @RequestParam String dosage) {
+
+        int resultat = medicamentService.retirerStockPerime(nom, dosage);
+
+        if (resultat == -1) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (resultat == -2) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new MessageResponse(
+                            "Ce médicament n'est pas encore périmé."));
+        }
+
+        return ResponseEntity.ok(
+                new MessageResponse(
+                        "Stock périmé retiré : " + resultat + " unité(s)."
+                )
+        );
+    }
+
+
+    @GetMapping("/verifier")
+    public ResponseEntity<dto.VerifierMedicamentResponse> verifierMedicament(
+            @RequestParam String nom,
+            @RequestParam String dosage) {
+
+        dto.VerifierMedicamentResponse resultat =
+                medicamentService.verifier(nom, dosage);
+
+        if (resultat == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(resultat);
     }
 }

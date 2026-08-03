@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Pharmacie — Notifications</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
+    <link rel="apple-touch-icon" href="favicon-180.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="topbar">
+        <div class="croix" aria-hidden="true">
+            <img src="logo-pharmacie.png" alt="Logo pharmacie" width="30" height="30">
+        </div>
+        <div>
+            <h1>Gestion Pharmacie</h1>
+            <p class="soustitre">Alertes et notifications système</p>
+        </div>
+        <div class="etat-api" id="etatApi">
+            <span class="pastille"></span>
+            <span id="etatApiTexte">Vérification de l'API…</span>
+        </div>
+        <div class="session">
+            <p id="userInfo"></p>
+            <button id="btnLogout" hidden>Déconnexion</button>
+        </div>
+    </header>
+
+    <main class="grille">
+
+        <div class="page-header">
+            <div>
+                <p class="etiquette">NOTIFICATIONS</p>
+                <h2 class="page-titre">Notifications</h2>
+                <p class="page-description">Alertes de stock critique enregistrées automatiquement par le système.</p>
+            </div>
+        </div>
+
+        <section class="carte carte-large">
+            <p class="etiquette">NOTIFICATIONS</p>
+            <h2>Alertes système</h2>
+            <button type="button" id="btnListeNotifications">Actualiser la liste</button>
+            <div class="tableau-conteneur">
+                <table class="tableau" id="tableNotifications" hidden>
+                    <thead>
+                        <tr>
+                            <th>Message</th>
+                            <th>Date</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpsTableNotifications"></tbody>
+                </table>
+            </div>
+            <p class="alerte ok" id="aucuneNotification" hidden>Aucune notification pour l'instant.</p>
+        </section>
+
+    </main>
+
+    <script src="ui.js"></script>
+    <script src="nav.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -2,8 +2,15 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <script>
+        (function () {
+            var theme = localStorage.getItem("theme") || "light";
+            document.documentElement.setAttribute("data-theme", theme);
+        })();
+    </script>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion Pharmacie — Stock</title>
+    <title>Gestion Pharmacie — Tableau de bord</title>
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
     <link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
     <link rel="apple-touch-icon" href="favicon-180.png">
@@ -11,6 +18,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="chart.min.js"></script>
 </head>
 <body>
 
@@ -19,266 +27,135 @@
             <img src="logo-pharmacie.png" alt="Logo pharmacie" width="30" height="30">
         </div>
         <div>
-            <h1>Gestion Pharmacie</h1>
-            <p class="soustitre">Stock des médicaments · API REST</p>
+            <h1 data-i18n="titreSite">Gestion Pharmacie</h1>
+            <p class="soustitre" data-i18n="dashSousTitre">Vue d'ensemble · API REST</p>
         </div>
         <div class="etat-api" id="etatApi">
             <span class="pastille"></span>
-            <span id="etatApiTexte">Vérification de l'API…</span>
+            <span id="etatApiTexte" data-i18n="verifApi">Vérification de l'API…</span>
         </div>
+                        <button type="button" id="btnToggleLangue" class="btn-theme btn-langue" aria-label="Changer de langue / Switch language" title="Français / English">FR</button>
+        <button type="button" id="btnToggleTheme" class="btn-theme" aria-label="Changer de thème" title="Mode sombre / clair">
+            <svg class="icone-soleil" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+            <svg class="icone-lune" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+        </button>
         <div class="session">
             <p id="userInfo"></p>
-            <button id="btnLogout" hidden>Déconnexion</button>
+            <button id="btnLogout" hidden data-i18n="deconnexion">Déconnexion</button>
         </div>
     </header>
 
-
     <main class="grille">
 
-		<!-- Enregistrer une vente -->
-		        <section class="carte" data-role="PHARMACIEN">
-		            <p class="etiquette">VENTES</p>
-		            <h2>Enregistrer une vente</h2>
-		            <form id="formVente">
-		                <div class="rangee">
-		                    <label>ID Pharmacien
-		                        <input type="number" name="idPharmacien" required min="1" placeholder="1">
-		                    </label>
-		                    <label>ID Client
-		                        <input type="number" name="idClient" required min="1" placeholder="1">
-		                    </label>
-		                </div>
-		                <div class="rangee">
-		                    <label>ID Médicament
-		                        <input type="number" name="idMedicament" required min="1" placeholder="1">
-		                    </label>
-		                    <label>Quantité
-		                        <input type="number" name="quantite" required min="1" placeholder="2">
-		                    </label>
-		                </div>
-		                <button type="submit">Enregistrer la vente</button>
-		            </form>
-		            <p class="alerte" id="alerteVente" hidden></p>
-		        </section>
-
-
-				<!-- Créer un client -->
-				        <section class="carte" data-role="PHARMACIEN">
-				            <p class="etiquette">CLIENTS</p>
-		            <h2>Créer un client</h2>
-				            <form id="formClient">
-				                <div class="rangee">
-				                    <label>Nom
-				                        <input type="text" name="nom" required placeholder="Ben Ali">
-				                    </label>
-				                    <label>Prénom
-				                        <input type="text" name="prenom" required placeholder="Sami">
-				                    </label>
-				                </div>
-				                <div class="rangee">
-				                    <label>Email
-				                        <input type="email" name="email" placeholder="sami@mail.com">
-				                    </label>
-				                    <label>Adresse
-				                        <input type="text" name="adresse" placeholder="Tunis">
-				                    </label>
-				                </div>
-				                <button type="submit">Créer le client</button>
-				            </form>
-				            <p class="alerte" id="alerteClient" hidden></p>
-				        </section>
-
-
-		        <!-- Consulter les ventes -->
-		        <section class="carte carte-large" data-role="PHARMACIEN">
-		            <p class="etiquette">VENTES</p>
-		            <h2>Consulter les ventes</h2>
-		            <form id="formConsulterVentes">
-		                <div class="rangee">
-		                    <label>Filtrer par
-		                        <select name="filtre" id="filtreVentes">
-		                            <option value="medicament">Médicament (nom)</option>
-		                            <option value="client">Client (nom + prénom)</option>
-		                            <option value="periode">Période</option>
-		                        </select>
-		                    </label>
-		                    <label id="champValeur">Nom du médicament
-		                        <input type="text" name="valeur" placeholder="Paracétamol" id="inputValeurVente">
-		                    </label>
-		                </div>
-		                <div class="rangee" id="champsClient" hidden>
-		                    <label>Nom
-		                        <input type="text" name="clientNom" placeholder="Ben Ali">
-		                    </label>
-		                    <label>Prénom
-		                        <input type="text" name="clientPrenom" placeholder="Sami">
-		                    </label>
-		                </div>
-		                <div class="rangee" id="champsPeriode" hidden>
-		                    <label>Date début
-		                        <input type="date" name="debut">
-		                    </label>
-		                    <label>Date fin
-		                        <input type="date" name="fin">
-		                    </label>
-		                </div>
-		                <button type="submit">Rechercher</button>
-		            </form>
-		            <div class="tableau-conteneur">
-		                <table class="tableau" id="tableVentes" hidden>
-		                    <thead>
-		                        <tr>
-		                            <th>ID</th>
-		                            <th>Pharmacien</th>
-		                            <th>Client</th>
-		                            <th>Médicament</th>
-		                            <th>Quantité</th>
-		                            <th>Date</th>
-		                            <th>Actions</th>
-		                        </tr>
-		                    </thead>
-		                    <tbody id="corpsTableVentes"></tbody>
-		                </table>
-		            </div>
-		            <p class="alerte ok" id="aucuneVente" hidden>Aucune vente trouvée.</p>
-		        </section>
-
-        <!-- Ajouter un médicament -->
-        <section class="carte" data-role="GESTIONNAIRE">
-            <p class="etiquette">STOCK</p>
-		            <h2>Ajouter un médicament</h2>
-            <form id="formAjout">
-                <div class="rangee">
-                    <label>Nom
-                        <input type="text" name="nom" required placeholder="Paracétamol">
-                    </label>
-                    <label>Dosage
-                        <input type="text" name="dosage" required placeholder="500mg">
-                    </label>
-                </div>
-                <div class="rangee rangee-3">
-                    <label>Stock initial
-                        <input type="number" name="stock" required min="0" placeholder="120">
-                    </label>
-                    <label>Prix (DT)
-                        <input type="number" name="prix" required min="0" step="0.01" placeholder="4.50">
-                    </label>
-                    <label>Seuil critique
-                        <input type="number" name="seuil" required min="0" placeholder="20">
-                    </label>
-                </div>
-                <button type="submit">Ajouter au stock</button>
-            </form>
+        <section class="carte hero-accueil" style="grid-column: 1 / -1;">
+            <p class="etiquette" data-i18n="dashEtiquetteAcces">ACCÈS</p>
+            <h2 data-i18n="dashBienvenue">Bienvenue</h2>
+            <p class="kpi-sous-texte" data-i18n="dashIntro">
+                Toutes les statistiques ci-dessous utilisent les données réelles
+                de ton stock et de tes ventes — rien n'est simulé.
+            </p>
+            <svg class="hero-capsule" viewBox="0 0 100 100" aria-hidden="true">
+                <defs>
+                    <linearGradient id="capG1" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#8FE8BE"/>
+                        <stop offset="1" stop-color="#1E8A5C"/>
+                    </linearGradient>
+                    <linearGradient id="capG2" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#FFFFFF"/>
+                        <stop offset="1" stop-color="#DCE6EE"/>
+                    </linearGradient>
+                </defs>
+                <g transform="rotate(-30 50 50)">
+                    <rect x="15" y="35" width="70" height="30" rx="15" fill="url(#capG2)"/>
+                    <path d="M15 50 a15 15 0 0 1 15 -15 h20 v30 h-20 a15 15 0 0 1 -15 -15 Z" fill="url(#capG1)"/>
+                    <ellipse cx="30" cy="42" rx="8" ry="3" fill="#ffffff" opacity="0.55"/>
+                </g>
+            </svg>
         </section>
 
-
-        <!-- Consulter le stock -->
-        <section class="carte" data-role="GESTIONNAIRE">
-            <p class="etiquette">STOCK</p>
-		            <h2>Consulter un stock</h2>
-            <form id="formConsulter">
-                <div class="rangee">
-                    <label>Nom du médicament
-                        <input type="text" name="nom" required placeholder="Paracétamol">
-                    </label>
-                    <label>Dosage
-                        <input type="text" name="dosage" required placeholder="500mg">
-                    </label>
-                </div>
-                <button type="submit">Consulter</button>
-            </form>
-            <div class="resultat-stock" id="resultatStock" hidden>
-                <span class="resultat-valeur" id="stockValeur">—</span>
-                <span class="resultat-libelle">unités en stock</span>
+        <!-- ===== Dashboard PHARMACIEN ===== -->
+        <section class="kpi-grille" data-role="PHARMACIEN" style="grid-column: 1 / -1;">
+            <div class="kpi-carte kpi-teinte-vert">
+                <div class="kpi-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2l2.2 12.2a2 2 0 0 0 2 1.8h8.7a2 2 0 0 0 2-1.6L21 8H6"/></svg></div>
+                <p class="kpi-libelle" data-i18n="kpiVentesJour">Ventes aujourd'hui</p>
+                <span class="kpi-valeur" id="kpiVentesJour">—</span>
+            </div>
+            <div class="kpi-carte kpi-teinte-teal">
+                <div class="kpi-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg></div>
+                <p class="kpi-libelle" data-i18n="kpiUnitesVenduesJour">Unités vendues aujourd'hui</p>
+                <span class="kpi-valeur" id="kpiUnitesVenduesJour">—</span>
             </div>
         </section>
 
-
-        <!-- Mettre à jour le stock -->
-        <section class="carte" data-role="GESTIONNAIRE">
-            <p class="etiquette">STOCK</p>
-		            <h2>Mettre à jour un stock</h2>
-            <form id="formMaj">
-                <div class="rangee rangee-3">
-                    <label>Nom du médicament
-                        <input type="text" name="nom" required placeholder="Paracétamol">
-                    </label>
-                    <label>Dosage
-                        <input type="text" name="dosage" required placeholder="500mg">
-                    </label>
-                    <label>Nouveau stock
-                        <input type="number" name="stock" required min="0" placeholder="85">
-                    </label>
-                </div>
-                <button type="submit">Mettre à jour</button>
-            </form>
+        <section class="carte carte-large" data-role="PHARMACIEN">
+            <p class="etiquette" data-i18n="etiquetteVentes">VENTES</p>
+            <h2 data-i18n="evolutionVentes">Évolution des ventes (7 derniers jours)</h2>
+            <canvas id="graphiqueVentes" height="90"></canvas>
+            <p class="kpi-sous-texte" id="graphiqueVentesVide" hidden>
+                <span data-i18n="aucuneVentePeriode">Aucune vente enregistrée sur cette période.</span>
+            </p>
         </section>
-		<!-- Créer une commande -->
-		        <section class="carte" data-role="GESTIONNAIRE">
-		            <p class="etiquette">COMMANDES</p>
-		            <h2>Créer une commande</h2>
-		            <form id="formCommande">
-		                <div class="rangee rangee-3">
-		                    <label>ID Gestionnaire
-		                        <input type="number" name="idGestionnaire" required min="1" placeholder="1">
-		                    </label>
-		                    <label>ID Médicament
-		                        <input type="number" name="idMedicament" required min="1" placeholder="1">
-		                    </label>
-		                    <label>Quantité
-		                        <input type="number" name="quantite" required min="1" placeholder="50">
-		                    </label>
-		                </div>
-		                <button type="submit">Créer la commande</button>
-		            </form>
-		            <p class="alerte" id="alerteCommande" hidden></p>
-		        </section>
 
-
-        <!-- Vérifier le seuil critique -->
-        <section class="carte" data-role="GESTIONNAIRE">
-            <p class="etiquette">STOCK</p>
-		            <h2>Vérifier le seuil critique</h2>
-            <form id="formCritique">
-                <div class="rangee">
-                    <label>Nom du médicament
-                        <input type="text" name="nom" required placeholder="Paracétamol">
-                    </label>
-                    <label>Dosage
-                        <input type="text" name="dosage" required placeholder="500mg">
-                    </label>
-                </div>
-                <button type="submit">Vérifier</button>
-            </form>
-            <p class="alerte" id="alerteCritique" hidden></p>
+        <!-- ===== Dashboard GESTIONNAIRE ===== -->
+        <section class="kpi-grille" data-role="GESTIONNAIRE" style="grid-column: 1 / -1;">
+            <div class="kpi-carte kpi-teinte-vert">
+                <div class="kpi-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="8.5" width="17" height="7" rx="3.5" transform="rotate(-45 12 12)"/><line x1="8.5" y1="12" x2="12" y2="15.5"/></svg></div>
+                <p class="kpi-libelle" data-i18n="kpiMedicamentsReferences">Médicaments référencés</p>
+                <span class="kpi-valeur" id="kpiTotalMedicaments">—</span>
+            </div>
+            <div class="kpi-carte kpi-teinte-teal">
+                <div class="kpi-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg></div>
+                <p class="kpi-libelle" data-i18n="kpiUnitesStock">Unités en stock</p>
+                <span class="kpi-valeur" id="kpiUnitesStock">—</span>
+            </div>
+            <div class="kpi-carte kpi-teinte-violet">
+                <div class="kpi-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 15.5c0 1.1 1.1 2 2.5 2s2.5-.9 2.5-2-1.1-1.8-2.5-2-2.5-.9-2.5-2 1.1-2 2.5-2 2.5.9 2.5 2"/></svg></div>
+                <p class="kpi-libelle" data-i18n="kpiValeurStock">Valeur du stock</p>
+                <span class="kpi-valeur" id="kpiValeurStock">—</span>
+                <span class="kpi-sous-texte" data-i18n="dinarsTunisiens">Dinars tunisiens</span>
+            </div>
+            <div class="kpi-carte kpi-teinte-rose kpi-alerte">
+                <div class="kpi-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3Z"/><line x1="12" y1="9" x2="12" y2="14"/><circle cx="12" cy="17" r="0.6" fill="currentColor"/></svg></div>
+                <p class="kpi-libelle" data-i18n="kpiStockCritique">Stock critique</p>
+                <span class="kpi-valeur" id="kpiStockCritique">—</span>
+            </div>
+            <div class="kpi-carte kpi-alerte">
+                <div class="kpi-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg></div>
+                <p class="kpi-libelle" data-i18n="kpiBientotExpires">Bientôt expirés</p>
+                <span class="kpi-valeur" id="kpiBientotExpires">—</span>
+                <span class="kpi-sous-texte" data-i18n="sousTexteExpires">Sous 30 jours ou déjà périmés</span>
+            </div>
         </section>
-		<!-- Liste des médicaments -->
-		        <section class="carte carte-large" data-role="GESTIONNAIRE">
-		            <p class="etiquette">STOCK</p>
-		            <h2>Liste des médicaments</h2>
-		            <button type="button" id="btnListeMedicaments">Actualiser la liste</button>
-		            <div class="tableau-conteneur">
-		                <table class="tableau" id="tableMedicaments" hidden>
-		                    <thead>
-		                        <tr>
-		                            <th>ID</th>
-		                            <th>Nom</th>
-		                            <th>Dosage</th>
-		                            <th>Stock</th>
-		                            <th>Prix (DT)</th>
-		                            <th>Seuil</th>
-		                        </tr>
-		                    </thead>
-		                    <tbody id="corpsTableMedicaments"></tbody>
-		                </table>
-		            </div>
-		        </section>
+
+        <section class="carte carte-large" data-role="GESTIONNAIRE">
+            <p class="etiquette" data-i18n="etiquetteStock">STOCK</p>
+            <h2 data-i18n="repartitionStock">Répartition du stock</h2>
+            <div class="graphique-centre">
+                <canvas id="graphiqueStock" height="200"></canvas>
+            </div>
+        </section>
+
+        <section class="carte carte-large" data-role="GESTIONNAIRE">
+            <p class="etiquette" data-i18n="etiquetteStock">STOCK</p>
+            <h2 data-i18n="alertesStockCritique">Alertes de stock critique</h2>
+            <div class="liste-alertes" id="listeAlertesDashboard">
+                <p class="kpi-sous-texte" data-i18n="chargement">Chargement…</p>
+            </div>
+        </section>
+
+        <section class="carte carte-large" data-role="GESTIONNAIRE">
+            <p class="etiquette" data-i18n="etiquetteStock">STOCK</p>
+            <h2 data-i18n="lotsPerimesARetirer">Lots périmés à retirer</h2>
+            <div class="liste-alertes" id="listeAlertesPeremption">
+                <p class="kpi-sous-texte" data-i18n="chargement">Chargement…</p>
+            </div>
+        </section>
 
     </main>
 
-
-
     <script src="ui.js"></script>
+    <script src="i18n.js"></script>
+    <script src="nav.js"></script>
     <script src="auth.js"></script>
     <script src="app.js"></script>
 </body>

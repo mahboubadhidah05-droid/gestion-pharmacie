@@ -30,7 +30,9 @@ public class CommandeController {
         boolean creee = commandeService.creerCommande(
                 request.idGestionnaire(),
                 request.idMedicament(),
-                request.quantite()
+                request.quantite(),
+                request.idFournisseur(),
+                request.datePeremption()
         );
 
         if (!creee) {

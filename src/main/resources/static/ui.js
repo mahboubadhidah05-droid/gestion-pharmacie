@@ -88,3 +88,29 @@ function definirChargement(bouton, chargement) {
     bouton.disabled = chargement;
     bouton.classList.toggle("en-chargement", chargement);
 }
+
+
+/* ---------- Mode clair / sombre ---------- */
+
+const btnToggleTheme =
+    document.getElementById("btnToggleTheme");
+
+if (btnToggleTheme) {
+
+    btnToggleTheme.addEventListener("click", () => {
+
+        const themeActuel =
+            document.documentElement.getAttribute("data-theme")
+            || "light";
+
+        const nouveauTheme =
+            themeActuel === "dark" ? "light" : "dark";
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            nouveauTheme
+        );
+
+        localStorage.setItem("theme", nouveauTheme);
+    });
+}

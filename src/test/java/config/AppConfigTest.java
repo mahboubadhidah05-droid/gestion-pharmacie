@@ -6,10 +6,13 @@ import org.junit.jupiter.api.Test;
 
 import dao.ClientDAO;
 import dao.CommandeDAO;
+import dao.FournisseurDAO;
+import dao.LotMedicamentDAO;
 import dao.MedicamentDAO;
 import dao.StockHistoriqueDAO;
 import dao.UserDAO;
 import dao.UtilisateurDAO;
+import dao.UtilisateurGestionDAO;
 import dao.VenteDAO;
 
 class AppConfigTest {
@@ -27,6 +30,11 @@ class AppConfigTest {
         assertNotNull(appConfig.userDAO());
         assertNotNull(appConfig.utilisateurDAO());
         assertNotNull(appConfig.venteDAO());
+        assertNotNull(appConfig.fournisseurDAO());
+        assertNotNull(appConfig.notificationDAO());
+        assertNotNull(appConfig.utilisateurGestionDAO());
+        assertNotNull(appConfig.lotMedicamentDAO());
+        assertNotNull(appConfig.cnamRapportDAO());
     }
 
     @Test
@@ -53,6 +61,15 @@ class AppConfigTest {
         VenteDAO venteDAO =
                 appConfig.venteDAO();
 
+        FournisseurDAO fournisseurDAO =
+                appConfig.fournisseurDAO();
+
+        UtilisateurGestionDAO utilisateurGestionDAO =
+                appConfig.utilisateurGestionDAO();
+
+        LotMedicamentDAO lotMedicamentDAO =
+                appConfig.lotMedicamentDAO();
+
         assertNotNull(
                 appConfig.authService(utilisateurDAO)
         );
@@ -64,7 +81,8 @@ class AppConfigTest {
         assertNotNull(
                 appConfig.medicamentService(
                         medicamentDAO,
-                        stockHistoriqueDAO
+                        stockHistoriqueDAO,
+                        lotMedicamentDAO
                 )
         );
 
@@ -79,7 +97,8 @@ class AppConfigTest {
                 appConfig.commandeService(
                         commandeDAO,
                         medicamentDAO,
-                        stockHistoriqueDAO
+                        stockHistoriqueDAO,
+                        lotMedicamentDAO
                 )
         );
 
@@ -87,12 +106,50 @@ class AppConfigTest {
                 appConfig.venteService(
                         medicamentDAO,
                         venteDAO,
-                        stockHistoriqueDAO
+                        stockHistoriqueDAO,
+                        lotMedicamentDAO
                 )
         );
 
         assertNotNull(
                 appConfig.userService(userDAO)
+        );
+
+        assertNotNull(
+                appConfig.fournisseurService(fournisseurDAO)
+        );
+
+        assertNotNull(
+                appConfig.utilisateurGestionService(utilisateurGestionDAO)
+        );
+    }
+
+    @Test
+    void doitCreerLesBeansEmail() {
+
+        org.springframework.mail.javamail.JavaMailSenderImpl mailSender =
+                appConfig.javaMailSender(
+                        "test@gmail.com",
+                        "mot-de-passe-test"
+                );
+
+        assertNotNull(mailSender);
+
+        service.MailService mailService =
+                appConfig.mailService(mailSender, "test@gmail.com");
+
+        assertNotNull(mailService);
+
+        assertNotNull(
+                appConfig.stockAlertScheduler(
+                        appConfig.medicamentService(
+                                appConfig.medicamentDAO(),
+                                appConfig.stockHistoriqueDAO(),
+                                appConfig.lotMedicamentDAO()
+                        ),
+                        mailService,
+                        appConfig.userDAO()
+                )
         );
     }
 }

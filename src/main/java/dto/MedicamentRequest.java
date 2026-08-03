@@ -8,5 +8,8 @@ public record MedicamentRequest(
         String dosage,
         int stock,
         double prix,
-        int seuil) {
+        int seuil,
+        String datePeremption,
+        boolean conventionneCnam,
+        double tauxRemboursement) {
 }

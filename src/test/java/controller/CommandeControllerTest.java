@@ -36,7 +36,7 @@ class CommandeControllerTest {
 
     @Test
     void creerCommande_reussie_doitRetourner201() throws Exception {
-        when(commandeService.creerCommande(1, 2, 50)).thenReturn(true);
+        when(commandeService.creerCommande(1, 2, 50, null, null)).thenReturn(true);
 
         mockMvc.perform(post("/api/commandes")
                         .contentType(CONTENT_TYPE)
@@ -47,8 +47,33 @@ class CommandeControllerTest {
 
 
     @Test
+    void creerCommande_avecFournisseur_reussie_doitRetourner201() throws Exception {
+        when(commandeService.creerCommande(1, 2, 50, 4, null)).thenReturn(true);
+
+        mockMvc.perform(post("/api/commandes")
+                        .contentType(CONTENT_TYPE)
+                        .content("{\"idGestionnaire\":1,\"idMedicament\":2,"
+                                + "\"quantite\":50,\"idFournisseur\":4}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.message").value("Commande créée, stock mis à jour"));
+    }
+
+
+    @Test
+    void creerCommande_avecDatePeremption_reussie_doitRetourner201() throws Exception {
+        when(commandeService.creerCommande(1, 2, 50, null, "2027-01-01")).thenReturn(true);
+
+        mockMvc.perform(post("/api/commandes")
+                        .contentType(CONTENT_TYPE)
+                        .content("{\"idGestionnaire\":1,\"idMedicament\":2,"
+                                + "\"quantite\":50,\"datePeremption\":\"2027-01-01\"}"))
+                .andExpect(status().isCreated());
+    }
+
+
+    @Test
     void creerCommande_medicamentIntrouvable_doitRetourner404() throws Exception {
-        when(commandeService.creerCommande(1, 9999, 50)).thenReturn(false);
+        when(commandeService.creerCommande(1, 9999, 50, null, null)).thenReturn(false);
 
         mockMvc.perform(post("/api/commandes")
                         .contentType(CONTENT_TYPE)

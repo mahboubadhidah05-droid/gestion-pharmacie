@@ -3,6 +3,7 @@ package dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 
 import exception.AccesDonneesException;
 import utils.DBConnection;
@@ -14,8 +15,8 @@ public class CommandeDAO {
 
     private static final String INSERT_COMMANDE =
             "INSERT INTO commande "
-            + "(id_gestionnaire, id_medicament, quantite) "
-            + "VALUES (?, ?, ?)";
+            + "(id_gestionnaire, id_medicament, quantite, id_fournisseur) "
+            + "VALUES (?, ?, ?, ?)";
 
     /**
      * Crée une nouvelle commande.
@@ -23,12 +24,15 @@ public class CommandeDAO {
      * @param idGestionnaire identifiant du gestionnaire
      * @param idMedicament identifiant du médicament
      * @param quantite quantité commandée
+     * @param idFournisseur identifiant du fournisseur (peut être {@code null}
+     *        si aucun fournisseur n'est renseigné)
      * @throws AccesDonneesException en cas d'erreur d'accès à la base de données
      */
     public void creerCommande(
             int idGestionnaire,
             int idMedicament,
-            int quantite) {
+            int quantite,
+            Integer idFournisseur) {
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
@@ -37,6 +41,12 @@ public class CommandeDAO {
             statement.setInt(1, idGestionnaire);
             statement.setInt(2, idMedicament);
             statement.setInt(3, quantite);
+
+            if (idFournisseur != null) {
+                statement.setInt(4, idFournisseur);
+            } else {
+                statement.setNull(4, Types.INTEGER);
+            }
 
             statement.executeUpdate();
 

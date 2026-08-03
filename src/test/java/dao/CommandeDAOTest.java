@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ class CommandeDAOTest {
     private static final int ID_GESTIONNAIRE = 1;
     private static final int ID_MEDICAMENT = 10;
     private static final int QUANTITE = 25;
+    private static final int ID_FOURNISSEUR = 4;
 
 
     @Mock
@@ -46,7 +48,7 @@ class CommandeDAOTest {
 
 
     @Test
-    void creerCommande_casNominal_executeInsertion()
+    void creerCommande_sansFournisseur_executeInsertionAvecNull()
             throws SQLException {
 
         try (MockedStatic<DBConnection> mockedDb =
@@ -64,7 +66,8 @@ class CommandeDAOTest {
             commandeDAO.creerCommande(
                     ID_GESTIONNAIRE,
                     ID_MEDICAMENT,
-                    QUANTITE
+                    QUANTITE,
+                    null
             );
 
 
@@ -76,6 +79,42 @@ class CommandeDAOTest {
 
             verify(preparedStatement)
                     .setInt(3, QUANTITE);
+
+            verify(preparedStatement)
+                    .setNull(4, Types.INTEGER);
+
+            verify(preparedStatement)
+                    .executeUpdate();
+        }
+    }
+
+
+    @Test
+    void creerCommande_avecFournisseur_executeInsertionAvecId()
+            throws SQLException {
+
+        try (MockedStatic<DBConnection> mockedDb =
+                     mockStatic(DBConnection.class)) {
+
+
+            mockedDb.when(DBConnection::getConnection)
+                    .thenReturn(connection);
+
+
+            when(connection.prepareStatement(anyString()))
+                    .thenReturn(preparedStatement);
+
+
+            commandeDAO.creerCommande(
+                    ID_GESTIONNAIRE,
+                    ID_MEDICAMENT,
+                    QUANTITE,
+                    ID_FOURNISSEUR
+            );
+
+
+            verify(preparedStatement)
+                    .setInt(4, ID_FOURNISSEUR);
 
             verify(preparedStatement)
                     .executeUpdate();
@@ -104,7 +143,8 @@ class CommandeDAOTest {
                     () -> commandeDAO.creerCommande(
                             ID_GESTIONNAIRE,
                             ID_MEDICAMENT,
-                            QUANTITE
+                            QUANTITE,
+                            null
                     )
             );
         }
@@ -136,7 +176,8 @@ class CommandeDAOTest {
                     () -> commandeDAO.creerCommande(
                             ID_GESTIONNAIRE,
                             ID_MEDICAMENT,
-                            QUANTITE
+                            QUANTITE,
+                            null
                     )
             );
         }
@@ -172,7 +213,8 @@ class CommandeDAOTest {
                     () -> commandeDAO.creerCommande(
                             ID_GESTIONNAIRE,
                             ID_MEDICAMENT,
-                            QUANTITE
+                            QUANTITE,
+                            null
                     )
             );
 

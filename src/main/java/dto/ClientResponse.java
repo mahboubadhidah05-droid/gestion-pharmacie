@@ -1,7 +1,7 @@
 package dto;
 
 /**
- * Réponse JSON après création d'un client.
+ * Réponse JSON de POST /api/clients.
  */
 public record ClientResponse(
         int id,

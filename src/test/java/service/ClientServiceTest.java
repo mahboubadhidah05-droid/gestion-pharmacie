@@ -8,12 +8,11 @@ import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import dao.ClientDAO;
-
-import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(MockitoExtension.class)
 class ClientServiceTest {
@@ -21,88 +20,68 @@ class ClientServiceTest {
     @Mock
     private ClientDAO clientDAO;
 
-    private ClientService service;
+    private ClientService clientService;
 
     @BeforeEach
     void setUp() {
-        service =
-                new ClientService(clientDAO);
+        clientService = new ClientService(clientDAO);
     }
 
     @Test
-    void doitCreerClient() {
-
-        String nom = "Dupont";
-        String prenom = "Jean";
-        String email = "jean@example.com";
-        String adresse = "Tunis";
-        int idClient = 1;
+    void creerClient_doitDeleguerAuDaoAvecNumeroCnam() {
 
         when(
                 clientDAO.ajouterClient(
-                        nom,
-                        prenom,
-                        email,
-                        adresse
+                        "Ben Ali", "Sami", "sami@exemple.com",
+                        "Rue de la Paix", "CNAM12345"
                 )
-        ).thenReturn(idClient);
+        ).thenReturn(3);
 
-        int resultat =
-                service.creerClient(
-                        nom,
-                        prenom,
-                        email,
-                        adresse
-                );
-
-        assertEquals(
-                idClient,
-                resultat
+        int resultat = clientService.creerClient(
+                "Ben Ali", "Sami", "sami@exemple.com",
+                "Rue de la Paix", "CNAM12345"
         );
+
+        assertEquals(3, resultat);
 
         verify(clientDAO).ajouterClient(
-                nom,
-                prenom,
-                email,
-                adresse
+                "Ben Ali", "Sami", "sami@exemple.com",
+                "Rue de la Paix", "CNAM12345"
         );
     }
 
     @Test
-    void doitRetournerTrueSiClientExiste() {
-
-        int idClient = 1;
+    void creerClient_doitAccepterNumeroCnamNul() {
 
         when(
-                clientDAO.existeClient(idClient)
-        ).thenReturn(true);
+                clientDAO.ajouterClient(
+                        "Nom", "Prenom", "email@exemple.com",
+                        "Adresse", null
+                )
+        ).thenReturn(5);
 
-        boolean resultat =
-                service.existeClient(idClient);
-
-        assertTrue(resultat);
-
-        verify(clientDAO).existeClient(
-                idClient
+        int resultat = clientService.creerClient(
+                "Nom", "Prenom", "email@exemple.com", "Adresse", null
         );
+
+        assertEquals(5, resultat);
     }
 
     @Test
-    void doitRetournerFalseSiClientNExistePas() {
+    void existeClient_doitDeleguerAuDao() {
 
-        int idClient = 99;
+        when(clientDAO.existeClient(1)).thenReturn(true);
 
-        when(
-                clientDAO.existeClient(idClient)
-        ).thenReturn(false);
+        assertTrue(clientService.existeClient(1));
 
-        boolean resultat =
-                service.existeClient(idClient);
+        verify(clientDAO).existeClient(1);
+    }
 
-        assertFalse(resultat);
+    @Test
+    void existeClient_doitRetournerFalseSiInexistant() {
 
-        verify(clientDAO).existeClient(
-                idClient
-        );
+        when(clientDAO.existeClient(999)).thenReturn(false);
+
+        assertFalse(clientService.existeClient(999));
     }
 }

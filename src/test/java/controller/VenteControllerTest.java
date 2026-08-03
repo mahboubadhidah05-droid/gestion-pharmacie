@@ -88,7 +88,7 @@ class VenteControllerTest {
     void ventesParMedicament_doitRetournerLaListe() throws Exception {
         when(venteService.ventesParNomMedicament("Amoxicilline")).thenReturn(
                 List.of(new VenteResponse(6, 1, 6, 2, 15,
-                        LocalDateTime.of(2026, 7, 15, 0, 0))));
+                        LocalDateTime.of(2026, 7, 15, 0, 0), 0.0, 75.0)));
 
         mockMvc.perform(get("/api/ventes").param("medicament", "Amoxicilline"))
                 .andExpect(status().isOk())
@@ -110,7 +110,7 @@ class VenteControllerTest {
     void ventesParNomClient_doitRetournerLaListe() throws Exception {
         when(venteService.ventesParNomClient("Ben Ali", "Sami")).thenReturn(
                 List.of(new VenteResponse(9, 1, 4, 2, 3,
-                        LocalDateTime.of(2026, 7, 18, 0, 0))));
+                        LocalDateTime.of(2026, 7, 18, 0, 0), 0.0, 45.0)));
 
         mockMvc.perform(get("/api/ventes")
                         .param("clientNom", "Ben Ali")

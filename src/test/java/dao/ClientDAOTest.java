@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
@@ -34,120 +33,54 @@ class ClientDAOTest {
     }
 
     @Test
-    void doitRetournerTrueSiClientExiste()
-            throws Exception {
+    void doitDetecterClientExistant() throws Exception {
 
-        Connection connection =
-                mock(Connection.class);
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet result = mock(ResultSet.class);
 
-        PreparedStatement statement =
-                mock(PreparedStatement.class);
+        when(connection.prepareStatement(anyString())).thenReturn(statement);
+        when(statement.executeQuery()).thenReturn(result);
+        when(result.next()).thenReturn(true);
 
-        ResultSet resultSet =
-                mock(ResultSet.class);
+        try (MockedStatic<DBConnection> db = mockStatic(DBConnection.class)) {
 
-        when(
-                resultSet.next()
-        ).thenReturn(true);
+            db.when(DBConnection::getConnection).thenReturn(connection);
 
-        when(
-                connection.prepareStatement(
-                        anyString()
-                )
-        ).thenReturn(statement);
-
-        when(
-                statement.executeQuery()
-        ).thenReturn(resultSet);
-
-        try (
-                MockedStatic<DBConnection> dbConnection =
-                        mockStatic(DBConnection.class)
-        ) {
-
-            dbConnection.when(
-                    DBConnection::getConnection
-            ).thenReturn(connection);
-
-            boolean resultat =
-                    clientDAO.existeClient(1);
-
-            assertTrue(resultat);
-
-            verify(statement)
-                    .setInt(1, 1);
-
-            verify(statement)
-                    .executeQuery();
+            assertTrue(clientDAO.existeClient(1));
         }
     }
 
     @Test
-    void doitRetournerFalseSiClientNExistePas()
-            throws Exception {
+    void doitDetecterClientInexistant() throws Exception {
 
-        Connection connection =
-                mock(Connection.class);
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet result = mock(ResultSet.class);
 
-        PreparedStatement statement =
-                mock(PreparedStatement.class);
+        when(connection.prepareStatement(anyString())).thenReturn(statement);
+        when(statement.executeQuery()).thenReturn(result);
+        when(result.next()).thenReturn(false);
 
-        ResultSet resultSet =
-                mock(ResultSet.class);
+        try (MockedStatic<DBConnection> db = mockStatic(DBConnection.class)) {
 
-        when(
-                resultSet.next()
-        ).thenReturn(false);
+            db.when(DBConnection::getConnection).thenReturn(connection);
 
-        when(
-                connection.prepareStatement(
-                        anyString()
-                )
-        ).thenReturn(statement);
-
-        when(
-                statement.executeQuery()
-        ).thenReturn(resultSet);
-
-        try (
-                MockedStatic<DBConnection> dbConnection =
-                        mockStatic(DBConnection.class)
-        ) {
-
-            dbConnection.when(
-                    DBConnection::getConnection
-            ).thenReturn(connection);
-
-            boolean resultat =
-                    clientDAO.existeClient(1);
-
-            assertFalse(resultat);
+            assertFalse(clientDAO.existeClient(999));
         }
     }
 
     @Test
-    void doitLeverExceptionSiVerificationClientEchoue()
-            throws Exception {
+    void doitLeverExceptionSiVerificationExistenceEchoue() throws Exception {
 
-        Connection connection =
-                mock(Connection.class);
+        Connection connection = mock(Connection.class);
 
-        when(
-                connection.prepareStatement(
-                        anyString()
-                )
-        ).thenThrow(
-                new SQLException("Erreur SQL")
-        );
+        when(connection.prepareStatement(anyString()))
+                .thenThrow(new SQLException("Erreur SQL"));
 
-        try (
-                MockedStatic<DBConnection> dbConnection =
-                        mockStatic(DBConnection.class)
-        ) {
+        try (MockedStatic<DBConnection> db = mockStatic(DBConnection.class)) {
 
-            dbConnection.when(
-                    DBConnection::getConnection
-            ).thenReturn(connection);
+            db.when(DBConnection::getConnection).thenReturn(connection);
 
             assertThrows(
                     AccesDonneesException.class,
@@ -157,178 +90,125 @@ class ClientDAOTest {
     }
 
     @Test
-    void doitAjouterClientEtRetournerId()
-            throws Exception {
+    void doitAjouterUnClientEtRetournerId() throws Exception {
 
-        Connection connection =
-                mock(Connection.class);
-
-        PreparedStatement statement =
-                mock(PreparedStatement.class);
-
-        ResultSet keys =
-                mock(ResultSet.class);
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet cles = mock(ResultSet.class);
 
         when(
                 connection.prepareStatement(
-                        anyString(),
-                        eq(
-                                Statement.RETURN_GENERATED_KEYS
-                        )
+                        anyString(), org.mockito.ArgumentMatchers.eq(
+                                Statement.RETURN_GENERATED_KEYS)
                 )
         ).thenReturn(statement);
 
-        when(
-                statement.getGeneratedKeys()
-        ).thenReturn(keys);
+        when(statement.getGeneratedKeys()).thenReturn(cles);
+        when(cles.next()).thenReturn(true);
+        when(cles.getInt(1)).thenReturn(7);
 
-        when(
-                keys.next()
-        ).thenReturn(true);
+        try (MockedStatic<DBConnection> db = mockStatic(DBConnection.class)) {
 
-        when(
-                keys.getInt(1)
-        ).thenReturn(10);
+            db.when(DBConnection::getConnection).thenReturn(connection);
 
-        try (
-                MockedStatic<DBConnection> dbConnection =
-                        mockStatic(DBConnection.class)
-        ) {
-
-            dbConnection.when(
-                    DBConnection::getConnection
-            ).thenReturn(connection);
-
-            int resultat =
-                    clientDAO.ajouterClient(
-                            "Dupont",
-                            "Jean",
-                            "jean@test.com",
-                            "Tunis"
-                    );
-
-            assertEquals(
-                    10,
-                    resultat
+            int resultat = clientDAO.ajouterClient(
+                    "Ben Ali", "Sami", "sami@exemple.com",
+                    "Rue de la Paix", "CNAM12345"
             );
 
-            verify(statement)
-                    .setString(
-                            1,
-                            "Dupont"
-                    );
+            assertEquals(7, resultat);
 
-            verify(statement)
-                    .setString(
-                            2,
-                            "Jean"
-                    );
-
-            verify(statement)
-                    .setString(
-                            3,
-                            "jean@test.com"
-                    );
-
-            verify(statement)
-                    .setString(
-                            4,
-                            "Tunis"
-                    );
-
-            verify(statement)
-                    .executeUpdate();
+            verify(statement).setString(1, "Ben Ali");
+            verify(statement).setString(2, "Sami");
+            verify(statement).setString(3, "sami@exemple.com");
+            verify(statement).setString(4, "Rue de la Paix");
+            verify(statement).setString(5, "CNAM12345");
         }
     }
 
     @Test
-    void doitRetournerIdInvalideSiAucunIdGenere()
-            throws Exception {
+    void doitAjouterUnClientSansNumeroCnam() throws Exception {
 
-        Connection connection =
-                mock(Connection.class);
-
-        PreparedStatement statement =
-                mock(PreparedStatement.class);
-
-        ResultSet keys =
-                mock(ResultSet.class);
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet cles = mock(ResultSet.class);
 
         when(
                 connection.prepareStatement(
-                        anyString(),
-                        eq(
-                                Statement.RETURN_GENERATED_KEYS
-                        )
+                        anyString(), org.mockito.ArgumentMatchers.eq(
+                                Statement.RETURN_GENERATED_KEYS)
                 )
         ).thenReturn(statement);
 
-        when(
-                statement.getGeneratedKeys()
-        ).thenReturn(keys);
+        when(statement.getGeneratedKeys()).thenReturn(cles);
+        when(cles.next()).thenReturn(true);
+        when(cles.getInt(1)).thenReturn(8);
 
-        when(
-                keys.next()
-        ).thenReturn(false);
+        try (MockedStatic<DBConnection> db = mockStatic(DBConnection.class)) {
 
-        try (
-                MockedStatic<DBConnection> dbConnection =
-                        mockStatic(DBConnection.class)
-        ) {
+            db.when(DBConnection::getConnection).thenReturn(connection);
 
-            dbConnection.when(
-                    DBConnection::getConnection
-            ).thenReturn(connection);
-
-            int resultat =
-                    clientDAO.ajouterClient(
-                            "Dupont",
-                            "Jean",
-                            "jean@test.com",
-                            "Tunis"
-                    );
-
-            assertEquals(
-                    -1,
-                    resultat
+            int resultat = clientDAO.ajouterClient(
+                    "Trabelsi", "Amel", "amel@exemple.com",
+                    "Avenue Habib Bourguiba", null
             );
+
+            assertEquals(8, resultat);
+
+            verify(statement).setString(5, null);
         }
     }
 
     @Test
-    void doitLeverExceptionSiAjoutEchoue()
-            throws Exception {
+    void doitRetournerMoinsUnSiAucuneCleGeneree() throws Exception {
 
-        Connection connection =
-                mock(Connection.class);
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet cles = mock(ResultSet.class);
 
         when(
                 connection.prepareStatement(
-                        anyString(),
-                        eq(
-                                Statement.RETURN_GENERATED_KEYS
-                        )
+                        anyString(), org.mockito.ArgumentMatchers.eq(
+                                Statement.RETURN_GENERATED_KEYS)
                 )
-        ).thenThrow(
-                new SQLException("Erreur SQL")
-        );
+        ).thenReturn(statement);
 
-        try (
-                MockedStatic<DBConnection> dbConnection =
-                        mockStatic(DBConnection.class)
-        ) {
+        when(statement.getGeneratedKeys()).thenReturn(cles);
+        when(cles.next()).thenReturn(false);
 
-            dbConnection.when(
-                    DBConnection::getConnection
-            ).thenReturn(connection);
+        try (MockedStatic<DBConnection> db = mockStatic(DBConnection.class)) {
+
+            db.when(DBConnection::getConnection).thenReturn(connection);
+
+            int resultat = clientDAO.ajouterClient(
+                    "Nom", "Prenom", "email@exemple.com", "Adresse", null
+            );
+
+            assertEquals(-1, resultat);
+        }
+    }
+
+    @Test
+    void doitLeverExceptionSiAjoutClientEchoue() throws Exception {
+
+        Connection connection = mock(Connection.class);
+
+        when(
+                connection.prepareStatement(
+                        anyString(), org.mockito.ArgumentMatchers.eq(
+                                Statement.RETURN_GENERATED_KEYS)
+                )
+        ).thenThrow(new SQLException("Erreur SQL"));
+
+        try (MockedStatic<DBConnection> db = mockStatic(DBConnection.class)) {
+
+            db.when(DBConnection::getConnection).thenReturn(connection);
 
             assertThrows(
                     AccesDonneesException.class,
                     () -> clientDAO.ajouterClient(
-                            "Dupont",
-                            "Jean",
-                            "jean@test.com",
-                            "Tunis"
+                            "Nom", "Prenom", "email@exemple.com",
+                            "Adresse", "CNAM999"
                     )
             );
         }

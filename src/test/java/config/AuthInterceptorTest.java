@@ -54,6 +54,7 @@ class AuthInterceptorTest {
             String login,
             String role,
             String url,
+            String methode,
             boolean accesAttendu)
             throws Exception {
 
@@ -73,6 +74,9 @@ class AuthInterceptorTest {
 
         when(request.getRequestURI())
                 .thenReturn(url);
+
+        when(request.getMethod())
+                .thenReturn(methode);
 
         boolean resultat =
                 interceptor.preHandle(
@@ -96,24 +100,58 @@ class AuthInterceptorTest {
                         "gestionnaire",
                         "GESTIONNAIRE",
                         "/api/medicaments",
+                        "GET",
                         true
                 ),
                 Arguments.of(
                         "pharma",
                         "PHARMACIEN",
                         "/api/medicaments",
+                        "GET",
                         false
                 ),
                 Arguments.of(
                         "pharma",
                         "PHARMACIEN",
                         "/api/ventes",
+                        "GET",
                         true
                 ),
                 Arguments.of(
                         "pharma",
                         "PHARMACIEN",
                         "/api/stock/historique",
+                        "GET",
+                        true
+                ),
+                /* Nouveau : le Gestionnaire peut LIRE les ventes
+                   (rapports), mais ne peut pas en créer/annuler. */
+                Arguments.of(
+                        "gestionnaire",
+                        "GESTIONNAIRE",
+                        "/api/ventes",
+                        "GET",
+                        true
+                ),
+                Arguments.of(
+                        "gestionnaire",
+                        "GESTIONNAIRE",
+                        "/api/ventes",
+                        "POST",
+                        false
+                ),
+                Arguments.of(
+                        "gestionnaire",
+                        "GESTIONNAIRE",
+                        "/api/ventes/5",
+                        "DELETE",
+                        false
+                ),
+                Arguments.of(
+                        "pharma",
+                        "PHARMACIEN",
+                        "/api/ventes",
+                        "POST",
                         true
                 )
         );

@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import exception.AccesDonneesException;
 import utils.DBConnection;
@@ -16,6 +18,9 @@ public class UserDAO {
     private static final String PRENOM_COLUMN =
             "prenom";
 
+    private static final String EMAIL_COLUMN =
+            "email";
+
     private static final String SQL_PHARMACIEN =
             "SELECT nom, prenom "
                     + "FROM pharmacien "
@@ -25,6 +30,11 @@ public class UserDAO {
             "SELECT nom, prenom "
                     + "FROM gestionnaire "
                     + "WHERE login=?";
+
+    private static final String SQL_EMAILS_GESTIONNAIRES =
+            "SELECT email "
+                    + "FROM gestionnaire "
+                    + "WHERE email IS NOT NULL";
 
     public String[] getProfil(String login) {
 
@@ -54,6 +64,41 @@ public class UserDAO {
                     "Échec de la récupération du profil "
                             + "pour l'utilisateur : "
                             + login,
+                    exception
+            );
+        }
+    }
+
+    public List<String> getEmailsGestionnaires() {
+
+        List<String> emails = new ArrayList<>();
+
+        try (Connection connection =
+                     DBConnection.getConnection();
+             PreparedStatement ps =
+                     connection.prepareStatement(
+                             SQL_EMAILS_GESTIONNAIRES
+                     );
+             ResultSet rs =
+                     ps.executeQuery()) {
+
+            while (rs.next()) {
+
+                String email =
+                        rs.getString(EMAIL_COLUMN);
+
+                if (email != null && !email.isBlank()) {
+                    emails.add(email);
+                }
+            }
+
+            return emails;
+
+        } catch (SQLException exception) {
+
+            throw new AccesDonneesException(
+                    "Échec de la récupération des emails "
+                            + "des gestionnaires",
                     exception
             );
         }

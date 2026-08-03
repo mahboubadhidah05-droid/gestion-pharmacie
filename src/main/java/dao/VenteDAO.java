@@ -40,17 +40,25 @@ public class VenteDAO {
     private static final String COL_DATE =
             "date_vente";
 
+    private static final String COL_MONTANT_REMBOURSE =
+            "montant_rembourse";
+
+    private static final String COL_TICKET_MODERATEUR =
+            "ticket_moderateur";
+
     public boolean enregistrerVente(
             int idPh,
             int idCl,
             int idMed,
-            int qte) {
+            int qte,
+            double montantRembourse,
+            double ticketModerateur) {
 
         String sql =
                 "INSERT INTO " + TABLE_VENTE
                 + " (id_pharmacien, id_client, id_medicament, "
-                + "quantite, date_vente)"
-                + " VALUES (?, ?, ?, ?, ?)";
+                + "quantite, date_vente, montant_rembourse, ticket_moderateur)"
+                + " VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement ps =
@@ -64,6 +72,8 @@ public class VenteDAO {
                     5,
                     new java.sql.Timestamp(new Date().getTime())
             );
+            ps.setDouble(6, montantRembourse);
+            ps.setDouble(7, ticketModerateur);
 
             int lignesAffectees = ps.executeUpdate();
 
@@ -268,7 +278,9 @@ public class VenteDAO {
                             rs.getInt(COL_MEDICAMENT_ID),
                             rs.getInt(COL_QUANTITE),
                             rs.getTimestamp(COL_DATE)
-                                    .toLocalDateTime()
+                                    .toLocalDateTime(),
+                            rs.getDouble(COL_MONTANT_REMBOURSE),
+                            rs.getDouble(COL_TICKET_MODERATEUR)
                     )
             );
         }

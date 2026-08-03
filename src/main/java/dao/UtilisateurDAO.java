@@ -7,6 +7,7 @@ import java.sql.SQLException;
 
 import exception.AccesDonneesException;
 import utils.DBConnection;
+import utils.MotDePasseUtils;
 
 /**
  * DAO responsable de l'authentification des utilisateurs.
@@ -23,14 +24,18 @@ public class UtilisateurDAO {
             "ECHEC";
 
     private static final String SQL_PHARMACIEN =
-            "SELECT * FROM pharmacien WHERE login=? AND pwd=?";
+            "SELECT pwd FROM pharmacien WHERE login=?";
 
     private static final String SQL_GESTIONNAIRE =
-            "SELECT * FROM gestionnaire WHERE login=? AND pwd=?";
+            "SELECT pwd FROM gestionnaire WHERE login=?";
 
     /**
      * Vérifie le login et le mot de passe et retourne le rôle,
      * ou ROLE_ECHEC si les identifiants sont invalides.
+     *
+     * Compatible avec les mots de passe hachés (BCrypt) et,
+     * pour les comptes non encore migrés, avec les mots de passe
+     * encore stockés en clair.
      */
     public String getRole(String login, String pwd) {
 
@@ -78,12 +83,21 @@ public class UtilisateurDAO {
                      connection.prepareStatement(sql)) {
 
             ps.setString(1, login);
-            ps.setString(2, pwd);
 
             try (ResultSet rs =
                          ps.executeQuery()) {
 
-                return rs.next();
+                if (!rs.next()) {
+                    return false;
+                }
+
+                String pwdStocke =
+                        rs.getString("pwd");
+
+                return MotDePasseUtils.correspond(
+                        pwd,
+                        pwdStocke
+                );
             }
         }
     }

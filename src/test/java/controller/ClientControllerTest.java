@@ -10,7 +10,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import service.ClientService;
 
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -27,7 +26,6 @@ class ClientControllerTest {
 
     private MockMvc mockMvc;
 
-
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders
@@ -35,36 +33,70 @@ class ClientControllerTest {
                 .build();
     }
 
-
     @Test
-    void creerClient_reussi_doitRetourner201EtLId() throws Exception {
-        when(clientService.creerClient("Testeur", "Web", "test@mail.com", "Tunis"))
-                .thenReturn(12);
+    void creerClient_reussi_doitRetourner201() throws Exception {
+
+        when(
+                clientService.creerClient(
+                        "Ben Ali", "Sami", "sami@exemple.com",
+                        "Rue de la Paix", "CNAM12345"
+                )
+        ).thenReturn(3);
 
         mockMvc.perform(post("/api/clients")
                         .contentType(CONTENT_TYPE)
-                        .content("{\"nom\":\"Testeur\",\"prenom\":\"Web\","
-                                + "\"email\":\"test@mail.com\",\"adresse\":\"Tunis\"}"))
+                        .content("{\"nom\":\"Ben Ali\",\"prenom\":\"Sami\","
+                                + "\"email\":\"sami@exemple.com\","
+                                + "\"adresse\":\"Rue de la Paix\","
+                                + "\"numeroCnam\":\"CNAM12345\"}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(12));
+                .andExpect(jsonPath("$.id").value(3))
+                .andExpect(jsonPath("$.message")
+                        .value("Client créé avec succès"));
     }
 
+    @Test
+    void creerClient_sansNumeroCnam_reussi_doitRetourner201() throws Exception {
+
+        when(
+                clientService.creerClient(
+                        "Nom", "Prenom", "email@exemple.com",
+                        "Adresse", null
+                )
+        ).thenReturn(5);
+
+        mockMvc.perform(post("/api/clients")
+                        .contentType(CONTENT_TYPE)
+                        .content("{\"nom\":\"Nom\",\"prenom\":\"Prenom\","
+                                + "\"email\":\"email@exemple.com\","
+                                + "\"adresse\":\"Adresse\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(5));
+    }
 
     @Test
     void creerClient_echec_doitRetourner500() throws Exception {
-        when(clientService.creerClient(anyString(), anyString(), anyString(), anyString()))
-                .thenReturn(-1);
+
+        when(
+                clientService.creerClient(
+                        "Nom", "Prenom", "email@exemple.com",
+                        "Adresse", null
+                )
+        ).thenReturn(-1);
 
         mockMvc.perform(post("/api/clients")
                         .contentType(CONTENT_TYPE)
-                        .content("{\"nom\":\"X\",\"prenom\":\"Y\","
-                                + "\"email\":\"z@mail.com\",\"adresse\":\"T\"}"))
-                .andExpect(status().isInternalServerError());
+                        .content("{\"nom\":\"Nom\",\"prenom\":\"Prenom\","
+                                + "\"email\":\"email@exemple.com\","
+                                + "\"adresse\":\"Adresse\"}"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message")
+                        .value("Erreur lors de la création du client"));
     }
-
 
     @Test
     void existeClient_existant_doitRetournerTrue() throws Exception {
+
         when(clientService.existeClient(1)).thenReturn(true);
 
         mockMvc.perform(get("/api/clients/1/existe"))
@@ -72,12 +104,12 @@ class ClientControllerTest {
                 .andExpect(jsonPath("$.existe").value(true));
     }
 
-
     @Test
     void existeClient_inexistant_doitRetournerFalse() throws Exception {
-        when(clientService.existeClient(9999)).thenReturn(false);
 
-        mockMvc.perform(get("/api/clients/9999/existe"))
+        when(clientService.existeClient(999)).thenReturn(false);
+
+        mockMvc.perform(get("/api/clients/999/existe"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.existe").value(false));
     }

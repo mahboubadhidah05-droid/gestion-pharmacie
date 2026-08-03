@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dto.MedicamentResponse;
+import dto.MedicamentVenteInfo;
+import dto.NomMedicamentResponse;
 import exception.AccesDonneesException;
 import utils.DBConnection;
 
@@ -36,13 +38,17 @@ public void ajouterMedicament(
         String dosage,
         int stock,
         double prix,
-        int seuil) {
+        int seuil,
+        String datePeremption,
+        boolean conventionneCnam,
+        double tauxRemboursement) {
 
     String sql =
             "INSERT INTO "
             + TABLE_MEDICAMENT
-            + " (nom, dosage, stock, prix, seuil_critique)"
-            + " VALUES(?,?,?,?,?)";
+            + " (nom, dosage, stock, prix, seuil_critique, date_peremption,"
+            + " conventionne_cnam, taux_remboursement)"
+            + " VALUES(?,?,?,?,?,?,?,?)";
 
     try (Connection connection =
                  DBConnection.getConnection();
@@ -54,6 +60,9 @@ public void ajouterMedicament(
         statement.setInt(3, stock);
         statement.setDouble(4, prix);
         statement.setInt(5, seuil);
+        statement.setString(6, datePeremption);
+        statement.setBoolean(7, conventionneCnam);
+        statement.setDouble(8, tauxRemboursement);
 
         statement.executeUpdate();
 
@@ -106,6 +115,85 @@ public int getStock(int idMed) {
     return -1;
 }
 
+public String getDatePeremption(int idMed) {
+
+    String sql =
+            "SELECT date_peremption FROM "
+            + TABLE_MEDICAMENT
+            + WHERE_ID;
+
+    try (Connection connection =
+                 DBConnection.getConnection();
+         PreparedStatement statement =
+                 connection.prepareStatement(sql)) {
+
+        statement.setInt(1, idMed);
+
+        try (ResultSet result =
+                     statement.executeQuery()) {
+
+            if (result.next()) {
+                return result.getString("date_peremption");
+            }
+        }
+
+    } catch (SQLException exception) {
+
+        throw new AccesDonneesException(
+                "Échec de la récupération de la date de péremption "
+                        + CONTEXTE_MEDICAMENT
+                        + idMed,
+                exception
+        );
+    }
+
+    return null;
+}
+
+/**
+ * Sous-ensemble des infos nécessaires à VenteService pour calculer
+ * le remboursement CNAM au moment d'une vente.
+ */
+public MedicamentVenteInfo getInfosVente(int idMed) {
+
+    String sql =
+            "SELECT prix, conventionne_cnam, taux_remboursement FROM "
+            + TABLE_MEDICAMENT
+            + WHERE_ID;
+
+    try (Connection connection =
+                 DBConnection.getConnection();
+         PreparedStatement statement =
+                 connection.prepareStatement(sql)) {
+
+        statement.setInt(1, idMed);
+
+        try (ResultSet result =
+                     statement.executeQuery()) {
+
+            if (result.next()) {
+
+                return new MedicamentVenteInfo(
+                        result.getDouble("prix"),
+                        result.getBoolean("conventionne_cnam"),
+                        result.getDouble("taux_remboursement")
+                );
+            }
+        }
+
+    } catch (SQLException exception) {
+
+        throw new AccesDonneesException(
+                "Échec de la récupération des infos de vente "
+                        + CONTEXTE_MEDICAMENT
+                        + idMed,
+                exception
+        );
+    }
+
+    return null;
+}
+
 public List<MedicamentResponse> listerMedicaments() {
 
     String sql =
@@ -133,7 +221,11 @@ public List<MedicamentResponse> listerMedicaments() {
                             result.getString("dosage"),
                             result.getInt(COL_STOCK),
                             result.getDouble("prix"),
-                            result.getInt("seuil_critique")
+                            result.getInt("seuil_critique"),
+                            result.getString("date_peremption"),
+                            0,
+                            result.getBoolean("conventionne_cnam"),
+                            result.getDouble("taux_remboursement")
                     )
             );
         }
@@ -148,6 +240,45 @@ public List<MedicamentResponse> listerMedicaments() {
     }
 
     return medicaments;
+}
+
+public List<NomMedicamentResponse> listerNoms() {
+
+    String sql =
+            "SELECT " + COL_NOM + ", dosage FROM "
+            + TABLE_MEDICAMENT
+            + " ORDER BY " + COL_NOM;
+
+    List<NomMedicamentResponse> noms =
+            new ArrayList<>();
+
+    try (Connection connection =
+                 DBConnection.getConnection();
+         PreparedStatement statement =
+                 connection.prepareStatement(sql);
+         ResultSet result =
+                 statement.executeQuery()) {
+
+        while (result.next()) {
+
+            noms.add(
+                    new NomMedicamentResponse(
+                            result.getString(COL_NOM),
+                            result.getString("dosage")
+                    )
+            );
+        }
+
+    } catch (SQLException exception) {
+
+        throw new AccesDonneesException(
+                "Échec de la récupération des noms "
+                        + "de médicaments",
+                exception
+        );
+    }
+
+    return noms;
 }
 
 public void updateStock(
@@ -274,6 +405,5 @@ public int getIdMedicamentParNomEtDosage(
 
     return -1;
 }
-
 
 }

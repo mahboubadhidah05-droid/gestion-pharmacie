@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import dao.ClientDAO;
 import dao.CommandeDAO;
+import dao.LotMedicamentDAO;
 import dao.MedicamentDAO;
 import dao.StockHistoriqueDAO;
 import dao.UserDAO;
@@ -139,12 +140,16 @@ public class Main {
         StockHistoriqueDAO histDAO =
                 new StockHistoriqueDAO();
 
+        LotMedicamentDAO lotDAO =
+                new LotMedicamentDAO();
+
 
         VenteService vservice =
                 new VenteService(
                         medDAO,
                         venteDAO,
-                        histDAO
+                        histDAO,
+                        lotDAO
                 );
 
 
@@ -191,7 +196,13 @@ public class Main {
                     final String email = lireTexte(EMAIL_MSG);
                     final String adresse = lireTexte(ADRESSE_MSG);
 
-                    idCl = clientDAO.ajouterClient(nom, prenom, email, adresse);
+                    final String numeroCnamSaisie =
+                            lireTexte("Numéro CNAM (vide si non assuré) : ");
+
+                    final String numeroCnam =
+                            numeroCnamSaisie.isBlank() ? null : numeroCnamSaisie;
+
+                    idCl = clientDAO.ajouterClient(nom, prenom, email, adresse, numeroCnam);
 
                     if (idCl == -1) {
                         afficher("Erreur lors de la création du client. Vente annulée.");
@@ -265,11 +276,18 @@ public class Main {
                 final String email = lireTexte(EMAIL_MSG);
                 final String adresse = lireTexte(ADRESSE_MSG);
 
+                final String numeroCnamSaisie =
+                        lireTexte("Numéro CNAM (vide si non assuré) : ");
+
+                final String numeroCnam =
+                        numeroCnamSaisie.isBlank() ? null : numeroCnamSaisie;
+
                 clientService.creerClient(
                         nom,
                         prenom,
                         email,
-                        adresse
+                        adresse,
+                        numeroCnam
                 );
 
                 break;
@@ -310,12 +328,16 @@ public class Main {
         StockHistoriqueDAO histDAO =
                 new StockHistoriqueDAO();
 
+        LotMedicamentDAO lotDAO =
+                new LotMedicamentDAO();
+
 
 
         MedicamentService medService =
                 new MedicamentService(
                         medDAO,
-                        histDAO
+                        histDAO,
+                        lotDAO
                 );
 
 
@@ -337,7 +359,8 @@ public class Main {
                 new CommandeService(
                         commandeDAO,
                         medDAO,
-                        histDAO
+                        histDAO,
+                        lotDAO
                 );
 
 
@@ -351,7 +374,8 @@ public class Main {
                 new VenteService(
                         medDAO,
                         venteDAO,
-                        histDAO
+                        histDAO,
+                        lotDAO
                 );
 
 
@@ -407,12 +431,34 @@ public class Main {
                 final double prix = lireDouble("Prix : ");
                 final int seuil = lireEntier("Seuil critique : ");
 
+                final String datePeremptionSaisie =
+                        lireTexte("Date de péremption (AAAA-MM-JJ, vide si aucune) : ");
+
+                final String datePeremption =
+                        datePeremptionSaisie.isBlank()
+                                ? null
+                                : datePeremptionSaisie;
+
+                final String conventionneSaisie =
+                        lireTexte("Conventionné CNAM ? (o/n) : ");
+
+                final boolean conventionneCnam =
+                        conventionneSaisie.equalsIgnoreCase("o");
+
+                final double tauxRemboursement =
+                        conventionneCnam
+                                ? lireDouble("Taux de remboursement (ex: 0.7 pour 70%) : ")
+                                : 0.0;
+
                 medService.ajouter(
                         nom,
                         dosage,
                         stock,
                         prix,
-                        seuil
+                        seuil,
+                        datePeremption,
+                        conventionneCnam,
+                        tauxRemboursement
                 );
 
                 break;
@@ -454,16 +500,26 @@ public class Main {
                 final int idGest = lireEntier("ID Gestionnaire : ");
                 final int idMed = lireEntier(ID_MEDICAMENT_MSG);
                 final int qte = lireEntier(QUANTITE_MSG);
+                final Integer idFournisseur = lireEntier("ID Fournisseur (laisser vide si aucun) : ");
+
+                final String datePeremptionCommandeSaisie =
+                        lireTexte("Date de péremption du lot reçu (AAAA-MM-JJ, vide si aucune) : ");
+
+                final String datePeremptionCommande =
+                        datePeremptionCommandeSaisie.isBlank()
+                                ? null
+                                : datePeremptionCommandeSaisie;
 
                 cmdService.creerCommande(
                         idGest,
                         idMed,
-                        qte
+                        qte,
+                        idFournisseur,
+                        datePeremptionCommande
                 );
 
                 break;
             }
-
 
             case 5: {
 

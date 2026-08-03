@@ -1,10 +1,19 @@
 package service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+
+import utils.DBConnection;
 
 class NotificationServiceTest {
 
@@ -27,28 +36,66 @@ class NotificationServiceTest {
     }
 
     @Test
-    void doitEnvoyerNotificationsPourMedicamentsCritiques() {
+    void doitEnvoyerNotificationsPourMedicamentsCritiques()
+            throws Exception {
 
-        List<String> medicamentsCritiques =
-                List.of(
-                        "Paracétamol",
-                        "Amoxicilline"
-                );
+        Connection connection =
+                mock(Connection.class);
 
-        assertDoesNotThrow(
-                () -> NotificationService.envoyerEmail(
-                        medicamentsCritiques
-                )
-        );
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            List<String> medicamentsCritiques =
+                    List.of(
+                            "Paracétamol",
+                            "Amoxicilline"
+                    );
+
+            assertDoesNotThrow(
+                    () -> NotificationService.envoyerEmail(
+                            medicamentsCritiques
+                    )
+            );
+        }
     }
 
     @Test
-    void doitNotifierUnMedicamentCritique() {
+    void doitNotifierUnMedicamentCritique()
+            throws Exception {
 
-        assertDoesNotThrow(
-                () -> NotificationService.notifierStockCritique(
-                        "Paracétamol"
-                )
-        );
+        Connection connection =
+                mock(Connection.class);
+
+        PreparedStatement statement =
+                mock(PreparedStatement.class);
+
+        when(
+                connection.prepareStatement(anyString())
+        ).thenReturn(statement);
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            assertDoesNotThrow(
+                    () -> NotificationService.notifierStockCritique(
+                            "Paracétamol"
+                    )
+            );
+        }
     }
 }

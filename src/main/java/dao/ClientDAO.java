@@ -15,20 +15,13 @@ import utils.DBConnection;
 public class ClientDAO {
 
     private static final String INSERT_CLIENT =
-            "INSERT INTO client VALUES(NULL,?,?,?,?)";
+            "INSERT INTO client VALUES(NULL,?,?,?,?,?)";
 
     private static final String EXISTE_CLIENT =
             "SELECT 1 FROM client WHERE id_client=?";
 
     private static final int ID_INVALIDE = -1;
 
-    /**
-     * Vérifie si un client existe déjà avec cet ID.
-     *
-     * @param idClient identifiant du client
-     * @return true si le client existe
-     * @throws AccesDonneesException en cas d'erreur d'accès aux données
-     */
     public boolean existeClient(int idClient) {
 
         try (Connection connection = DBConnection.getConnection();
@@ -58,6 +51,7 @@ public class ClientDAO {
      * @param prenom prénom du client
      * @param email adresse email
      * @param adresse adresse du client
+     * @param numeroCnam numéro CNAM (nullable, si le client n'est pas assuré)
      * @return nouvel identifiant généré ou -1 si aucun ID n'a été généré
      * @throws AccesDonneesException en cas d'erreur d'accès aux données
      */
@@ -65,7 +59,8 @@ public class ClientDAO {
             String nom,
             String prenom,
             String email,
-            String adresse) {
+            String adresse,
+            String numeroCnam) {
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
@@ -77,6 +72,7 @@ public class ClientDAO {
             statement.setString(2, prenom);
             statement.setString(3, email);
             statement.setString(4, adresse);
+            statement.setString(5, numeroCnam);
 
             statement.executeUpdate();
 
