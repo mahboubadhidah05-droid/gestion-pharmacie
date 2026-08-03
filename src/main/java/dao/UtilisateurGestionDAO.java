@@ -18,25 +18,16 @@ import utils.DBConnection;
  * Séparé de {@link UtilisateurDAO}, qui reste dédié à l'authentification,
  * pour ne jamais risquer de perturber la logique de connexion existante.
  *
- * Sécurité SQL : le nom de table/colonne inséré dans les requêtes n'est
- * JAMAIS une valeur libre — il est toujours résolu via
- * {@link #resoudreTable(String)} / {@link #resoudreColonneId(String)},
- * qui valident explicitement le rôle contre une liste fermée de valeurs
- * connues (PHARMACIEN / GESTIONNAIRE) et rejettent tout le reste.
- * Toutes les données utilisateur (nom, login, etc.) restent, elles,
- * toujours passées en paramètres liés (PreparedStatement), jamais
- * concaténées.
+ * Sécurité SQL : chaque requête est un texte SQL entièrement figé
+ * (jamais construit par concaténation d'un nom de table/colonne).
+ * Le rôle ne sert qu'à choisir laquelle de ces requêtes fixes utiliser —
+ * il n'entre jamais dans le texte de la requête elle-même. Toutes les
+ * données utilisateur (nom, login, etc.) restent des paramètres liés
+ * (PreparedStatement).
  */
 public class UtilisateurGestionDAO {
 
     private static final String ROLE_PHARMACIEN = "PHARMACIEN";
-    private static final String ROLE_GESTIONNAIRE = "GESTIONNAIRE";
-
-    private static final String TABLE_PHARMACIEN = "pharmacien";
-    private static final String TABLE_GESTIONNAIRE = "gestionnaire";
-
-    private static final String COLONNE_ID_PHARMACIEN = "id_pharmacien";
-    private static final String COLONNE_ID_GESTIONNAIRE = "id_gestionnaire";
 
     private static final String SELECT_TOUS =
             "SELECT id_pharmacien AS id, nom, prenom, login, "
@@ -50,47 +41,57 @@ public class UtilisateurGestionDAO {
             "SELECT 1 FROM pharmacien WHERE login=? "
             + "UNION SELECT 1 FROM gestionnaire WHERE login=?";
 
-    /**
-     * Résout le nom de table associé à un rôle, en le validant contre
-     * une liste fermée de valeurs connues — jamais une valeur libre
-     * injectée directement dans le SQL.
-     *
-     * @throws IllegalArgumentException si le rôle n'est ni PHARMACIEN
-     *         ni GESTIONNAIRE.
-     */
-    private String resoudreTable(String role) {
+    private static final String INSERT_PHARMACIEN =
+            "INSERT INTO pharmacien (nom, prenom, login, pwd) "
+            + "VALUES (?,?,?,?)";
 
-        if (ROLE_PHARMACIEN.equals(role)) {
-            return TABLE_PHARMACIEN;
-        }
+    private static final String INSERT_GESTIONNAIRE =
+            "INSERT INTO gestionnaire (nom, prenom, login, pwd) "
+            + "VALUES (?,?,?,?)";
 
-        if (ROLE_GESTIONNAIRE.equals(role)) {
-            return TABLE_GESTIONNAIRE;
-        }
+    private static final String UPDATE_PHARMACIEN_AVEC_MDP =
+            "UPDATE pharmacien SET nom=?, prenom=?, login=?, pwd=? "
+            + "WHERE id_pharmacien=?";
 
-        throw new IllegalArgumentException(
-                "Rôle invalide : " + role
-        );
-    }
+    private static final String UPDATE_PHARMACIEN_SANS_MDP =
+            "UPDATE pharmacien SET nom=?, prenom=?, login=? "
+            + "WHERE id_pharmacien=?";
 
-    /**
-     * Résout le nom de la colonne d'identifiant associée à un rôle,
-     * avec la même validation stricte que {@link #resoudreTable}.
-     */
-    private String resoudreColonneId(String role) {
+    private static final String UPDATE_GESTIONNAIRE_AVEC_MDP =
+            "UPDATE gestionnaire SET nom=?, prenom=?, login=?, pwd=? "
+            + "WHERE id_gestionnaire=?";
 
-        if (ROLE_PHARMACIEN.equals(role)) {
-            return COLONNE_ID_PHARMACIEN;
-        }
+    private static final String UPDATE_GESTIONNAIRE_SANS_MDP =
+            "UPDATE gestionnaire SET nom=?, prenom=?, login=? "
+            + "WHERE id_gestionnaire=?";
 
-        if (ROLE_GESTIONNAIRE.equals(role)) {
-            return COLONNE_ID_GESTIONNAIRE;
-        }
+    private static final String DELETE_PHARMACIEN =
+            "DELETE FROM pharmacien WHERE id_pharmacien=?";
 
-        throw new IllegalArgumentException(
-                "Rôle invalide : " + role
-        );
-    }
+    private static final String DELETE_GESTIONNAIRE =
+            "DELETE FROM gestionnaire WHERE id_gestionnaire=?";
+
+    private static final String UPDATE_MDP_PHARMACIEN_PAR_LOGIN =
+            "UPDATE pharmacien SET pwd=? WHERE login=?";
+
+    private static final String UPDATE_MDP_GESTIONNAIRE_PAR_LOGIN =
+            "UPDATE gestionnaire SET pwd=? WHERE login=?";
+
+    private static final String SELECT_PROFIL_PHARMACIEN =
+            "SELECT nom, prenom, login, email FROM pharmacien "
+            + "WHERE login=?";
+
+    private static final String SELECT_PROFIL_GESTIONNAIRE =
+            "SELECT nom, prenom, login, email FROM gestionnaire "
+            + "WHERE login=?";
+
+    private static final String UPDATE_INFOS_PHARMACIEN_PAR_LOGIN =
+            "UPDATE pharmacien SET nom=?, prenom=?, email=? "
+            + "WHERE login=?";
+
+    private static final String UPDATE_INFOS_GESTIONNAIRE_PAR_LOGIN =
+            "UPDATE gestionnaire SET nom=?, prenom=?, email=? "
+            + "WHERE login=?";
 
     public List<UtilisateurGestionResponse> listerTous() {
 
@@ -155,11 +156,10 @@ public class UtilisateurGestionDAO {
             String pwdHache,
             String role) {
 
-        String table = resoudreTable(role);
-
         String sql =
-                "INSERT INTO " + table
-                + " (nom, prenom, login, pwd) VALUES (?,?,?,?)";
+                ROLE_PHARMACIEN.equals(role)
+                        ? INSERT_PHARMACIEN
+                        : INSERT_GESTIONNAIRE;
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
@@ -201,16 +201,20 @@ public class UtilisateurGestionDAO {
             String login,
             String pwdHache) {
 
-        String table = resoudreTable(role);
-        String colonneId = resoudreColonneId(role);
-
+        boolean estPharmacien = ROLE_PHARMACIEN.equals(role);
         boolean changerMotDePasse = pwdHache != null;
 
-        String sql =
-                "UPDATE " + table
-                + " SET nom=?, prenom=?, login=?"
-                + (changerMotDePasse ? ", pwd=?" : "")
-                + " WHERE " + colonneId + "=?";
+        String sql;
+
+        if (estPharmacien) {
+            sql = changerMotDePasse
+                    ? UPDATE_PHARMACIEN_AVEC_MDP
+                    : UPDATE_PHARMACIEN_SANS_MDP;
+        } else {
+            sql = changerMotDePasse
+                    ? UPDATE_GESTIONNAIRE_AVEC_MDP
+                    : UPDATE_GESTIONNAIRE_SANS_MDP;
+        }
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
@@ -241,11 +245,10 @@ public class UtilisateurGestionDAO {
 
     public boolean supprimerUtilisateur(int id, String role) {
 
-        String table = resoudreTable(role);
-        String colonneId = resoudreColonneId(role);
-
         String sql =
-                "DELETE FROM " + table + " WHERE " + colonneId + "=?";
+                ROLE_PHARMACIEN.equals(role)
+                        ? DELETE_PHARMACIEN
+                        : DELETE_GESTIONNAIRE;
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
@@ -274,10 +277,10 @@ public class UtilisateurGestionDAO {
             String role,
             String pwdHache) {
 
-        String table = resoudreTable(role);
-
         String sql =
-                "UPDATE " + table + " SET pwd=? WHERE login=?";
+                ROLE_PHARMACIEN.equals(role)
+                        ? UPDATE_MDP_PHARMACIEN_PAR_LOGIN
+                        : UPDATE_MDP_GESTIONNAIRE_PAR_LOGIN;
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
@@ -304,11 +307,10 @@ public class UtilisateurGestionDAO {
      */
     public MonProfilResponse getMonProfil(String login, String role) {
 
-        String table = resoudreTable(role);
-
         String sql =
-                "SELECT nom, prenom, login, email FROM " + table
-                + " WHERE login=?";
+                ROLE_PHARMACIEN.equals(role)
+                        ? SELECT_PROFIL_PHARMACIEN
+                        : SELECT_PROFIL_GESTIONNAIRE;
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
@@ -350,11 +352,10 @@ public class UtilisateurGestionDAO {
             String prenom,
             String email) {
 
-        String table = resoudreTable(role);
-
         String sql =
-                "UPDATE " + table
-                + " SET nom=?, prenom=?, email=? WHERE login=?";
+                ROLE_PHARMACIEN.equals(role)
+                        ? UPDATE_INFOS_PHARMACIEN_PAR_LOGIN
+                        : UPDATE_INFOS_GESTIONNAIRE_PAR_LOGIN;
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
