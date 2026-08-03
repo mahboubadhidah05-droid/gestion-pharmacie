@@ -17,10 +17,26 @@ import utils.DBConnection;
  * DAO de gestion des comptes utilisateurs (pharmaciens et gestionnaires).
  * Séparé de {@link UtilisateurDAO}, qui reste dédié à l'authentification,
  * pour ne jamais risquer de perturber la logique de connexion existante.
+ *
+ * Sécurité SQL : le nom de table/colonne inséré dans les requêtes n'est
+ * JAMAIS une valeur libre — il est toujours résolu via
+ * {@link #resoudreTable(String)} / {@link #resoudreColonneId(String)},
+ * qui valident explicitement le rôle contre une liste fermée de valeurs
+ * connues (PHARMACIEN / GESTIONNAIRE) et rejettent tout le reste.
+ * Toutes les données utilisateur (nom, login, etc.) restent, elles,
+ * toujours passées en paramètres liés (PreparedStatement), jamais
+ * concaténées.
  */
 public class UtilisateurGestionDAO {
 
     private static final String ROLE_PHARMACIEN = "PHARMACIEN";
+    private static final String ROLE_GESTIONNAIRE = "GESTIONNAIRE";
+
+    private static final String TABLE_PHARMACIEN = "pharmacien";
+    private static final String TABLE_GESTIONNAIRE = "gestionnaire";
+
+    private static final String COLONNE_ID_PHARMACIEN = "id_pharmacien";
+    private static final String COLONNE_ID_GESTIONNAIRE = "id_gestionnaire";
 
     private static final String SELECT_TOUS =
             "SELECT id_pharmacien AS id, nom, prenom, login, "
@@ -33,6 +49,48 @@ public class UtilisateurGestionDAO {
     private static final String SELECT_LOGIN_EXISTE =
             "SELECT 1 FROM pharmacien WHERE login=? "
             + "UNION SELECT 1 FROM gestionnaire WHERE login=?";
+
+    /**
+     * Résout le nom de table associé à un rôle, en le validant contre
+     * une liste fermée de valeurs connues — jamais une valeur libre
+     * injectée directement dans le SQL.
+     *
+     * @throws IllegalArgumentException si le rôle n'est ni PHARMACIEN
+     *         ni GESTIONNAIRE.
+     */
+    private String resoudreTable(String role) {
+
+        if (ROLE_PHARMACIEN.equals(role)) {
+            return TABLE_PHARMACIEN;
+        }
+
+        if (ROLE_GESTIONNAIRE.equals(role)) {
+            return TABLE_GESTIONNAIRE;
+        }
+
+        throw new IllegalArgumentException(
+                "Rôle invalide : " + role
+        );
+    }
+
+    /**
+     * Résout le nom de la colonne d'identifiant associée à un rôle,
+     * avec la même validation stricte que {@link #resoudreTable}.
+     */
+    private String resoudreColonneId(String role) {
+
+        if (ROLE_PHARMACIEN.equals(role)) {
+            return COLONNE_ID_PHARMACIEN;
+        }
+
+        if (ROLE_GESTIONNAIRE.equals(role)) {
+            return COLONNE_ID_GESTIONNAIRE;
+        }
+
+        throw new IllegalArgumentException(
+                "Rôle invalide : " + role
+        );
+    }
 
     public List<UtilisateurGestionResponse> listerTous() {
 
@@ -97,8 +155,7 @@ public class UtilisateurGestionDAO {
             String pwdHache,
             String role) {
 
-        String table =
-                ROLE_PHARMACIEN.equals(role) ? "pharmacien" : "gestionnaire";
+        String table = resoudreTable(role);
 
         String sql =
                 "INSERT INTO " + table
@@ -144,13 +201,8 @@ public class UtilisateurGestionDAO {
             String login,
             String pwdHache) {
 
-        String table =
-                ROLE_PHARMACIEN.equals(role) ? "pharmacien" : "gestionnaire";
-
-        String colonneId =
-                ROLE_PHARMACIEN.equals(role)
-                        ? "id_pharmacien"
-                        : "id_gestionnaire";
+        String table = resoudreTable(role);
+        String colonneId = resoudreColonneId(role);
 
         boolean changerMotDePasse = pwdHache != null;
 
@@ -189,13 +241,8 @@ public class UtilisateurGestionDAO {
 
     public boolean supprimerUtilisateur(int id, String role) {
 
-        String table =
-                ROLE_PHARMACIEN.equals(role) ? "pharmacien" : "gestionnaire";
-
-        String colonneId =
-                ROLE_PHARMACIEN.equals(role)
-                        ? "id_pharmacien"
-                        : "id_gestionnaire";
+        String table = resoudreTable(role);
+        String colonneId = resoudreColonneId(role);
 
         String sql =
                 "DELETE FROM " + table + " WHERE " + colonneId + "=?";
@@ -227,8 +274,7 @@ public class UtilisateurGestionDAO {
             String role,
             String pwdHache) {
 
-        String table =
-                ROLE_PHARMACIEN.equals(role) ? "pharmacien" : "gestionnaire";
+        String table = resoudreTable(role);
 
         String sql =
                 "UPDATE " + table + " SET pwd=? WHERE login=?";
@@ -258,8 +304,7 @@ public class UtilisateurGestionDAO {
      */
     public MonProfilResponse getMonProfil(String login, String role) {
 
-        String table =
-                ROLE_PHARMACIEN.equals(role) ? "pharmacien" : "gestionnaire";
+        String table = resoudreTable(role);
 
         String sql =
                 "SELECT nom, prenom, login, email FROM " + table
@@ -305,8 +350,7 @@ public class UtilisateurGestionDAO {
             String prenom,
             String email) {
 
-        String table =
-                ROLE_PHARMACIEN.equals(role) ? "pharmacien" : "gestionnaire";
+        String table = resoudreTable(role);
 
         String sql =
                 "UPDATE " + table
