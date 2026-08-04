@@ -105,11 +105,8 @@
 		            <h2 data-i18n="medConsulterTitre">Consulter un stock</h2>
             <form id="formConsulter">
                 <div class="rangee">
-                    <label data-i18n="champNomMedicament">Nom du médicament
-                        <input type="text" name="nom" required placeholder="Paracétamol">
-                    </label>
-                    <label data-i18n="champDosage">Dosage
-                        <input type="text" name="dosage" required placeholder="500mg">
+                    <label data-i18n="champCodeBarreScan">Code-barres du médicament
+                        <input type="text" name="codeBarre" required placeholder="Scanner ou taper le code">
                     </label>
                 </div>
                 <button type="submit" data-i18n="btnConsulter">Consulter</button>
@@ -124,12 +121,9 @@
             <p class="etiquette" data-i18n="etiquetteStock">STOCK</p>
 		            <h2 data-i18n="medMajTitre">Mettre à jour un stock</h2>
             <form id="formMaj">
-                <div class="rangee rangee-3">
-                    <label data-i18n="champNomMedicament">Nom du médicament
-                        <input type="text" name="nom" required placeholder="Paracétamol">
-                    </label>
-                    <label data-i18n="champDosage">Dosage
-                        <input type="text" name="dosage" required placeholder="500mg">
+                <div class="rangee">
+                    <label data-i18n="champCodeBarreScan">Code-barres du médicament
+                        <input type="text" name="codeBarre" required placeholder="Scanner ou taper le code">
                     </label>
                     <label data-i18n="champNouveauStock">Nouveau stock
                         <input type="number" name="stock" required min="0" placeholder="85">
@@ -143,16 +137,13 @@
             <p class="etiquette" data-i18n="etiquetteStock">STOCK</p>
             <h2 data-i18n="medVerifierTitre">Vérifier un médicament</h2>
             <p class="kpi-sous-texte" data-i18n="medVerifierDescription">
-                Recherche par nom + dosage : stock critique et péremption
+                Recherche par code-barres : stock critique et péremption
                 vérifiés en une seule fois — pratique avec un grand catalogue.
             </p>
             <form id="formVerifier">
                 <div class="rangee">
-                    <label data-i18n="champNomMedicament">Nom du médicament
-                        <input type="text" name="nom" required placeholder="Paracétamol">
-                    </label>
-                    <label data-i18n="champDosage">Dosage
-                        <input type="text" name="dosage" required placeholder="500mg">
+                    <label data-i18n="champCodeBarreScan">Code-barres du médicament
+                        <input type="text" name="codeBarre" required placeholder="Scanner ou taper le code">
                     </label>
                 </div>
                 <button type="submit" data-i18n="btnVerifier">Vérifier</button>
@@ -187,11 +178,8 @@
             </p>
             <form id="formStockPerime">
                 <div class="rangee">
-                    <label data-i18n="champNomMedicament">Nom du médicament
-                        <input type="text" name="nom" required placeholder="Paracétamol">
-                    </label>
-                    <label data-i18n="champDosage">Dosage
-                        <input type="text" name="dosage" required placeholder="500mg">
+                    <label data-i18n="champCodeBarreScan">Code-barres du médicament
+                        <input type="text" name="codeBarre" required placeholder="Scanner ou taper le code">
                     </label>
                 </div>
                 <button type="submit" data-i18n="btnRetirerStockPerime">Retirer le stock périmé</button>
