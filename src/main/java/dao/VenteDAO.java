@@ -114,13 +114,13 @@ public class VenteDAO {
         );
     }
 
-    public List<VenteResponse> ventesParNomMedicament(
-            String nomMedicament) {
+    public List<VenteResponse> ventesParCodeBarre(
+            String codeBarre) {
 
         String sql =
                 "SELECT v.* FROM vente v "
                 + "JOIN medicament m ON v.id_medicament = m.id_medicament "
-                + "WHERE LOWER(TRIM(m.nom)) = LOWER(TRIM(?))";
+                + "WHERE m.code_barre = ?";
 
         List<VenteResponse> ventes =
                 new ArrayList<>();
@@ -130,7 +130,7 @@ public class VenteDAO {
              PreparedStatement ps =
                      connection.prepareStatement(sql)) {
 
-            ps.setString(1, nomMedicament);
+            ps.setString(1, codeBarre);
 
             try (ResultSet rs = ps.executeQuery()) {
                 remplirVentes(rs, ventes);
@@ -140,7 +140,7 @@ public class VenteDAO {
 
             throw new AccesDonneesException(
                     "Échec de la consultation des ventes "
-                            + "pour le médicament : " + nomMedicament,
+                            + "pour le code-barres : " + codeBarre,
                     exception
             );
         }
@@ -148,15 +148,13 @@ public class VenteDAO {
         return ventes;
     }
 
-    public List<VenteResponse> ventesParNomClient(
-            String nomClient,
-            String prenomClient) {
+    public List<VenteResponse> ventesParCin(
+            String cin) {
 
         String sql =
                 "SELECT v.* FROM vente v "
                 + "JOIN client c ON v.id_client = c.id_client "
-                + "WHERE LOWER(TRIM(c.nom)) = LOWER(TRIM(?)) "
-                + "AND LOWER(TRIM(c.prenom)) = LOWER(TRIM(?))";
+                + "WHERE c.cin = ?";
 
         List<VenteResponse> ventes =
                 new ArrayList<>();
@@ -166,8 +164,7 @@ public class VenteDAO {
              PreparedStatement ps =
                      connection.prepareStatement(sql)) {
 
-            ps.setString(1, nomClient);
-            ps.setString(2, prenomClient);
+            ps.setString(1, cin);
 
             try (ResultSet rs = ps.executeQuery()) {
                 remplirVentes(rs, ventes);
@@ -177,8 +174,7 @@ public class VenteDAO {
 
             throw new AccesDonneesException(
                     "Échec de la consultation des ventes "
-                            + "pour le client : " + nomClient
-                            + " " + prenomClient,
+                            + "pour le CIN : " + cin,
                     exception
             );
         }

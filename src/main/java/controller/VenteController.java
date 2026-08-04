@@ -70,12 +70,12 @@ public class VenteController {
     }
 
 
-    @GetMapping(params = "medicament")
-    public ResponseEntity<List<VenteResponse>> ventesParMedicament(
-            @RequestParam String medicament) {
+    @GetMapping(params = "codeBarre")
+    public ResponseEntity<List<VenteResponse>> ventesParCodeBarre(
+            @RequestParam String codeBarre) {
 
         return ResponseEntity.ok(
-                venteService.ventesParNomMedicament(medicament)
+                venteService.ventesParCodeBarre(codeBarre)
         );
     }
 
@@ -90,13 +90,12 @@ public class VenteController {
     }
 
 
-    @GetMapping(params = {"clientNom", "clientPrenom"})
-    public ResponseEntity<List<VenteResponse>> ventesParNomClient(
-            @RequestParam String clientNom,
-            @RequestParam String clientPrenom) {
+    @GetMapping(params = {"clientCin"})
+    public ResponseEntity<List<VenteResponse>> ventesParCin(
+            @RequestParam String clientCin) {
 
         return ResponseEntity.ok(
-                venteService.ventesParNomClient(clientNom, clientPrenom)
+                venteService.ventesParCin(clientCin)
         );
     }
 

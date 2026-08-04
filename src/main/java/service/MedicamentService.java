@@ -139,9 +139,9 @@ public class MedicamentService {
      *         stock), ou un code d'erreur négatif : -1 médicament
      *         introuvable, -2 aucun lot périmé trouvé.
      */
-    public int retirerStockPerime(String nom, String dosage) {
+    public int retirerStockPerime(String codeBarre) {
 
-        int id = dao.getIdMedicamentParNomEtDosage(nom, dosage);
+        int id = dao.getIdParCodeBarre(codeBarre);
 
         if (id == -1) {
             return -1;
@@ -182,15 +182,20 @@ public class MedicamentService {
      * @return null si le médicament est introuvable.
      */
     public dto.VerifierMedicamentResponse verifier(
-            String nom, String dosage) {
+            String codeBarre) {
 
-        int id = dao.getIdMedicamentParNomEtDosage(nom, dosage);
+        int id = dao.getIdParCodeBarre(codeBarre);
 
         if (id == -1) {
             return null;
         }
 
-        int stock = dao.getStock(id);
+        dto.MedicamentScanResponse resume = dao.getResumeParId(id);
+
+        if (resume == null) {
+            return null;
+        }
+
         boolean critique = dao.stockCritique(id) != null;
 
         String aujourdhui = java.time.LocalDate.now().toString();
@@ -212,9 +217,9 @@ public class MedicamentService {
 
         return new dto.VerifierMedicamentResponse(
                 id,
-                nom,
-                dosage,
-                stock,
+                resume.nom(),
+                resume.dosage(),
+                resume.stock(),
                 critique,
                 quantitePerimee,
                 datePlusProche,

@@ -88,23 +88,19 @@
 		                <div class="rangee">
 		                    <label data-i18n="champFiltrerPar">Filtrer par
 		                        <select name="filtre" id="filtreVentes">
-		                            <option value="medicament" data-i18n="optMedicamentNom">Médicament (nom)</option>
-		                            <option value="client" data-i18n="optClientNomPrenom">Client (nom + prénom)</option>
+		                            <option value="medicament" data-i18n="optMedicamentCodeBarre">Médicament (code-barres)</option>
+		                            <option value="client" data-i18n="optClientCin">Client (CIN)</option>
 		                            <option value="periode" data-i18n="optPeriode">Période</option>
 		                        </select>
 		                    </label>
-		                    <label id="champValeur" data-i18n="champNomMedicament">Nom du médicament
+		                    <label id="champValeur" data-i18n="champCodeBarreScan">Code-barres du médicament
 		                        <input type="text" name="valeur" id="inputValeurVente"
-		                               list="listeMedicamentsVentes" placeholder="Commence à taper...">
-		                        <datalist id="listeMedicamentsVentes"></datalist>
+		                               placeholder="Scanner ou taper le code">
 		                    </label>
 		                </div>
 		                <div class="rangee" id="champsClient" hidden>
-		                    <label data-i18n="champNom">Nom
-		                        <input type="text" name="clientNom" placeholder="Ben Ali">
-		                    </label>
-		                    <label data-i18n="champPrenom">Prénom
-		                        <input type="text" name="clientPrenom" placeholder="Sami">
+		                    <label data-i18n="champCin">CIN
+		                        <input type="text" name="clientCin" placeholder="12345678">
 		                    </label>
 		                </div>
 		                <div class="rangee" id="champsPeriode" hidden>

@@ -17,14 +17,16 @@ public class ClientService {
             String prenom,
             String email,
             String adresse,
-            String numeroCnam) {
+            String numeroCnam,
+            String cin) {
 
         return clientDAO.ajouterClient(
                 nom,
                 prenom,
                 email,
                 adresse,
-                numeroCnam
+                numeroCnam,
+                cin
         );
     }
 

@@ -75,11 +75,10 @@ public class MedicamentController {
 
 
     @GetMapping("/stock")
-    public ResponseEntity<StockResponse> consulterStockParNom(
-            @RequestParam String nom,
-            @RequestParam String dosage) {
+    public ResponseEntity<StockResponse> consulterStockParCodeBarre(
+            @RequestParam String codeBarre) {
 
-        int id = medicamentService.getIdParNomEtDosage(nom, dosage);
+        int id = medicamentService.getIdParCodeBarre(codeBarre);
 
         if (id == STOCK_INTROUVABLE) {
             return ResponseEntity.notFound().build();
@@ -111,12 +110,11 @@ public class MedicamentController {
 
 
     @PutMapping("/stock")
-    public ResponseEntity<MessageResponse> mettreAJourStockParNom(
-            @RequestParam String nom,
-            @RequestParam String dosage,
+    public ResponseEntity<MessageResponse> mettreAJourStockParCodeBarre(
+            @RequestParam String codeBarre,
             @RequestBody StockUpdateRequest request) {
 
-        int id = medicamentService.getIdParNomEtDosage(nom, dosage);
+        int id = medicamentService.getIdParCodeBarre(codeBarre);
 
         if (id == STOCK_INTROUVABLE) {
             return ResponseEntity.notFound().build();
@@ -155,11 +153,10 @@ public class MedicamentController {
 
 
     @GetMapping("/stock-critique")
-    public ResponseEntity<StockCritiqueResponse> verifierStockCritiqueParNom(
-            @RequestParam String nom,
-            @RequestParam String dosage) {
+    public ResponseEntity<StockCritiqueResponse> verifierStockCritiqueParCodeBarre(
+            @RequestParam String codeBarre) {
 
-        int id = medicamentService.getIdParNomEtDosage(nom, dosage);
+        int id = medicamentService.getIdParCodeBarre(codeBarre);
 
         if (id == STOCK_INTROUVABLE) {
             return ResponseEntity.notFound().build();
@@ -181,10 +178,9 @@ public class MedicamentController {
 
     @PutMapping("/stock-perime")
     public ResponseEntity<MessageResponse> retirerStockPerime(
-            @RequestParam String nom,
-            @RequestParam String dosage) {
+            @RequestParam String codeBarre) {
 
-        int resultat = medicamentService.retirerStockPerime(nom, dosage);
+        int resultat = medicamentService.retirerStockPerime(codeBarre);
 
         if (resultat == -1) {
             return ResponseEntity.notFound().build();
@@ -207,11 +203,10 @@ public class MedicamentController {
 
     @GetMapping("/verifier")
     public ResponseEntity<dto.VerifierMedicamentResponse> verifierMedicament(
-            @RequestParam String nom,
-            @RequestParam String dosage) {
+            @RequestParam String codeBarre) {
 
         dto.VerifierMedicamentResponse resultat =
-                medicamentService.verifier(nom, dosage);
+                medicamentService.verifier(codeBarre);
 
         if (resultat == null) {
             return ResponseEntity.notFound().build();

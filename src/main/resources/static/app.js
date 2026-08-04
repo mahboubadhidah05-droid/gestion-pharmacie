@@ -290,14 +290,12 @@ if (formConsulter) {
             const f =
                 new FormData(e.target);
 
-            const nom = f.get("nom");
-            const dosage = f.get("dosage");
+            const codeBarre = f.get("codeBarre");
 
             const resultat =
                 await appelerApi(
                     "GET",
-                    `${API}/stock?nom=${encodeURIComponent(nom)}`
-                    + `&dosage=${encodeURIComponent(dosage)}`
+                    `${API}/stock?codeBarre=${encodeURIComponent(codeBarre)}`
                 );
 
             definirChargement(bouton, false);
@@ -352,14 +350,12 @@ if (formMaj) {
             const f =
                 new FormData(e.target);
 
-            const nom = f.get("nom");
-            const dosage = f.get("dosage");
+            const codeBarre = f.get("codeBarre");
 
             const resultat =
                 await appelerApi(
                     "PUT",
-                    `${API}/stock?nom=${encodeURIComponent(nom)}`
-                    + `&dosage=${encodeURIComponent(dosage)}`,
+                    `${API}/stock?codeBarre=${encodeURIComponent(codeBarre)}`,
                     {
                         quantite:
                             Number(f.get("stock"))
@@ -407,13 +403,11 @@ if (formVerifier) {
             definirChargement(bouton, true);
 
             const f = new FormData(e.target);
-            const nom = f.get("nom");
-            const dosage = f.get("dosage");
+            const codeBarre = f.get("codeBarre");
 
             const resultat = await appelerApi(
                 "GET",
-                `${API}/verifier?nom=${encodeURIComponent(nom)}`
-                + `&dosage=${encodeURIComponent(dosage)}`
+                `${API}/verifier?codeBarre=${encodeURIComponent(codeBarre)}`
             );
 
             definirChargement(bouton, false);
@@ -507,13 +501,11 @@ if (formStockPerime) {
             definirChargement(bouton, true);
 
             const f = new FormData(e.target);
-            const nom = f.get("nom");
-            const dosage = f.get("dosage");
+            const codeBarre = f.get("codeBarre");
 
             const resultat = await appelerApi(
                 "PUT",
-                `${API}/stock-perime?nom=${encodeURIComponent(nom)}`
-                + `&dosage=${encodeURIComponent(dosage)}`
+                `${API}/stock-perime?codeBarre=${encodeURIComponent(codeBarre)}`
             );
 
             definirChargement(bouton, false);
@@ -920,42 +912,6 @@ if (inputCodeBarreVente) {
    FILTRE DES VENTES
    ============================================================ */
 
-const inputValeurVente =
-    document.getElementById("inputValeurVente");
-
-if (inputValeurVente) {
-
-    (async function peuplerNomsMedicaments() {
-
-        const resultat =
-            await appelerApi("GET", "/api/noms-medicaments");
-
-        if (!resultat.ok) {
-            return;
-        }
-
-        const datalist =
-            document.getElementById("listeMedicamentsVentes");
-
-        const nomsDejaAjoutes = new Set();
-
-        resultat.donnees.forEach((med) => {
-
-            if (nomsDejaAjoutes.has(med.nom)) {
-                return;
-            }
-
-            nomsDejaAjoutes.add(med.nom);
-
-            const option = document.createElement("option");
-            option.value = med.nom;
-            option.textContent = `${med.nom} (${med.dosage})`;
-
-            datalist.appendChild(option);
-        });
-    })();
-}
-
 const filtreVentes =
     document.getElementById(
         "filtreVentes"
@@ -1039,23 +995,16 @@ if (formConsulterVentes) {
                 "client"
             ) {
 
-                const clientNom =
-                    f.get("clientNom");
+                const clientCin =
+                    f.get("clientCin");
 
-                const clientPrenom =
-                    f.get("clientPrenom");
-
-                if (
-                    !clientNom ||
-                    !clientPrenom
-                ) {
+                if (!clientCin) {
 
                     return;
                 }
 
                 url =
-                    `${API_VENTES}?clientNom=${encodeURIComponent(clientNom)}`
-                    + `&clientPrenom=${encodeURIComponent(clientPrenom)}`;
+                    `${API_VENTES}?clientCin=${encodeURIComponent(clientCin)}`;
 
             } else {
 
@@ -1066,8 +1015,11 @@ if (formConsulterVentes) {
                     return;
                 }
 
+                const nomParametre =
+                    filtre === "medicament" ? "codeBarre" : filtre;
+
                 url =
-                    `${API_VENTES}?${filtre}=${encodeURIComponent(valeur)}`;
+                    `${API_VENTES}?${nomParametre}=${encodeURIComponent(valeur)}`;
             }
 
             definirChargement(bouton, true);
@@ -1259,7 +1211,10 @@ if (formClient) {
                             f.get("adresse"),
 
                         numeroCnam:
-                            f.get("numeroCnam") || null
+                            f.get("numeroCnam") || null,
+
+                        cin:
+                            f.get("cin")
                     }
                 );
 

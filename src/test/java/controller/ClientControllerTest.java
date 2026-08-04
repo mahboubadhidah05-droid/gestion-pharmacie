@@ -39,7 +39,7 @@ class ClientControllerTest {
         when(
                 clientService.creerClient(
                         "Ben Ali", "Sami", "sami@exemple.com",
-                        "Rue de la Paix", "CNAM12345"
+                        "Rue de la Paix", "CNAM12345", "12345678"
                 )
         ).thenReturn(3);
 
@@ -48,7 +48,8 @@ class ClientControllerTest {
                         .content("{\"nom\":\"Ben Ali\",\"prenom\":\"Sami\","
                                 + "\"email\":\"sami@exemple.com\","
                                 + "\"adresse\":\"Rue de la Paix\","
-                                + "\"numeroCnam\":\"CNAM12345\"}"))
+                                + "\"numeroCnam\":\"CNAM12345\","
+                                + "\"cin\":\"12345678\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(3))
                 .andExpect(jsonPath("$.message")
@@ -56,12 +57,12 @@ class ClientControllerTest {
     }
 
     @Test
-    void creerClient_sansNumeroCnam_reussi_doitRetourner201() throws Exception {
+    void creerClient_sansNumeroCnamNiCin_reussi_doitRetourner201() throws Exception {
 
         when(
                 clientService.creerClient(
                         "Nom", "Prenom", "email@exemple.com",
-                        "Adresse", null
+                        "Adresse", null, null
                 )
         ).thenReturn(5);
 
@@ -80,7 +81,7 @@ class ClientControllerTest {
         when(
                 clientService.creerClient(
                         "Nom", "Prenom", "email@exemple.com",
-                        "Adresse", null
+                        "Adresse", null, null
                 )
         ).thenReturn(-1);
 

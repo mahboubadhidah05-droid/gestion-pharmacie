@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import dto.MedicamentResponse;
 import service.MedicamentService;
 
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -120,12 +121,11 @@ class MedicamentControllerTest {
     @Test
     void retirerStockPerime_reussi_doitRetourner200() throws Exception {
 
-        when(medicamentService.retirerStockPerime("Paracetamol", "500mg"))
+        when(medicamentService.retirerStockPerime("1234567890123"))
                 .thenReturn(30);
 
         mockMvc.perform(put("/api/medicaments/stock-perime")
-                        .param("nom", "Paracetamol")
-                        .param("dosage", "500mg"))
+                        .param("codeBarre", "1234567890123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message")
                         .value("Stock périmé retiré : 30 unité(s)."));
@@ -134,31 +134,29 @@ class MedicamentControllerTest {
     @Test
     void retirerStockPerime_introuvable_doitRetourner404() throws Exception {
 
-        when(medicamentService.retirerStockPerime("Inconnu", "1g"))
+        when(medicamentService.retirerStockPerime("0000000000000"))
                 .thenReturn(-1);
 
         mockMvc.perform(put("/api/medicaments/stock-perime")
-                        .param("nom", "Inconnu")
-                        .param("dosage", "1g"))
+                        .param("codeBarre", "0000000000000"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void retirerStockPerime_pasEncorePerime_doitRetourner400() throws Exception {
 
-        when(medicamentService.retirerStockPerime("Paracetamol", "500mg"))
+        when(medicamentService.retirerStockPerime("1234567890123"))
                 .thenReturn(-2);
 
         mockMvc.perform(put("/api/medicaments/stock-perime")
-                        .param("nom", "Paracetamol")
-                        .param("dosage", "500mg"))
+                        .param("codeBarre", "1234567890123"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void verifierMedicament_trouve_doitRetourner200() throws Exception {
 
-        when(medicamentService.verifier("antafen", "100mg")).thenReturn(
+        when(medicamentService.verifier("4444444444444")).thenReturn(
                 new dto.VerifierMedicamentResponse(
                         4, "antafen", "100mg", 160,
                         false, 0, "2027-02-24", false
@@ -166,8 +164,7 @@ class MedicamentControllerTest {
         );
 
         mockMvc.perform(get("/api/medicaments/verifier")
-                        .param("nom", "antafen")
-                        .param("dosage", "100mg"))
+                        .param("codeBarre", "4444444444444"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nom").value("antafen"))
                 .andExpect(jsonPath("$.stockCritique").value(false));
@@ -176,11 +173,10 @@ class MedicamentControllerTest {
     @Test
     void verifierMedicament_introuvable_doitRetourner404() throws Exception {
 
-        when(medicamentService.verifier("Inconnu", "1g")).thenReturn(null);
+        when(medicamentService.verifier("0000000000000")).thenReturn(null);
 
         mockMvc.perform(get("/api/medicaments/verifier")
-                        .param("nom", "Inconnu")
-                        .param("dosage", "1g"))
+                        .param("codeBarre", "0000000000000"))
                 .andExpect(status().isNotFound());
     }
 
@@ -207,6 +203,84 @@ class MedicamentControllerTest {
                 .thenReturn(-1);
 
         mockMvc.perform(get("/api/medicaments/code-barre/0000000000000"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void consulterStockParCodeBarre_trouve_doitRetourner200() throws Exception {
+
+        when(medicamentService.getIdParCodeBarre("1234567890123"))
+                .thenReturn(1);
+
+        when(medicamentService.getStock(1)).thenReturn(85);
+
+        mockMvc.perform(get("/api/medicaments/stock")
+                        .param("codeBarre", "1234567890123"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stock").value(85));
+    }
+
+    @Test
+    void consulterStockParCodeBarre_introuvable_doitRetourner404() throws Exception {
+
+        when(medicamentService.getIdParCodeBarre("0000000000000"))
+                .thenReturn(-1);
+
+        mockMvc.perform(get("/api/medicaments/stock")
+                        .param("codeBarre", "0000000000000"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void mettreAJourStockParCodeBarre_reussi_doitRetourner200() throws Exception {
+
+        when(medicamentService.getIdParCodeBarre("1234567890123"))
+                .thenReturn(1);
+
+        mockMvc.perform(put("/api/medicaments/stock")
+                        .param("codeBarre", "1234567890123")
+                        .contentType("application/json")
+                        .content("{\"quantite\":50}"))
+                .andExpect(status().isOk());
+
+        verify(medicamentService).updateStock(1, 50);
+    }
+
+    @Test
+    void mettreAJourStockParCodeBarre_introuvable_doitRetourner404() throws Exception {
+
+        when(medicamentService.getIdParCodeBarre("0000000000000"))
+                .thenReturn(-1);
+
+        mockMvc.perform(put("/api/medicaments/stock")
+                        .param("codeBarre", "0000000000000")
+                        .contentType("application/json")
+                        .content("{\"quantite\":50}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void verifierStockCritiqueParCodeBarre_trouve_doitRetourner200() throws Exception {
+
+        when(medicamentService.getIdParCodeBarre("1234567890123"))
+                .thenReturn(1);
+
+        when(medicamentService.stockCritique(1)).thenReturn(null);
+
+        mockMvc.perform(get("/api/medicaments/stock-critique")
+                        .param("codeBarre", "1234567890123"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.critique").value(false));
+    }
+
+    @Test
+    void verifierStockCritiqueParCodeBarre_introuvable_doitRetourner404() throws Exception {
+
+        when(medicamentService.getIdParCodeBarre("0000000000000"))
+                .thenReturn(-1);
+
+        mockMvc.perform(get("/api/medicaments/stock-critique")
+                        .param("codeBarre", "0000000000000"))
                 .andExpect(status().isNotFound());
     }
 }

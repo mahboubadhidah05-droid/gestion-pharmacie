@@ -33,35 +33,35 @@ class ClientServiceTest {
         when(
                 clientDAO.ajouterClient(
                         "Ben Ali", "Sami", "sami@exemple.com",
-                        "Rue de la Paix", "CNAM12345"
+                        "Rue de la Paix", "CNAM12345", "12345678"
                 )
         ).thenReturn(3);
 
         int resultat = clientService.creerClient(
                 "Ben Ali", "Sami", "sami@exemple.com",
-                "Rue de la Paix", "CNAM12345"
+                "Rue de la Paix", "CNAM12345", "12345678"
         );
 
         assertEquals(3, resultat);
 
         verify(clientDAO).ajouterClient(
                 "Ben Ali", "Sami", "sami@exemple.com",
-                "Rue de la Paix", "CNAM12345"
+                "Rue de la Paix", "CNAM12345", "12345678"
         );
     }
 
     @Test
-    void creerClient_doitAccepterNumeroCnamNul() {
+    void creerClient_doitAccepterNumeroCnamEtCinNuls() {
 
         when(
                 clientDAO.ajouterClient(
                         "Nom", "Prenom", "email@exemple.com",
-                        "Adresse", null
+                        "Adresse", null, null
                 )
         ).thenReturn(5);
 
         int resultat = clientService.creerClient(
-                "Nom", "Prenom", "email@exemple.com", "Adresse", null
+                "Nom", "Prenom", "email@exemple.com", "Adresse", null, null
         );
 
         assertEquals(5, resultat);

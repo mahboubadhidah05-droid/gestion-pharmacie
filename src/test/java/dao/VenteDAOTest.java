@@ -261,16 +261,16 @@ class VenteDAOTest {
             db.when(DBConnection::getConnection).thenReturn(connection);
 
             List<VenteResponse> resultat =
-                    venteDAO.ventesParNomMedicament("Paracetamol");
+                    venteDAO.ventesParCodeBarre("1234567890123");
 
             assertEquals(1, resultat.size());
 
-            verify(statement).setString(1, "Paracetamol");
+            verify(statement).setString(1, "1234567890123");
         }
     }
 
     @Test
-    void doitLeverExceptionSiVentesParNomMedicamentEchoue()
+    void doitLeverExceptionSiVentesParCodeBarreEchoue()
             throws Exception {
 
         Connection connection = mock(Connection.class);
@@ -284,7 +284,7 @@ class VenteDAOTest {
 
             assertThrows(
                     AccesDonneesException.class,
-                    () -> venteDAO.ventesParNomMedicament("Paracetamol")
+                    () -> venteDAO.ventesParCodeBarre("1234567890123")
             );
         }
     }
@@ -305,17 +305,16 @@ class VenteDAOTest {
             db.when(DBConnection::getConnection).thenReturn(connection);
 
             List<VenteResponse> resultat =
-                    venteDAO.ventesParNomClient("Ben Ali", "Sami");
+                    venteDAO.ventesParCin("12345678");
 
             assertEquals(1, resultat.size());
 
-            verify(statement).setString(1, "Ben Ali");
-            verify(statement).setString(2, "Sami");
+            verify(statement).setString(1, "12345678");
         }
     }
 
     @Test
-    void doitLeverExceptionSiVentesParNomClientEchoue() throws Exception {
+    void doitLeverExceptionSiVentesParCinEchoue() throws Exception {
 
         Connection connection = mock(Connection.class);
 
@@ -328,7 +327,7 @@ class VenteDAOTest {
 
             assertThrows(
                     AccesDonneesException.class,
-                    () -> venteDAO.ventesParNomClient("Ben Ali", "Sami")
+                    () -> venteDAO.ventesParCin("12345678")
             );
         }
     }

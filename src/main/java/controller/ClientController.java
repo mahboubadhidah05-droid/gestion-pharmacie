@@ -39,7 +39,8 @@ public class ClientController {
                 request.prenom(),
                 request.email(),
                 request.adresse(),
-                request.numeroCnam()
+                request.numeroCnam(),
+                request.cin()
         );
 
         if (id == ID_INVALIDE) {

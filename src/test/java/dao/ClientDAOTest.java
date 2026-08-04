@@ -113,7 +113,7 @@ class ClientDAOTest {
 
             int resultat = clientDAO.ajouterClient(
                     "Ben Ali", "Sami", "sami@exemple.com",
-                    "Rue de la Paix", "CNAM12345"
+                    "Rue de la Paix", "CNAM12345", "12345678"
             );
 
             assertEquals(7, resultat);
@@ -123,6 +123,7 @@ class ClientDAOTest {
             verify(statement).setString(3, "sami@exemple.com");
             verify(statement).setString(4, "Rue de la Paix");
             verify(statement).setString(5, "CNAM12345");
+            verify(statement).setString(6, "12345678");
         }
     }
 
@@ -150,12 +151,13 @@ class ClientDAOTest {
 
             int resultat = clientDAO.ajouterClient(
                     "Trabelsi", "Amel", "amel@exemple.com",
-                    "Avenue Habib Bourguiba", null
+                    "Avenue Habib Bourguiba", null, null
             );
 
             assertEquals(8, resultat);
 
             verify(statement).setString(5, null);
+            verify(statement).setString(6, null);
         }
     }
 
@@ -181,7 +183,7 @@ class ClientDAOTest {
             db.when(DBConnection::getConnection).thenReturn(connection);
 
             int resultat = clientDAO.ajouterClient(
-                    "Nom", "Prenom", "email@exemple.com", "Adresse", null
+                    "Nom", "Prenom", "email@exemple.com", "Adresse", null, null
             );
 
             assertEquals(-1, resultat);
@@ -208,7 +210,7 @@ class ClientDAOTest {
                     AccesDonneesException.class,
                     () -> clientDAO.ajouterClient(
                             "Nom", "Prenom", "email@exemple.com",
-                            "Adresse", "CNAM999"
+                            "Adresse", "CNAM999", "87654321"
                     )
             );
         }

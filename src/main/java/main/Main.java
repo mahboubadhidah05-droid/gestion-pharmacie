@@ -202,7 +202,13 @@ public class Main {
                     final String numeroCnam =
                             numeroCnamSaisie.isBlank() ? null : numeroCnamSaisie;
 
-                    idCl = clientDAO.ajouterClient(nom, prenom, email, adresse, numeroCnam);
+                    final String cinSaisie =
+                            lireTexte("CIN : ");
+
+                    final String cin =
+                            cinSaisie.isBlank() ? null : cinSaisie;
+
+                    idCl = clientDAO.ajouterClient(nom, prenom, email, adresse, numeroCnam, cin);
 
                     if (idCl == -1) {
                         afficher("Erreur lors de la création du client. Vente annulée.");
@@ -282,12 +288,19 @@ public class Main {
                 final String numeroCnam =
                         numeroCnamSaisie.isBlank() ? null : numeroCnamSaisie;
 
+                final String cinSaisie =
+                        lireTexte("CIN : ");
+
+                final String cin =
+                        cinSaisie.isBlank() ? null : cinSaisie;
+
                 clientService.creerClient(
                         nom,
                         prenom,
                         email,
                         adresse,
-                        numeroCnam
+                        numeroCnam,
+                        cin
                 );
 
                 break;

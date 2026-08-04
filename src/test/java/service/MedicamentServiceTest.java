@@ -377,11 +377,11 @@ class MedicamentServiceTest {
     @Test
     void retirerStockPerime_medicamentIntrouvable_doitRetournerMoinsUn() {
 
-        when(dao.getIdMedicamentParNomEtDosage("Inconnu", "1g"))
+        when(dao.getIdParCodeBarre("0000000000000"))
                 .thenReturn(-1);
 
         int resultat =
-                service.retirerStockPerime("Inconnu", "1g");
+                service.retirerStockPerime("0000000000000");
 
         assertEquals(-1, resultat);
     }
@@ -389,14 +389,14 @@ class MedicamentServiceTest {
     @Test
     void retirerStockPerime_aucunLotPerime_doitRetournerMoinsDeux() {
 
-        when(dao.getIdMedicamentParNomEtDosage("Paracetamol", "500mg"))
+        when(dao.getIdParCodeBarre("1234567890123"))
                 .thenReturn(1);
 
         when(lotDAO.getLotsExpires(org.mockito.ArgumentMatchers.eq(1), anyString()))
                 .thenReturn(List.of());
 
         int resultat =
-                service.retirerStockPerime("Paracetamol", "500mg");
+                service.retirerStockPerime("1234567890123");
 
         assertEquals(-2, resultat);
 
@@ -406,7 +406,7 @@ class MedicamentServiceTest {
     @Test
     void retirerStockPerime_neTouchePasLesLotsEncoreValides() {
 
-        when(dao.getIdMedicamentParNomEtDosage("Paracetamol", "500mg"))
+        when(dao.getIdParCodeBarre("1234567890123"))
                 .thenReturn(1);
 
         when(lotDAO.getLotsExpires(org.mockito.ArgumentMatchers.eq(1), anyString()))
@@ -417,7 +417,7 @@ class MedicamentServiceTest {
         when(dao.getStock(1)).thenReturn(100);
 
         int resultat =
-                service.retirerStockPerime("Paracetamol", "500mg");
+                service.retirerStockPerime("1234567890123");
 
         assertEquals(20, resultat);
 
@@ -430,7 +430,7 @@ class MedicamentServiceTest {
     @Test
     void retirerStockPerime_plusieursLotsPerimes_doitToutRetirer() {
 
-        when(dao.getIdMedicamentParNomEtDosage("Paracetamol", "500mg"))
+        when(dao.getIdParCodeBarre("1234567890123"))
                 .thenReturn(1);
 
         when(lotDAO.getLotsExpires(org.mockito.ArgumentMatchers.eq(1), anyString()))
@@ -442,7 +442,7 @@ class MedicamentServiceTest {
         when(dao.getStock(1)).thenReturn(50);
 
         int resultat =
-                service.retirerStockPerime("Paracetamol", "500mg");
+                service.retirerStockPerime("1234567890123");
 
         assertEquals(20, resultat);
 
@@ -455,25 +455,39 @@ class MedicamentServiceTest {
     @Test
     void verifier_medicamentIntrouvable_doitRetournerNull() {
 
-        when(dao.getIdMedicamentParNomEtDosage("Inconnu", "1g"))
+        when(dao.getIdParCodeBarre("0000000000000"))
                 .thenReturn(-1);
 
-        assertEquals(null, service.verifier("Inconnu", "1g"));
+        assertEquals(null, service.verifier("0000000000000"));
+    }
+
+    @Test
+    void verifier_resumeIntrouvableMalgreIdValide_doitRetournerNull() {
+
+        when(dao.getIdParCodeBarre("1234567890123"))
+                .thenReturn(1);
+
+        when(dao.getResumeParId(1)).thenReturn(null);
+
+        assertEquals(null, service.verifier("1234567890123"));
     }
 
     @Test
     void verifier_stockNormalEtRienDePerime() {
 
-        when(dao.getIdMedicamentParNomEtDosage("Ibuprofene", "400mg"))
+        when(dao.getIdParCodeBarre("2222222222222"))
                 .thenReturn(2);
 
-        when(dao.getStock(2)).thenReturn(50);
+        when(dao.getResumeParId(2)).thenReturn(
+                new dto.MedicamentScanResponse(2, "Ibuprofene", "400mg", 50)
+        );
+
         when(dao.stockCritique(2)).thenReturn(null);
         when(lotDAO.getQuantitePerimee(anyInt(), anyString())).thenReturn(0);
         when(lotDAO.getDatePeremptionLaPlusProche(2)).thenReturn("2028-01-01");
 
         dto.VerifierMedicamentResponse resultat =
-                service.verifier("Ibuprofene", "400mg");
+                service.verifier("2222222222222");
 
         assertEquals(50, resultat.stock());
         assertEquals(false, resultat.stockCritique());
@@ -484,16 +498,19 @@ class MedicamentServiceTest {
     @Test
     void verifier_stockCritiqueEtPerime() {
 
-        when(dao.getIdMedicamentParNomEtDosage("antafen", "100mg"))
+        when(dao.getIdParCodeBarre("4444444444444"))
                 .thenReturn(4);
 
-        when(dao.getStock(4)).thenReturn(5);
+        when(dao.getResumeParId(4)).thenReturn(
+                new dto.MedicamentScanResponse(4, "antafen", "100mg", 5)
+        );
+
         when(dao.stockCritique(4)).thenReturn("Stock critique");
         when(lotDAO.getQuantitePerimee(anyInt(), anyString())).thenReturn(20);
         when(lotDAO.getDatePeremptionLaPlusProche(4)).thenReturn("2020-01-01");
 
         dto.VerifierMedicamentResponse resultat =
-                service.verifier("antafen", "100mg");
+                service.verifier("4444444444444");
 
         assertEquals(true, resultat.stockCritique());
         assertEquals(20, resultat.quantitePerimee());
@@ -503,10 +520,13 @@ class MedicamentServiceTest {
     @Test
     void verifier_bientotPerimeSiDansLes30Jours() {
 
-        when(dao.getIdMedicamentParNomEtDosage("Paracetamol", "500mg"))
+        when(dao.getIdParCodeBarre("1234567890123"))
                 .thenReturn(1);
 
-        when(dao.getStock(1)).thenReturn(20);
+        when(dao.getResumeParId(1)).thenReturn(
+                new dto.MedicamentScanResponse(1, "Paracetamol", "500mg", 20)
+        );
+
         when(dao.stockCritique(1)).thenReturn(null);
         when(lotDAO.getQuantitePerimee(anyInt(), anyString())).thenReturn(0);
 
@@ -517,7 +537,7 @@ class MedicamentServiceTest {
                 .thenReturn(dansDixJours);
 
         dto.VerifierMedicamentResponse resultat =
-                service.verifier("Paracetamol", "500mg");
+                service.verifier("1234567890123");
 
         assertEquals(true, resultat.bientotPerime());
     }

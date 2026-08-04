@@ -85,12 +85,12 @@ class VenteControllerTest {
 
 
     @Test
-    void ventesParMedicament_doitRetournerLaListe() throws Exception {
-        when(venteService.ventesParNomMedicament("Amoxicilline")).thenReturn(
+    void ventesParCodeBarre_doitRetournerLaListe() throws Exception {
+        when(venteService.ventesParCodeBarre("6666666666666")).thenReturn(
                 List.of(new VenteResponse(6, 1, 6, 2, 15,
                         LocalDateTime.of(2026, 7, 15, 0, 0), 0.0, 75.0)));
 
-        mockMvc.perform(get("/api/ventes").param("medicament", "Amoxicilline"))
+        mockMvc.perform(get("/api/ventes").param("codeBarre", "6666666666666"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(6))
                 .andExpect(jsonPath("$[0].idMedicament").value(2));
@@ -107,14 +107,13 @@ class VenteControllerTest {
 
 
     @Test
-    void ventesParNomClient_doitRetournerLaListe() throws Exception {
-        when(venteService.ventesParNomClient("Ben Ali", "Sami")).thenReturn(
+    void ventesParCin_doitRetournerLaListe() throws Exception {
+        when(venteService.ventesParCin("12345678")).thenReturn(
                 List.of(new VenteResponse(9, 1, 4, 2, 3,
                         LocalDateTime.of(2026, 7, 18, 0, 0), 0.0, 45.0)));
 
         mockMvc.perform(get("/api/ventes")
-                        .param("clientNom", "Ben Ali")
-                        .param("clientPrenom", "Sami"))
+                        .param("clientCin", "12345678"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(9));
     }

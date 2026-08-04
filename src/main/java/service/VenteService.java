@@ -117,14 +117,14 @@ public class VenteService {
     public List<VenteResponse> ventesParMedicament(int idMed) {
         return venteDAO.ventesParMedicament(idMed);
     }
-    public List<VenteResponse> ventesParNomMedicament(String nomMedicament) {
-        return venteDAO.ventesParNomMedicament(nomMedicament);
+    public List<VenteResponse> ventesParCodeBarre(String codeBarre) {
+        return venteDAO.ventesParCodeBarre(codeBarre);
     }
     public List<VenteResponse> ventesParClient(int idClient) {
         return venteDAO.ventesParClient(idClient);
     }
-    public List<VenteResponse> ventesParNomClient(String nom, String prenom) {
-        return venteDAO.ventesParNomClient(nom, prenom);
+    public List<VenteResponse> ventesParCin(String cin) {
+        return venteDAO.ventesParCin(cin);
     }
     public List<VenteResponse> ventesParPeriode(
             String dateDebut,
