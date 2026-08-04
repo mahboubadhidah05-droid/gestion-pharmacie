@@ -153,6 +153,23 @@ class AuthInterceptorTest {
                         "/api/ventes",
                         "POST",
                         true
+                ),
+                /* Le Pharmacien doit pouvoir scanner un médicament
+                   pendant une vente, malgré la restriction générale
+                   de /api/medicaments au Gestionnaire. */
+                Arguments.of(
+                        "pharma",
+                        "PHARMACIEN",
+                        "/api/medicaments/code-barre/1234567890123",
+                        "GET",
+                        true
+                ),
+                Arguments.of(
+                        "gestionnaire",
+                        "GESTIONNAIRE",
+                        "/api/medicaments/code-barre/1234567890123",
+                        "GET",
+                        true
                 )
         );
     }

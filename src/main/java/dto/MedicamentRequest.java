@@ -2,6 +2,7 @@ package dto;
 
 /**
  * DTO représentant les données envoyées pour créer un médicament.
+ * codeBarre est facultatif (null si non renseigné).
  */
 public record MedicamentRequest(
         String nom,
@@ -11,5 +12,6 @@ public record MedicamentRequest(
         int seuil,
         String datePeremption,
         boolean conventionneCnam,
-        double tauxRemboursement) {
+        double tauxRemboursement,
+        String codeBarre) {
 }

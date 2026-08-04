@@ -55,6 +55,9 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
         return true;
     }
+    private static final String CODE_BARRE_PREFIXE =
+            "/api/medicaments/code-barre/";
+
     private boolean roleAutorise(String uri, String methode, String role) {
 
         /*
@@ -64,6 +67,16 @@ public class AuthInterceptor implements HandlerInterceptor {
          */
         if (uri.startsWith(VENTES_PREFIXE)
                 && METHODE_GET.equalsIgnoreCase(methode)) {
+            return true;
+        }
+
+        /*
+         * Recherche d'un médicament par code-barres ouverte aux deux
+         * rôles : le Pharmacien en a besoin pour scanner un produit
+         * au moment d'enregistrer une vente, même si la gestion
+         * complète des médicaments reste réservée au Gestionnaire.
+         */
+        if (uri.startsWith(CODE_BARRE_PREFIXE)) {
             return true;
         }
 

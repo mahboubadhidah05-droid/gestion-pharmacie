@@ -60,7 +60,8 @@ class MedicamentDAOTest {
                     10,
                     "2026-12-31",
                     true,
-                    0.7
+                    0.7,
+                    "1234567890123"
             );
 
             verify(statement).setString(
@@ -103,6 +104,11 @@ class MedicamentDAOTest {
                     0.7
             );
 
+            verify(statement).setString(
+                    9,
+                    "1234567890123"
+            );
+
             verify(statement).executeUpdate();
         }
     }
@@ -137,7 +143,8 @@ class MedicamentDAOTest {
                             10,
                             "2026-12-31",
                             true,
-                            0.7
+                            0.7,
+                            "1234567890123"
                     )
             );
         }
@@ -321,6 +328,10 @@ class MedicamentDAOTest {
         when(
                 result.getDouble("taux_remboursement")
         ).thenReturn(0.7);
+
+        when(
+                result.getString("code_barre")
+        ).thenReturn("1234567890123");
 
         try (MockedStatic<DBConnection> dbConnection =
                      mockStatic(DBConnection.class)) {
@@ -908,6 +919,153 @@ class MedicamentDAOTest {
             assertThrows(
                     AccesDonneesException.class,
                     () -> medicamentDAO.getInfosVente(1)
+            );
+        }
+    }
+
+    @Test
+    void doitRetournerIdParCodeBarre() throws Exception {
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet result = mock(ResultSet.class);
+
+        when(connection.prepareStatement(anyString())).thenReturn(statement);
+        when(statement.executeQuery()).thenReturn(result);
+        when(result.next()).thenReturn(true);
+        when(result.getInt("id_medicament")).thenReturn(4);
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            int resultat = medicamentDAO.getIdParCodeBarre("1234567890123");
+
+            assertEquals(4, resultat);
+
+            verify(statement).setString(1, "1234567890123");
+        }
+    }
+
+    @Test
+    void doitRetournerMoinsUnSiCodeBarreIntrouvable() throws Exception {
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet result = mock(ResultSet.class);
+
+        when(connection.prepareStatement(anyString())).thenReturn(statement);
+        when(statement.executeQuery()).thenReturn(result);
+        when(result.next()).thenReturn(false);
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            assertEquals(
+                    -1,
+                    medicamentDAO.getIdParCodeBarre("0000000000000")
+            );
+        }
+    }
+
+    @Test
+    void doitLeverExceptionSiRecherchesParCodeBarreEchoue() throws Exception {
+
+        Connection connection = mock(Connection.class);
+
+        when(connection.prepareStatement(anyString()))
+                .thenThrow(new SQLException("Erreur SQL"));
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> medicamentDAO.getIdParCodeBarre("1234567890123")
+            );
+        }
+    }
+
+    @Test
+    void doitRetournerResumeParId() throws Exception {
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet result = mock(ResultSet.class);
+
+        when(connection.prepareStatement(anyString())).thenReturn(statement);
+        when(statement.executeQuery()).thenReturn(result);
+        when(result.next()).thenReturn(true);
+        when(result.getString("nom")).thenReturn("antafen");
+        when(result.getString("dosage")).thenReturn("100mg");
+        when(result.getInt("stock")).thenReturn(160);
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            dto.MedicamentScanResponse resultat =
+                    medicamentDAO.getResumeParId(4);
+
+            assertEquals("antafen", resultat.nom());
+            assertEquals(160, resultat.stock());
+        }
+    }
+
+    @Test
+    void doitRetournerNullSiResumeIntrouvable() throws Exception {
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet result = mock(ResultSet.class);
+
+        when(connection.prepareStatement(anyString())).thenReturn(statement);
+        when(statement.executeQuery()).thenReturn(result);
+        when(result.next()).thenReturn(false);
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            assertEquals(null, medicamentDAO.getResumeParId(999));
+        }
+    }
+
+    @Test
+    void doitLeverExceptionSiResumeEchoue() throws Exception {
+
+        Connection connection = mock(Connection.class);
+
+        when(connection.prepareStatement(anyString()))
+                .thenThrow(new SQLException("Erreur SQL"));
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> medicamentDAO.getResumeParId(4)
             );
         }
     }

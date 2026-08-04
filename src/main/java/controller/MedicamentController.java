@@ -48,7 +48,8 @@ public class MedicamentController {
                 request.seuil(),
                 request.datePeremption(),
                 request.conventionneCnam(),
-                request.tauxRemboursement()
+                request.tauxRemboursement(),
+                request.codeBarre()
         );
 
         return ResponseEntity
@@ -217,5 +218,26 @@ public class MedicamentController {
         }
 
         return ResponseEntity.ok(resultat);
+    }
+
+
+    @GetMapping("/code-barre/{codeBarre}")
+    public ResponseEntity<dto.MedicamentScanResponse> scannerCodeBarre(
+            @PathVariable String codeBarre) {
+
+        int id = medicamentService.getIdParCodeBarre(codeBarre);
+
+        if (id == STOCK_INTROUVABLE) {
+            return ResponseEntity.notFound().build();
+        }
+
+        dto.MedicamentScanResponse resume =
+                medicamentService.getResumeParId(id);
+
+        if (resume == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(resume);
     }
 }

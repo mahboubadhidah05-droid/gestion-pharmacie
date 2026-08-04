@@ -28,7 +28,8 @@ public class MedicamentService {
     public void ajouter(
             String nom, String dosage, int stock, double prix,
             int seuil, String datePeremption,
-            boolean conventionneCnam, double tauxRemboursement) {
+            boolean conventionneCnam, double tauxRemboursement,
+            String codeBarre) {
 
         int idExistant = dao.getIdMedicamentParNomEtDosage(nom, dosage);
 
@@ -43,7 +44,7 @@ public class MedicamentService {
 
         dao.ajouterMedicament(
                 nom, dosage, stock, prix, seuil, datePeremption,
-                conventionneCnam, tauxRemboursement
+                conventionneCnam, tauxRemboursement, codeBarre
         );
         int idMed = dao.getIdMedicamentParNomEtDosage(nom, dosage);
         histDAO.ajouterHistorique(idMed, stock);
@@ -56,6 +57,20 @@ public class MedicamentService {
 
     public int getIdParNomEtDosage(String nom, String dosage) {
         return dao.getIdMedicamentParNomEtDosage(nom, dosage);
+    }
+
+    /**
+     * Retrouve l'ID d'un médicament à partir de son code-barres
+     * (utilisé lors d'une vente, après un scan).
+     *
+     * @return l'ID trouvé, ou -1 si aucun médicament ne correspond.
+     */
+    public int getIdParCodeBarre(String codeBarre) {
+        return dao.getIdParCodeBarre(codeBarre);
+    }
+
+    public dto.MedicamentScanResponse getResumeParId(int id) {
+        return dao.getResumeParId(id);
     }
 
     public MedicamentVenteInfo getInfosVente(int id) {
@@ -91,7 +106,8 @@ public class MedicamentService {
                     datePlusProche,
                     quantitePerimee,
                     med.conventionneCnam(),
-                    med.tauxRemboursement()
+                    med.tauxRemboursement(),
+                    med.codeBarre()
             ));
         }
 

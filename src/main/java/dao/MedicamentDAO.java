@@ -41,14 +41,15 @@ public void ajouterMedicament(
         int seuil,
         String datePeremption,
         boolean conventionneCnam,
-        double tauxRemboursement) {
+        double tauxRemboursement,
+        String codeBarre) {
 
     String sql =
             "INSERT INTO "
             + TABLE_MEDICAMENT
             + " (nom, dosage, stock, prix, seuil_critique, date_peremption,"
-            + " conventionne_cnam, taux_remboursement)"
-            + " VALUES(?,?,?,?,?,?,?,?)";
+            + " conventionne_cnam, taux_remboursement, code_barre)"
+            + " VALUES(?,?,?,?,?,?,?,?,?)";
 
     try (Connection connection =
                  DBConnection.getConnection();
@@ -63,6 +64,7 @@ public void ajouterMedicament(
         statement.setString(6, datePeremption);
         statement.setBoolean(7, conventionneCnam);
         statement.setDouble(8, tauxRemboursement);
+        statement.setString(9, codeBarre);
 
         statement.executeUpdate();
 
@@ -225,7 +227,8 @@ public List<MedicamentResponse> listerMedicaments() {
                             result.getString("date_peremption"),
                             0,
                             result.getBoolean("conventionne_cnam"),
-                            result.getDouble("taux_remboursement")
+                            result.getDouble("taux_remboursement"),
+                            result.getString("code_barre")
                     )
             );
         }
@@ -240,6 +243,98 @@ public List<MedicamentResponse> listerMedicaments() {
     }
 
     return medicaments;
+}
+
+/**
+ * Retrouve l'ID d'un médicament à partir de son code-barres
+ * (recherche par scan lors d'une vente).
+ *
+ * @return l'ID trouvé, ou -1 si aucun médicament ne correspond.
+ */
+public int getIdParCodeBarre(String codeBarre) {
+
+    String sql =
+            "SELECT "
+            + COL_ID
+            + " FROM "
+            + TABLE_MEDICAMENT
+            + " WHERE code_barre = ?";
+
+    try (Connection connection =
+                 DBConnection.getConnection();
+         PreparedStatement statement =
+                 connection.prepareStatement(sql)) {
+
+        statement.setString(1, codeBarre);
+
+        try (ResultSet result =
+                     statement.executeQuery()) {
+
+            if (result.next()) {
+                return result.getInt(COL_ID);
+            }
+        }
+
+    } catch (SQLException exception) {
+
+        throw new AccesDonneesException(
+                "Échec de la recherche du médicament "
+                        + "par code-barres : "
+                        + codeBarre,
+                exception
+        );
+    }
+
+    return -1;
+}
+
+/**
+ * Résumé minimal (nom, dosage, stock) d'un médicament par son ID —
+ * utilisé pour confirmer visuellement le produit après un scan.
+ */
+public dto.MedicamentScanResponse getResumeParId(int id) {
+
+    String sql =
+            "SELECT "
+            + COL_NOM
+            + ", dosage, "
+            + COL_STOCK
+            + " FROM "
+            + TABLE_MEDICAMENT
+            + WHERE_ID;
+
+    try (Connection connection =
+                 DBConnection.getConnection();
+         PreparedStatement statement =
+                 connection.prepareStatement(sql)) {
+
+        statement.setInt(1, id);
+
+        try (ResultSet result =
+                     statement.executeQuery()) {
+
+            if (result.next()) {
+
+                return new dto.MedicamentScanResponse(
+                        id,
+                        result.getString(COL_NOM),
+                        result.getString("dosage"),
+                        result.getInt(COL_STOCK)
+                );
+            }
+        }
+
+    } catch (SQLException exception) {
+
+        throw new AccesDonneesException(
+                "Échec de la récupération du résumé "
+                        + CONTEXTE_MEDICAMENT
+                        + id,
+                exception
+        );
+    }
+
+    return null;
 }
 
 public List<NomMedicamentResponse> listerNoms() {

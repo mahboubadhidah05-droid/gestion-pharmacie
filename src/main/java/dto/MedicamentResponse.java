@@ -10,6 +10,9 @@ package dto;
  * conventionneCnam / tauxRemboursement : indiquent si ce médicament
  * est pris en charge par la CNAM et à quel taux (ex : 0.7 = 70%),
  * utilisés pour calculer le remboursement à la vente.
+ *
+ * codeBarre : facultatif (null si non renseigné), utilisé pour la
+ * recherche rapide par scan lors d'une vente.
  */
 public record MedicamentResponse(
         int id,
@@ -21,5 +24,6 @@ public record MedicamentResponse(
         String datePeremption,
         int quantitePerimee,
         boolean conventionneCnam,
-        double tauxRemboursement) {
+        double tauxRemboursement,
+        String codeBarre) {
 }

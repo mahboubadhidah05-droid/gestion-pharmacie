@@ -231,7 +231,9 @@ const TRADUCTIONS = {
     "champMotDePasseActuel": { fr: "Mot de passe actuel", en: "Current password" },
     "champNouveauMotDePasse": { fr: "Nouveau mot de passe", en: "New password" },
     "champConfirmerMotDePasse": { fr: "Confirmer le nouveau mot de passe", en: "Confirm new password" },
-    "btnModifierMotDePasse": { fr: "Modifier le mot de passe", en: "Change password" }
+    "btnModifierMotDePasse": { fr: "Modifier le mot de passe", en: "Change password" },
+    "champCodeBarre": { fr: "Code-barres (facultatif)", en: "Barcode (optional)" },
+    "champCodeBarreScan": { fr: "Code-barres du médicament", en: "Medicine barcode" }
 };
 
 
@@ -303,7 +305,15 @@ Object.assign(TRADUCTIONS, {
     "oui": { fr: "Oui", en: "Yes" },
     "non": { fr: "Non", en: "No" },
     "pharmacienLabel": { fr: "Pharmacien", en: "Pharmacist" },
-    "gestionnaireLabel": { fr: "Gestionnaire", en: "Manager" }
+    "gestionnaireLabel": { fr: "Gestionnaire", en: "Manager" },
+    "scannerDabordUnMedicament": {
+        fr: "Scanne d'abord un médicament avant d'enregistrer la vente.",
+        en: "Scan a medicine first before recording the sale."
+    },
+    "medicamentIntrouvablePourCeCode": {
+        fr: "Médicament introuvable pour ce code-barres.",
+        en: "No medicine found for this barcode."
+    }
 });
 
 

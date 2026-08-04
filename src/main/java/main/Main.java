@@ -450,6 +450,12 @@ public class Main {
                                 ? lireDouble("Taux de remboursement (ex: 0.7 pour 70%) : ")
                                 : 0.0;
 
+                final String codeBarreSaisie =
+                        lireTexte("Code-barres (vide si aucun) : ");
+
+                final String codeBarre =
+                        codeBarreSaisie.isBlank() ? null : codeBarreSaisie;
+
                 medService.ajouter(
                         nom,
                         dosage,
@@ -458,7 +464,8 @@ public class Main {
                         seuil,
                         datePeremption,
                         conventionneCnam,
-                        tauxRemboursement
+                        tauxRemboursement,
+                        codeBarre
                 );
 
                 break;

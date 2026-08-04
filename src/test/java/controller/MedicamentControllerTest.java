@@ -108,7 +108,7 @@ class MedicamentControllerTest {
         when(medicamentService.listerMedicaments()).thenReturn(
                 List.of(new MedicamentResponse(
                         1, "Paracetamol", "500mg", 20, 2.5, 5,
-                        "2026-12-31", 0, true, 0.7
+                        "2026-12-31", 0, true, 0.7, "1234567890123"
                 )));
 
         mockMvc.perform(get("/api/medicaments"))
@@ -181,6 +181,32 @@ class MedicamentControllerTest {
         mockMvc.perform(get("/api/medicaments/verifier")
                         .param("nom", "Inconnu")
                         .param("dosage", "1g"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void scannerCodeBarre_trouve_doitRetourner200() throws Exception {
+
+        when(medicamentService.getIdParCodeBarre("1234567890123"))
+                .thenReturn(4);
+
+        when(medicamentService.getResumeParId(4)).thenReturn(
+                new dto.MedicamentScanResponse(4, "antafen", "100mg", 160)
+        );
+
+        mockMvc.perform(get("/api/medicaments/code-barre/1234567890123"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nom").value("antafen"))
+                .andExpect(jsonPath("$.stock").value(160));
+    }
+
+    @Test
+    void scannerCodeBarre_introuvable_doitRetourner404() throws Exception {
+
+        when(medicamentService.getIdParCodeBarre("0000000000000"))
+                .thenReturn(-1);
+
+        mockMvc.perform(get("/api/medicaments/code-barre/0000000000000"))
                 .andExpect(status().isNotFound());
     }
 }

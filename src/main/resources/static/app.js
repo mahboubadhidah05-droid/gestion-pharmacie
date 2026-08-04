@@ -239,7 +239,9 @@ if (formAjout) {
                         conventionneCnam:
                             f.get("conventionneCnam") === "on",
                         tauxRemboursement:
-                            Number(f.get("tauxRemboursement")) || 0
+                            Number(f.get("tauxRemboursement")) || 0,
+                        codeBarre:
+                            f.get("codeBarre") || null
                     }
                 );
 
@@ -735,6 +737,19 @@ if (formVente) {
 
             e.preventDefault();
 
+            const hiddenId =
+                document.getElementById("hiddenIdMedicamentVente");
+
+            if (!hiddenId.value) {
+
+                notifier(
+                    traduire("scannerDabordUnMedicament"),
+                    "erreur"
+                );
+
+                return;
+            }
+
             const bouton = e.target.querySelector("button");
             definirChargement(bouton, true);
 
@@ -796,6 +811,10 @@ if (formVente) {
 
                 e.target.reset();
 
+                document.getElementById(
+                    "confirmationScanVente"
+                ).textContent = "";
+
             } else if (
                 resultat.statut === 409
             ) {
@@ -815,6 +834,82 @@ if (formVente) {
                 alerte.classList.remove(
                     "ok"
                 );
+            }
+        }
+    );
+}
+
+
+/* ============================================================
+   SCAN CODE-BARRES — ENREGISTRER UNE VENTE
+   ============================================================ */
+
+const inputCodeBarreVente =
+    document.getElementById("inputCodeBarreVente");
+
+if (inputCodeBarreVente) {
+
+    inputCodeBarreVente.addEventListener(
+        "keydown",
+        async (e) => {
+
+            /* Un scanner USB tape le code puis appuie sur Entrée
+               automatiquement — on intercepte cet Entrée pour faire
+               la recherche, sans soumettre toute la vente tout de
+               suite (la quantité n'a pas encore été saisie). */
+            if (e.key !== "Enter") {
+                return;
+            }
+
+            e.preventDefault();
+
+            const code = inputCodeBarreVente.value.trim();
+
+            const confirmation =
+                document.getElementById("confirmationScanVente");
+
+            const hiddenId =
+                document.getElementById("hiddenIdMedicamentVente");
+
+            if (!code) {
+                return;
+            }
+
+            const resultat = await appelerApi(
+                "GET",
+                `/api/medicaments/code-barre/${encodeURIComponent(code)}`
+            );
+
+            if (!resultat.ok) {
+
+                hiddenId.value = "";
+
+                confirmation.textContent =
+                    traduire("medicamentIntrouvablePourCeCode");
+
+                confirmation.className = "kpi-sous-texte texte-perime";
+
+                return;
+            }
+
+            const d = resultat.donnees;
+
+            hiddenId.value = d.id;
+
+            confirmation.textContent =
+                `✓ ${d.nom} (${d.dosage}) — ${d.stock} `
+                + traduire("uniteEnStock");
+
+            confirmation.className =
+                "kpi-sous-texte texte-mouvement-plus";
+
+            /* Passe directement au champ quantité, comme au comptoir :
+               scanner puis taper la quantité, sans manipuler la souris. */
+            const champQuantite =
+                document.querySelector('#formVente [name="quantite"]');
+
+            if (champQuantite) {
+                champQuantite.focus();
             }
         }
     );

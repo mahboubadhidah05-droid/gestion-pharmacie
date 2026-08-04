@@ -67,13 +67,15 @@
 		                    </label>
 		                </div>
 		                <div class="rangee">
-		                    <label data-i18n="champIdMedicament">ID Médicament
-		                        <input type="number" name="idMedicament" required min="1" placeholder="1">
+		                    <label data-i18n="champCodeBarreScan">Code-barres du médicament
+		                        <input type="text" id="inputCodeBarreVente" placeholder="Scanner ou taper le code, puis Entrée" autocomplete="off">
 		                    </label>
 		                    <label data-i18n="champQuantite">Quantité
 		                        <input type="number" name="quantite" required min="1" placeholder="2">
 		                    </label>
 		                </div>
+		                <input type="hidden" name="idMedicament" id="hiddenIdMedicamentVente">
+		                <p class="kpi-sous-texte" id="confirmationScanVente"></p>
 		                <button type="submit" data-i18n="btnEnregistrerVente">Enregistrer la vente</button>
 		            </form>
 		            <p class="alerte" id="alerteVente" hidden></p>
@@ -143,3 +145,4 @@
     <script src="auth.js"></script>
     <script src="app.js"></script>
 </body>
+</html>

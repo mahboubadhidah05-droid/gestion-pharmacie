@@ -76,6 +76,8 @@ class MedicamentServiceTest {
                 )
         ).thenReturn(-1, idMedicament);
 
+        String codeBarre = "1234567890123";
+
         service.ajouter(
                 nom,
                 dosage,
@@ -84,7 +86,8 @@ class MedicamentServiceTest {
                 seuil,
                 datePeremption,
                 conventionneCnam,
-                tauxRemboursement
+                tauxRemboursement,
+                codeBarre
         );
 
         verify(dao).ajouterMedicament(
@@ -95,7 +98,8 @@ class MedicamentServiceTest {
                 seuil,
                 datePeremption,
                 conventionneCnam,
-                tauxRemboursement
+                tauxRemboursement,
+                codeBarre
         );
 
         verify(histDAO).ajouterHistorique(
@@ -141,7 +145,8 @@ class MedicamentServiceTest {
                 seuil,
                 datePeremption,
                 false,
-                0.0
+                0.0,
+                null
         );
 
         verify(dao, never()).ajouterMedicament(
@@ -152,7 +157,8 @@ class MedicamentServiceTest {
                 anyInt(),
                 any(),
                 org.mockito.ArgumentMatchers.anyBoolean(),
-                anyDouble()
+                anyDouble(),
+                any()
         );
 
         verify(dao).updateStock(
@@ -215,7 +221,7 @@ class MedicamentServiceTest {
 
         MedicamentResponse ancien = new MedicamentResponse(
                 4, "antafen", "100mg", 160, 8.0, 20,
-                "2026-02-24", 0, true, 0.7
+                "2026-02-24", 0, true, 0.7, "1234567890123"
         );
 
         when(dao.listerMedicaments()).thenReturn(List.of(ancien));
@@ -242,7 +248,7 @@ class MedicamentServiceTest {
 
         MedicamentResponse ancien = new MedicamentResponse(
                 4, "antafen", "100mg", 160, 8.0, 20,
-                "2026-02-24", 0, false, 0.0
+                "2026-02-24", 0, false, 0.0, null
         );
 
         when(dao.listerMedicaments()).thenReturn(List.of(ancien));
@@ -514,5 +520,32 @@ class MedicamentServiceTest {
                 service.verifier("Paracetamol", "500mg");
 
         assertEquals(true, resultat.bientotPerime());
+    }
+
+    @Test
+    void getIdParCodeBarre_doitDeleguerAuDao() {
+
+        when(dao.getIdParCodeBarre("1234567890123")).thenReturn(4);
+
+        assertEquals(4, service.getIdParCodeBarre("1234567890123"));
+    }
+
+    @Test
+    void getIdParCodeBarre_introuvable_doitRetournerMoinsUn() {
+
+        when(dao.getIdParCodeBarre("0000000000000")).thenReturn(-1);
+
+        assertEquals(-1, service.getIdParCodeBarre("0000000000000"));
+    }
+
+    @Test
+    void getResumeParId_doitDeleguerAuDao() {
+
+        dto.MedicamentScanResponse resume =
+                new dto.MedicamentScanResponse(4, "antafen", "100mg", 160);
+
+        when(dao.getResumeParId(4)).thenReturn(resume);
+
+        assertEquals(resume, service.getResumeParId(4));
     }
 }
