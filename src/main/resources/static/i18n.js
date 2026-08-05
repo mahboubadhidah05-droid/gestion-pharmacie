@@ -236,7 +236,13 @@ const TRADUCTIONS = {
     "champCodeBarreScan": { fr: "Code-barres du médicament", en: "Medicine barcode" },
     "champCin": { fr: "CIN", en: "National ID (CIN)" },
     "optClientCin": { fr: "Client (CIN)", en: "Customer (National ID)" },
-    "optMedicamentCodeBarre": { fr: "Médicament (code-barres)", en: "Medicine (barcode)" }
+    "optMedicamentCodeBarre": { fr: "Médicament (code-barres)", en: "Medicine (barcode)" },
+    "aucunMedicamentTrouve": { fr: "Aucun médicament trouvé.", en: "No medicine found." },
+    "modeCodeBarre": { fr: "Code-barres", en: "Barcode" },
+    "modeNomDosage": { fr: "Nom + dosage", en: "Name + dosage" },
+    "champNomDosageMedicament": { fr: "Nom + dosage du médicament", en: "Medicine name + dosage" },
+    "champForme": { fr: "Forme (facultatif)", en: "Form (optional)" },
+    "champFabricant": { fr: "Fabricant (facultatif)", en: "Manufacturer (optional)" }
 };
 
 

@@ -142,6 +142,178 @@ async function appelerApi(methode, url, donnees) {
 
 
 /* ============================================================
+   AUTOCOMPLÉTION MÉDICAMENT (nom + dosage) — composant réutilisable
+   ============================================================ */
+
+/**
+ * Branche une autocomplétion "nom + dosage" sur un champ texte : dès
+ * 2 lettres tapées, affiche une liste déroulante des médicaments
+ * correspondants (nom, dosage, forme, fabricant), et remplit un champ
+ * caché avec l'ID du médicament choisi.
+ *
+ * @param {string} inputId - id du champ texte visible
+ * @param {string} hiddenIdFieldId - id du champ caché à remplir (ID médicament)
+ * @param {function} [onSelectionnee] - rappel optionnel(medicament) au choix
+ */
+function initAutocompletionMedicament(inputId, hiddenIdFieldId, onSelectionnee) {
+
+    const input = document.getElementById(inputId);
+    const hiddenId = document.getElementById(hiddenIdFieldId);
+
+    if (!input || !hiddenId) {
+        return;
+    }
+
+    const conteneur = document.createElement("div");
+    conteneur.className = "autocomplete-liste";
+    conteneur.hidden = true;
+
+    if (input.parentElement) {
+        input.parentElement.classList.add("autocomplete-conteneur");
+        input.parentElement.appendChild(conteneur);
+    }
+
+    let idMinuteur = null;
+
+    function fermer() {
+        conteneur.hidden = true;
+        conteneur.innerHTML = "";
+    }
+
+    function afficherResultats(resultats) {
+
+        conteneur.innerHTML = "";
+
+        if (resultats.length === 0) {
+
+            const vide = document.createElement("div");
+            vide.className = "autocomplete-vide";
+            vide.textContent = traduire("aucunMedicamentTrouve");
+
+            conteneur.appendChild(vide);
+            conteneur.hidden = false;
+            return;
+        }
+
+        resultats.forEach((med) => {
+
+            const item = document.createElement("div");
+            item.className = "autocomplete-item";
+
+            const titre = document.createElement("div");
+            titre.className = "autocomplete-titre";
+            titre.textContent =
+                `${med.nom} ${med.dosage}`
+                + (med.forme ? ` ${med.forme}` : "");
+
+            const details = document.createElement("div");
+            details.className = "autocomplete-details";
+            details.textContent = med.fabricant || "—";
+
+            item.appendChild(titre);
+            item.appendChild(details);
+
+            item.addEventListener("click", () => {
+
+                input.value = `${med.nom} ${med.dosage}`;
+                hiddenId.value = med.id;
+
+                fermer();
+
+                if (onSelectionnee) {
+                    onSelectionnee(med);
+                }
+            });
+
+            conteneur.appendChild(item);
+        });
+
+        conteneur.hidden = false;
+    }
+
+    input.addEventListener("input", () => {
+
+        hiddenId.value = "";
+
+        const valeur = input.value.trim();
+
+        clearTimeout(idMinuteur);
+
+        if (valeur.length < 2) {
+            fermer();
+            return;
+        }
+
+        idMinuteur = setTimeout(async () => {
+
+            const resultat = await appelerApi(
+                "GET",
+                `/api/medicaments/recherche?debut=${encodeURIComponent(valeur)}`
+            );
+
+            if (resultat.ok) {
+                afficherResultats(resultat.donnees);
+            }
+
+        }, 250);
+    });
+
+    document.addEventListener("click", (e) => {
+
+        if (e.target !== input && !conteneur.contains(e.target)) {
+            fermer();
+        }
+    });
+}
+
+/**
+ * Branche un petit interrupteur "Code-barres / Nom + dosage" qui
+ * bascule l'affichage entre 2 blocs, et vide les champs du bloc
+ * qu'on quitte pour ne jamais soumettre une valeur périmée.
+ *
+ * @param {string} conteneurToggleId - id du <div> contenant les 2 boutons
+ * @param {string} blocCodeBarreId - id du bloc "code-barres"
+ * @param {string} blocNomDosageId - id du bloc "nom + dosage"
+ */
+function initToggleModeRecherche(
+    conteneurToggleId, blocCodeBarreId, blocNomDosageId
+) {
+
+    const conteneur = document.getElementById(conteneurToggleId);
+    const blocCodeBarre = document.getElementById(blocCodeBarreId);
+    const blocNomDosage = document.getElementById(blocNomDosageId);
+
+    if (!conteneur || !blocCodeBarre || !blocNomDosage) {
+        return;
+    }
+
+    const boutons = conteneur.querySelectorAll("button");
+
+    boutons.forEach((bouton) => {
+
+        bouton.addEventListener("click", () => {
+
+            boutons.forEach((b) => b.classList.remove("actif"));
+            bouton.classList.add("actif");
+
+            const modeCodeBarre = bouton.dataset.mode === "codeBarre";
+
+            blocCodeBarre.hidden = !modeCodeBarre;
+            blocNomDosage.hidden = modeCodeBarre;
+
+            blocCodeBarre
+                .querySelectorAll("input")
+                .forEach((champ) => { champ.value = ""; });
+
+            blocNomDosage
+                .querySelectorAll('input[type="text"], input[type="hidden"]')
+                .forEach((champ) => { champ.value = ""; });
+        });
+    });
+}
+
+
+/* ============================================================
    Vérification de l'API
    ============================================================ */
 
@@ -241,7 +413,11 @@ if (formAjout) {
                         tauxRemboursement:
                             Number(f.get("tauxRemboursement")) || 0,
                         codeBarre:
-                            f.get("codeBarre") || null
+                            f.get("codeBarre") || null,
+                        forme:
+                            f.get("forme") || null,
+                        fabricant:
+                            f.get("fabricant") || null
                     }
                 );
 
@@ -276,6 +452,14 @@ const formConsulter =
         "formConsulter"
     );
 
+initToggleModeRecherche(
+    "toggleConsulter", "blocCodeBarreConsulter", "blocNomDosageConsulter"
+);
+
+initAutocompletionMedicament(
+    "inputAutocompleteConsulter", "hiddenIdConsulter"
+);
+
 if (formConsulter) {
 
     formConsulter.addEventListener(
@@ -284,19 +468,29 @@ if (formConsulter) {
 
             e.preventDefault();
 
+            const codeBarre = e.target.querySelector(
+                '[name="codeBarre"]'
+            ).value;
+
+            const idChoisi = document.getElementById(
+                "hiddenIdConsulter"
+            ).value;
+
+            let url;
+
+            if (idChoisi) {
+                url = `${API}/${idChoisi}/stock`;
+            } else if (codeBarre) {
+                url = `${API}/stock?codeBarre=${encodeURIComponent(codeBarre)}`;
+            } else {
+                return;
+            }
+
             const bouton = e.target.querySelector("button");
             definirChargement(bouton, true);
 
-            const f =
-                new FormData(e.target);
-
-            const codeBarre = f.get("codeBarre");
-
             const resultat =
-                await appelerApi(
-                    "GET",
-                    `${API}/stock?codeBarre=${encodeURIComponent(codeBarre)}`
-                );
+                await appelerApi("GET", url);
 
             definirChargement(bouton, false);
 
@@ -336,6 +530,14 @@ if (formConsulter) {
 const formMaj =
     document.getElementById("formMaj");
 
+initToggleModeRecherche(
+    "toggleMaj", "blocCodeBarreMaj", "blocNomDosageMaj"
+);
+
+initAutocompletionMedicament(
+    "inputAutocompleteMaj", "hiddenIdMaj"
+);
+
 if (formMaj) {
 
     formMaj.addEventListener(
@@ -344,18 +546,32 @@ if (formMaj) {
 
             e.preventDefault();
 
-            const bouton = e.target.querySelector("button");
-            definirChargement(bouton, true);
-
             const f =
                 new FormData(e.target);
 
             const codeBarre = f.get("codeBarre");
 
+            const idChoisi = document.getElementById(
+                "hiddenIdMaj"
+            ).value;
+
+            let url;
+
+            if (idChoisi) {
+                url = `${API}/${idChoisi}/stock`;
+            } else if (codeBarre) {
+                url = `${API}/stock?codeBarre=${encodeURIComponent(codeBarre)}`;
+            } else {
+                return;
+            }
+
+            const bouton = e.target.querySelector("button");
+            definirChargement(bouton, true);
+
             const resultat =
                 await appelerApi(
                     "PUT",
-                    `${API}/stock?codeBarre=${encodeURIComponent(codeBarre)}`,
+                    url,
                     {
                         quantite:
                             Number(f.get("stock"))
@@ -391,6 +607,14 @@ if (formMaj) {
 const formVerifier =
     document.getElementById("formVerifier");
 
+initToggleModeRecherche(
+    "toggleVerifier", "blocCodeBarreVerifier", "blocNomDosageVerifier"
+);
+
+initAutocompletionMedicament(
+    "inputAutocompleteVerifier", "hiddenIdVerifier"
+);
+
 if (formVerifier) {
 
     formVerifier.addEventListener(
@@ -399,16 +623,27 @@ if (formVerifier) {
 
             e.preventDefault();
 
-            const bouton = e.target.querySelector("button");
-            definirChargement(bouton, true);
-
             const f = new FormData(e.target);
             const codeBarre = f.get("codeBarre");
 
-            const resultat = await appelerApi(
-                "GET",
-                `${API}/verifier?codeBarre=${encodeURIComponent(codeBarre)}`
-            );
+            const idChoisi = document.getElementById(
+                "hiddenIdVerifier"
+            ).value;
+
+            let url;
+
+            if (idChoisi) {
+                url = `${API}/${idChoisi}/verifier`;
+            } else if (codeBarre) {
+                url = `${API}/verifier?codeBarre=${encodeURIComponent(codeBarre)}`;
+            } else {
+                return;
+            }
+
+            const bouton = e.target.querySelector("button");
+            definirChargement(bouton, true);
+
+            const resultat = await appelerApi("GET", url);
 
             definirChargement(bouton, false);
 
@@ -489,6 +724,14 @@ if (formVerifier) {
 const formStockPerime =
     document.getElementById("formStockPerime");
 
+initToggleModeRecherche(
+    "toggleStockPerime", "blocCodeBarreStockPerime", "blocNomDosageStockPerime"
+);
+
+initAutocompletionMedicament(
+    "inputAutocompleteStockPerime", "hiddenIdStockPerime"
+);
+
 if (formStockPerime) {
 
     formStockPerime.addEventListener(
@@ -497,16 +740,28 @@ if (formStockPerime) {
 
             e.preventDefault();
 
-            const bouton = e.target.querySelector("button");
-            definirChargement(bouton, true);
-
             const f = new FormData(e.target);
             const codeBarre = f.get("codeBarre");
 
-            const resultat = await appelerApi(
-                "PUT",
-                `${API}/stock-perime?codeBarre=${encodeURIComponent(codeBarre)}`
-            );
+            const idChoisi = document.getElementById(
+                "hiddenIdStockPerime"
+            ).value;
+
+            let url;
+            let methode = "PUT";
+
+            if (idChoisi) {
+                url = `${API}/${idChoisi}/stock-perime`;
+            } else if (codeBarre) {
+                url = `${API}/stock-perime?codeBarre=${encodeURIComponent(codeBarre)}`;
+            } else {
+                return;
+            }
+
+            const bouton = e.target.querySelector("button");
+            definirChargement(bouton, true);
+
+            const resultat = await appelerApi(methode, url);
 
             definirChargement(bouton, false);
 
@@ -836,6 +1091,57 @@ if (formVente) {
    SCAN CODE-BARRES — ENREGISTRER UNE VENTE
    ============================================================ */
 
+initToggleModeRecherche(
+    "toggleVente", "blocCodeBarreVente", "blocNomDosageVente"
+);
+
+(function viderIdMedicamentVenteAuChangementDeMode() {
+
+    const toggle = document.getElementById("toggleVente");
+
+    if (!toggle) {
+        return;
+    }
+
+    toggle.querySelectorAll("button").forEach((bouton) => {
+
+        bouton.addEventListener("click", () => {
+
+            document.getElementById(
+                "hiddenIdMedicamentVente"
+            ).value = "";
+
+            document.getElementById(
+                "confirmationScanVente"
+            ).textContent = "";
+        });
+    });
+})();
+
+initAutocompletionMedicament(
+    "inputAutocompleteVente",
+    "hiddenIdMedicamentVente",
+    (med) => {
+
+        const confirmation =
+            document.getElementById("confirmationScanVente");
+
+        confirmation.textContent =
+            `✓ ${med.nom} (${med.dosage}) — ${traduire("champQuantite")}`
+            + " ?";
+
+        confirmation.className =
+            "kpi-sous-texte texte-mouvement-plus";
+
+        const champQuantite =
+            document.querySelector('#formVente [name="quantite"]');
+
+        if (champQuantite) {
+            champQuantite.focus();
+        }
+    }
+);
+
 const inputCodeBarreVente =
     document.getElementById("inputCodeBarreVente");
 
@@ -917,6 +1223,14 @@ const filtreVentes =
         "filtreVentes"
     );
 
+initToggleModeRecherche(
+    "toggleVentesFiltre", "champValeur", "champMedicamentAutocomplete"
+);
+
+initAutocompletionMedicament(
+    "inputAutocompleteVentesFiltre", "hiddenIdVentesFiltre"
+);
+
 if (filtreVentes) {
 
     filtreVentes.addEventListener(
@@ -924,10 +1238,25 @@ if (filtreVentes) {
         (e) => {
 
             const valeur = e.target.value;
+            const estMedicament = valeur === "medicament";
+
+            document.getElementById(
+                "toggleVentesFiltre"
+            ).hidden = !estMedicament;
+
+            const modeCodeBarreActif =
+                document
+                    .getElementById("toggleVentesFiltre")
+                    .querySelector('[data-mode="codeBarre"]')
+                    .classList.contains("actif");
 
             document.getElementById(
                 "champValeur"
-            ).hidden = valeur !== "medicament";
+            ).hidden = !(estMedicament && modeCodeBarreActif);
+
+            document.getElementById(
+                "champMedicamentAutocomplete"
+            ).hidden = !(estMedicament && !modeCodeBarreActif);
 
             document.getElementById(
                 "champsClient"
@@ -1008,18 +1337,30 @@ if (formConsulterVentes) {
 
             } else {
 
-                const valeur =
-                    f.get("valeur");
+                const idChoisi = document.getElementById(
+                    "hiddenIdVentesFiltre"
+                ).value;
 
-                if (!valeur) {
-                    return;
+                if (filtre === "medicament" && idChoisi) {
+
+                    url =
+                        `${API_VENTES}?idMedicament=${encodeURIComponent(idChoisi)}`;
+
+                } else {
+
+                    const valeur =
+                        f.get("valeur");
+
+                    if (!valeur) {
+                        return;
+                    }
+
+                    const nomParametre =
+                        filtre === "medicament" ? "codeBarre" : filtre;
+
+                    url =
+                        `${API_VENTES}?${nomParametre}=${encodeURIComponent(valeur)}`;
                 }
-
-                const nomParametre =
-                    filtre === "medicament" ? "codeBarre" : filtre;
-
-                url =
-                    `${API_VENTES}?${nomParametre}=${encodeURIComponent(valeur)}`;
             }
 
             definirChargement(bouton, true);

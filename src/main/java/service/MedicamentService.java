@@ -29,7 +29,7 @@ public class MedicamentService {
             String nom, String dosage, int stock, double prix,
             int seuil, String datePeremption,
             boolean conventionneCnam, double tauxRemboursement,
-            String codeBarre) {
+            String codeBarre, String forme, String fabricant) {
 
         int idExistant = dao.getIdMedicamentParNomEtDosage(nom, dosage);
 
@@ -44,7 +44,8 @@ public class MedicamentService {
 
         dao.ajouterMedicament(
                 nom, dosage, stock, prix, seuil, datePeremption,
-                conventionneCnam, tauxRemboursement, codeBarre
+                conventionneCnam, tauxRemboursement, codeBarre,
+                forme, fabricant
         );
         int idMed = dao.getIdMedicamentParNomEtDosage(nom, dosage);
         histDAO.ajouterHistorique(idMed, stock);
@@ -67,6 +68,16 @@ public class MedicamentService {
      */
     public int getIdParCodeBarre(String codeBarre) {
         return dao.getIdParCodeBarre(codeBarre);
+    }
+
+    /**
+     * Recherche par autocomplétion (2+ lettres du nom) — alternative
+     * au code-barres, utile quand on ne connaît que le nom, ou que
+     * le médicament n'a pas de code-barres enregistré.
+     */
+    public List<dto.MedicamentAutocompleteResponse> rechercherParDebutNom(
+            String debut) {
+        return dao.rechercherParDebutNom(debut);
     }
 
     public dto.MedicamentScanResponse getResumeParId(int id) {
@@ -107,7 +118,9 @@ public class MedicamentService {
                     quantitePerimee,
                     med.conventionneCnam(),
                     med.tauxRemboursement(),
-                    med.codeBarre()
+                    med.codeBarre(),
+                    med.forme(),
+                    med.fabricant()
             ));
         }
 
@@ -146,6 +159,15 @@ public class MedicamentService {
         if (id == -1) {
             return -1;
         }
+
+        return retirerStockPerimeParId(id);
+    }
+
+    /**
+     * Variante par ID directe — utilisée quand le médicament a été
+     * retrouvé via l'autocomplétion nom+dosage plutôt qu'un scan.
+     */
+    public int retirerStockPerimeParId(int id) {
 
         String aujourdhui = java.time.LocalDate.now().toString();
 
@@ -189,6 +211,17 @@ public class MedicamentService {
         if (id == -1) {
             return null;
         }
+
+        return verifierParId(id);
+    }
+
+    /**
+     * Variante par ID directe — utilisée quand le médicament a été
+     * retrouvé via l'autocomplétion nom+dosage plutôt qu'un scan.
+     *
+     * @return null si le médicament est introuvable.
+     */
+    public dto.VerifierMedicamentResponse verifierParId(int id) {
 
         dto.MedicamentScanResponse resume = dao.getResumeParId(id);
 

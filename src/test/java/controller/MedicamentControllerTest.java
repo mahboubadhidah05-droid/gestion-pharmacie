@@ -109,7 +109,8 @@ class MedicamentControllerTest {
         when(medicamentService.listerMedicaments()).thenReturn(
                 List.of(new MedicamentResponse(
                         1, "Paracetamol", "500mg", 20, 2.5, 5,
-                        "2026-12-31", 0, true, 0.7, "1234567890123"
+                        "2026-12-31", 0, true, 0.7, "1234567890123",
+                        "comprimé", "Sanofi"
                 )));
 
         mockMvc.perform(get("/api/medicaments"))
@@ -282,5 +283,70 @@ class MedicamentControllerTest {
         mockMvc.perform(get("/api/medicaments/stock-critique")
                         .param("codeBarre", "0000000000000"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void rechercherParNom_doitRetournerLaListe() throws Exception {
+
+        when(medicamentService.rechercherParDebutNom("Do")).thenReturn(
+                List.of(
+                        new dto.MedicamentAutocompleteResponse(
+                                1, "Doliprane", "500mg", "comprimé", "Sanofi"
+                        ),
+                        new dto.MedicamentAutocompleteResponse(
+                                2, "Doliprane", "1g", "comprimé", "GenPharma"
+                        )
+                )
+        );
+
+        mockMvc.perform(get("/api/medicaments/recherche")
+                        .param("debut", "Do"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].nom").value("Doliprane"))
+                .andExpect(jsonPath("$[1].fabricant").value("GenPharma"));
+    }
+
+    @Test
+    void verifierMedicamentParId_trouve_doitRetourner200() throws Exception {
+
+        when(medicamentService.verifierParId(4)).thenReturn(
+                new dto.VerifierMedicamentResponse(
+                        4, "antafen", "100mg", 160,
+                        false, 0, "2027-02-24", false
+                )
+        );
+
+        mockMvc.perform(get("/api/medicaments/4/verifier"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nom").value("antafen"));
+    }
+
+    @Test
+    void verifierMedicamentParId_introuvable_doitRetourner404() throws Exception {
+
+        when(medicamentService.verifierParId(999)).thenReturn(null);
+
+        mockMvc.perform(get("/api/medicaments/999/verifier"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void retirerStockPerimeParId_reussi_doitRetourner200() throws Exception {
+
+        when(medicamentService.retirerStockPerimeParId(1)).thenReturn(30);
+
+        mockMvc.perform(put("/api/medicaments/1/stock-perime"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message")
+                        .value("Stock périmé retiré : 30 unité(s)."));
+    }
+
+    @Test
+    void retirerStockPerimeParId_pasEncorePerime_doitRetourner400() throws Exception {
+
+        when(medicamentService.retirerStockPerimeParId(1)).thenReturn(-2);
+
+        mockMvc.perform(put("/api/medicaments/1/stock-perime"))
+                .andExpect(status().isBadRequest());
     }
 }

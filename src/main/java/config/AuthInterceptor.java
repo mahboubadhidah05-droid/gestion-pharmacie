@@ -58,6 +58,9 @@ public class AuthInterceptor implements HandlerInterceptor {
     private static final String CODE_BARRE_PREFIXE =
             "/api/medicaments/code-barre/";
 
+    private static final String RECHERCHE_PREFIXE =
+            "/api/medicaments/recherche";
+
     private boolean roleAutorise(String uri, String methode, String role) {
 
         /*
@@ -77,6 +80,16 @@ public class AuthInterceptor implements HandlerInterceptor {
          * complète des médicaments reste réservée au Gestionnaire.
          */
         if (uri.startsWith(CODE_BARRE_PREFIXE)) {
+            return true;
+        }
+
+        /*
+         * Recherche par autocomplétion (nom + dosage) ouverte aux deux
+         * rôles pour la même raison : alternative au scan pendant une
+         * vente, utilisable même si le médicament n'a pas de
+         * code-barres enregistré.
+         */
+        if (uri.startsWith(RECHERCHE_PREFIXE)) {
             return true;
         }
 

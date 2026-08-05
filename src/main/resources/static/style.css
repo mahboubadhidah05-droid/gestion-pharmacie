@@ -469,6 +469,97 @@ button.en-chargement::after {
 
 /* ---------- Résultats ---------- */
 
+/* ---------- Autocomplétion médicament (nom + dosage) ---------- */
+
+.autocomplete-conteneur {
+    position: relative;
+}
+
+.autocomplete-liste {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 30;
+    background: var(--blanc);
+    border: 1px solid var(--trait);
+    border-radius: var(--r-md);
+    box-shadow: var(--ombre-lg);
+    max-height: 260px;
+    overflow-y: auto;
+    animation: toast-entree 150ms var(--ressort);
+}
+
+.autocomplete-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--trait);
+    transition: background var(--vitesse) var(--ressort);
+}
+
+.autocomplete-item:last-child { border-bottom: none; }
+
+.autocomplete-item:hover,
+.autocomplete-item.actif {
+    background: var(--vert-clair);
+}
+
+.autocomplete-item .autocomplete-titre {
+    font-weight: 700;
+    font-size: 0.86rem;
+    color: var(--vert-fonce);
+}
+
+.autocomplete-item .autocomplete-details {
+    font-size: 0.76rem;
+    color: var(--gris-texte);
+    font-family: "IBM Plex Mono", monospace;
+}
+
+.autocomplete-vide {
+    padding: 12px 14px;
+    font-size: 0.8rem;
+    color: var(--gris-texte);
+    text-align: center;
+}
+
+.toggle-mode-recherche {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.toggle-mode-recherche button {
+    background: var(--papier);
+    color: var(--gris-texte);
+    border: 1px solid var(--trait);
+    box-shadow: none;
+    font-size: 0.76rem;
+    padding: 7px 14px;
+}
+
+.toggle-mode-recherche button.actif {
+    background: var(--vert);
+    color: var(--blanc);
+    border-color: var(--vert);
+}
+
+.toggle-mode-recherche button:hover {
+    background: var(--vert-clair);
+    color: var(--vert-fonce);
+    transform: none;
+    box-shadow: none;
+}
+
+.toggle-mode-recherche button.actif:hover {
+    background: var(--vert-hover);
+    color: var(--blanc);
+}
+
+
 .resultat-stock {
     margin-top: 16px;
     display: flex;
@@ -1125,4 +1216,30 @@ main.grille {
     .rangee, .rangee-3 { grid-template-columns: 1fr; }
     .etat-api span:last-child { display: none; }
     .kpi-grille { grid-template-columns: 1fr 1fr; }
+
+    .topbar {
+        flex-wrap: wrap;
+        row-gap: 8px;
+        padding: 12px 16px;
+    }
+
+    .topbar h1 { font-size: 1rem; }
+    .soustitre { display: none; }
+
+    .etat-api {
+        order: 3;
+    }
+
+    .btn-theme {
+        order: 4;
+    }
+
+    .btn-langue {
+        order: 5;
+    }
+
+    .session {
+        order: 6;
+        margin-left: auto;
+    }
 }

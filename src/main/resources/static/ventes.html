@@ -66,10 +66,21 @@
 		                        <input type="number" name="idClient" required min="1" placeholder="1">
 		                    </label>
 		                </div>
+		                <div class="toggle-mode-recherche" id="toggleVente">
+		                    <button type="button" class="actif" data-mode="codeBarre" data-i18n="modeCodeBarre">Code-barres</button>
+		                    <button type="button" data-mode="nomDosage" data-i18n="modeNomDosage">Nom + dosage</button>
+		                </div>
 		                <div class="rangee">
-		                    <label data-i18n="champCodeBarreScan">Code-barres du médicament
-		                        <input type="text" id="inputCodeBarreVente" placeholder="Scanner ou taper le code, puis Entrée" autocomplete="off">
-		                    </label>
+		                    <div class="rangee" id="blocCodeBarreVente" style="flex: 1; margin: 0;">
+		                        <label data-i18n="champCodeBarreScan">Code-barres du médicament
+		                            <input type="text" id="inputCodeBarreVente" placeholder="Scanner ou taper le code, puis Entrée" autocomplete="off">
+		                        </label>
+		                    </div>
+		                    <div class="rangee" id="blocNomDosageVente" hidden style="flex: 1; margin: 0;">
+		                        <label data-i18n="champNomDosageMedicament">Nom + dosage du médicament
+		                            <input type="text" id="inputAutocompleteVente" placeholder="Tape 2 lettres...">
+		                        </label>
+		                    </div>
 		                    <label data-i18n="champQuantite">Quantité
 		                        <input type="number" name="quantite" required min="1" placeholder="2">
 		                    </label>
@@ -97,6 +108,16 @@
 		                        <input type="text" name="valeur" id="inputValeurVente"
 		                               placeholder="Scanner ou taper le code">
 		                    </label>
+		                </div>
+		                <div class="rangee" id="champMedicamentAutocomplete" hidden>
+		                    <label data-i18n="champNomDosageMedicament">Nom + dosage du médicament
+		                        <input type="text" id="inputAutocompleteVentesFiltre" placeholder="Tape 2 lettres...">
+		                    </label>
+		                    <input type="hidden" id="hiddenIdVentesFiltre">
+		                </div>
+		                <div class="toggle-mode-recherche" id="toggleVentesFiltre" hidden>
+		                    <button type="button" class="actif" data-mode="codeBarre" data-i18n="modeCodeBarre">Code-barres</button>
+		                    <button type="button" data-mode="nomDosage" data-i18n="modeNomDosage">Nom + dosage</button>
 		                </div>
 		                <div class="rangee" id="champsClient" hidden>
 		                    <label data-i18n="champCin">CIN

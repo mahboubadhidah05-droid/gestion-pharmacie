@@ -13,6 +13,10 @@ package dto;
  *
  * codeBarre : facultatif (null si non renseigné), utilisé pour la
  * recherche rapide par scan lors d'une vente.
+ *
+ * forme / fabricant : facultatifs, utilisés pour distinguer plusieurs
+ * médicaments qui partagent le même nom + dosage (ex : comprimé vs
+ * sirop) dans la recherche par autocomplétion.
  */
 public record MedicamentResponse(
         int id,
@@ -25,5 +29,7 @@ public record MedicamentResponse(
         int quantitePerimee,
         boolean conventionneCnam,
         double tauxRemboursement,
-        String codeBarre) {
+        String codeBarre,
+        String forme,
+        String fabricant) {
 }

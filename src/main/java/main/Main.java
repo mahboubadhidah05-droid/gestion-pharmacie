@@ -469,6 +469,18 @@ public class Main {
                 final String codeBarre =
                         codeBarreSaisie.isBlank() ? null : codeBarreSaisie;
 
+                final String formeSaisie =
+                        lireTexte("Forme (comprimé, sirop... vide si aucune) : ");
+
+                final String forme =
+                        formeSaisie.isBlank() ? null : formeSaisie;
+
+                final String fabricantSaisie =
+                        lireTexte("Fabricant (vide si aucun) : ");
+
+                final String fabricant =
+                        fabricantSaisie.isBlank() ? null : fabricantSaisie;
+
                 medService.ajouter(
                         nom,
                         dosage,
@@ -478,7 +490,9 @@ public class Main {
                         datePeremption,
                         conventionneCnam,
                         tauxRemboursement,
-                        codeBarre
+                        codeBarre,
+                        forme,
+                        fabricant
                 );
 
                 break;

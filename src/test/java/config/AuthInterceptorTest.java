@@ -170,6 +170,13 @@ class AuthInterceptorTest {
                         "/api/medicaments/code-barre/1234567890123",
                         "GET",
                         true
+                ),
+                Arguments.of(
+                        "pharma",
+                        "PHARMACIEN",
+                        "/api/medicaments/recherche",
+                        "GET",
+                        true
                 )
         );
     }

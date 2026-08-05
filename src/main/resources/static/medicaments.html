@@ -96,6 +96,14 @@
                         <input type="text" name="codeBarre" placeholder="Scanner ou taper le code">
                     </label>
                 </div>
+                <div class="rangee">
+                    <label data-i18n="champForme">Forme (facultatif)
+                        <input type="text" name="forme" placeholder="comprimé, sirop, gélule...">
+                    </label>
+                    <label data-i18n="champFabricant">Fabricant (facultatif)
+                        <input type="text" name="fabricant" placeholder="Sanofi">
+                    </label>
+                </div>
                 <button type="submit" data-i18n="btnAjouterAuStock">Ajouter au stock</button>
             </form>
         </section>
@@ -103,11 +111,21 @@
 <section class="carte carte-large" data-role="GESTIONNAIRE">
             <p class="etiquette" data-i18n="etiquetteStock">STOCK</p>
 		            <h2 data-i18n="medConsulterTitre">Consulter un stock</h2>
+            <div class="toggle-mode-recherche" id="toggleConsulter">
+                <button type="button" class="actif" data-mode="codeBarre" data-i18n="modeCodeBarre">Code-barres</button>
+                <button type="button" data-mode="nomDosage" data-i18n="modeNomDosage">Nom + dosage</button>
+            </div>
             <form id="formConsulter">
-                <div class="rangee">
+                <div class="rangee" id="blocCodeBarreConsulter">
                     <label data-i18n="champCodeBarreScan">Code-barres du médicament
-                        <input type="text" name="codeBarre" required placeholder="Scanner ou taper le code">
+                        <input type="text" name="codeBarre" placeholder="Scanner ou taper le code">
                     </label>
+                </div>
+                <div class="rangee" id="blocNomDosageConsulter" hidden>
+                    <label data-i18n="champNomDosageMedicament">Nom + dosage du médicament
+                        <input type="text" id="inputAutocompleteConsulter" placeholder="Tape 2 lettres...">
+                    </label>
+                    <input type="hidden" id="hiddenIdConsulter">
                 </div>
                 <button type="submit" data-i18n="btnConsulter">Consulter</button>
             </form>
@@ -120,11 +138,23 @@
 <section class="carte carte-large" data-role="GESTIONNAIRE">
             <p class="etiquette" data-i18n="etiquetteStock">STOCK</p>
 		            <h2 data-i18n="medMajTitre">Mettre à jour un stock</h2>
+            <div class="toggle-mode-recherche" id="toggleMaj">
+                <button type="button" class="actif" data-mode="codeBarre" data-i18n="modeCodeBarre">Code-barres</button>
+                <button type="button" data-mode="nomDosage" data-i18n="modeNomDosage">Nom + dosage</button>
+            </div>
             <form id="formMaj">
-                <div class="rangee">
+                <div class="rangee" id="blocCodeBarreMaj">
                     <label data-i18n="champCodeBarreScan">Code-barres du médicament
-                        <input type="text" name="codeBarre" required placeholder="Scanner ou taper le code">
+                        <input type="text" name="codeBarre" placeholder="Scanner ou taper le code">
                     </label>
+                </div>
+                <div class="rangee" id="blocNomDosageMaj" hidden>
+                    <label data-i18n="champNomDosageMedicament">Nom + dosage du médicament
+                        <input type="text" id="inputAutocompleteMaj" placeholder="Tape 2 lettres...">
+                    </label>
+                    <input type="hidden" id="hiddenIdMaj">
+                </div>
+                <div class="rangee">
                     <label data-i18n="champNouveauStock">Nouveau stock
                         <input type="number" name="stock" required min="0" placeholder="85">
                     </label>
@@ -140,11 +170,21 @@
                 Recherche par code-barres : stock critique et péremption
                 vérifiés en une seule fois — pratique avec un grand catalogue.
             </p>
+            <div class="toggle-mode-recherche" id="toggleVerifier">
+                <button type="button" class="actif" data-mode="codeBarre" data-i18n="modeCodeBarre">Code-barres</button>
+                <button type="button" data-mode="nomDosage" data-i18n="modeNomDosage">Nom + dosage</button>
+            </div>
             <form id="formVerifier">
-                <div class="rangee">
+                <div class="rangee" id="blocCodeBarreVerifier">
                     <label data-i18n="champCodeBarreScan">Code-barres du médicament
-                        <input type="text" name="codeBarre" required placeholder="Scanner ou taper le code">
+                        <input type="text" name="codeBarre" placeholder="Scanner ou taper le code">
                     </label>
+                </div>
+                <div class="rangee" id="blocNomDosageVerifier" hidden>
+                    <label data-i18n="champNomDosageMedicament">Nom + dosage du médicament
+                        <input type="text" id="inputAutocompleteVerifier" placeholder="Tape 2 lettres...">
+                    </label>
+                    <input type="hidden" id="hiddenIdVerifier">
                 </div>
                 <button type="submit" data-i18n="btnVerifier">Vérifier</button>
             </form>
@@ -176,11 +216,21 @@
                 est dépassée, et enregistre le retrait dans l'historique. Refusé
                 si le médicament n'est pas encore périmé.
             </p>
+            <div class="toggle-mode-recherche" id="toggleStockPerime">
+                <button type="button" class="actif" data-mode="codeBarre" data-i18n="modeCodeBarre">Code-barres</button>
+                <button type="button" data-mode="nomDosage" data-i18n="modeNomDosage">Nom + dosage</button>
+            </div>
             <form id="formStockPerime">
-                <div class="rangee">
+                <div class="rangee" id="blocCodeBarreStockPerime">
                     <label data-i18n="champCodeBarreScan">Code-barres du médicament
-                        <input type="text" name="codeBarre" required placeholder="Scanner ou taper le code">
+                        <input type="text" name="codeBarre" placeholder="Scanner ou taper le code">
                     </label>
+                </div>
+                <div class="rangee" id="blocNomDosageStockPerime" hidden>
+                    <label data-i18n="champNomDosageMedicament">Nom + dosage du médicament
+                        <input type="text" id="inputAutocompleteStockPerime" placeholder="Tape 2 lettres...">
+                    </label>
+                    <input type="hidden" id="hiddenIdStockPerime">
                 </div>
                 <button type="submit" data-i18n="btnRetirerStockPerime">Retirer le stock périmé</button>
             </form>

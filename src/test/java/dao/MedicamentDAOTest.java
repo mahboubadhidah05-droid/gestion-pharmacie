@@ -61,7 +61,9 @@ class MedicamentDAOTest {
                     "2026-12-31",
                     true,
                     0.7,
-                    "1234567890123"
+                    "1234567890123",
+                    "comprimé",
+                    "Sanofi"
             );
 
             verify(statement).setString(
@@ -109,6 +111,16 @@ class MedicamentDAOTest {
                     "1234567890123"
             );
 
+            verify(statement).setString(
+                    10,
+                    "comprimé"
+            );
+
+            verify(statement).setString(
+                    11,
+                    "Sanofi"
+            );
+
             verify(statement).executeUpdate();
         }
     }
@@ -144,7 +156,9 @@ class MedicamentDAOTest {
                             "2026-12-31",
                             true,
                             0.7,
-                            "1234567890123"
+                            "1234567890123",
+                            "comprimé",
+                            "Sanofi"
                     )
             );
         }
@@ -332,6 +346,14 @@ class MedicamentDAOTest {
         when(
                 result.getString("code_barre")
         ).thenReturn("1234567890123");
+
+        when(
+                result.getString("forme")
+        ).thenReturn("comprimé");
+
+        when(
+                result.getString("fabricant")
+        ).thenReturn("Sanofi");
 
         try (MockedStatic<DBConnection> dbConnection =
                      mockStatic(DBConnection.class)) {
@@ -1066,6 +1088,62 @@ class MedicamentDAOTest {
             assertThrows(
                     AccesDonneesException.class,
                     () -> medicamentDAO.getResumeParId(4)
+            );
+        }
+    }
+
+    @Test
+    void doitRechercherParDebutNom() throws Exception {
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet result = mock(ResultSet.class);
+
+        when(connection.prepareStatement(anyString())).thenReturn(statement);
+        when(statement.executeQuery()).thenReturn(result);
+        when(result.next()).thenReturn(true, true, false);
+        when(result.getInt("id_medicament")).thenReturn(1, 2);
+        when(result.getString("nom")).thenReturn("Doliprane", "Doliprane");
+        when(result.getString("dosage")).thenReturn("500mg", "1g");
+        when(result.getString("forme")).thenReturn("comprimé", "comprimé");
+        when(result.getString("fabricant")).thenReturn("Sanofi", "GenPharma");
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            List<dto.MedicamentAutocompleteResponse> resultat =
+                    medicamentDAO.rechercherParDebutNom("Do");
+
+            assertEquals(2, resultat.size());
+            assertEquals("Sanofi", resultat.get(0).fabricant());
+            assertEquals("GenPharma", resultat.get(1).fabricant());
+
+            verify(statement).setString(1, "Do%");
+        }
+    }
+
+    @Test
+    void doitLeverExceptionSiRechercheParDebutNomEchoue() throws Exception {
+
+        Connection connection = mock(Connection.class);
+
+        when(connection.prepareStatement(anyString()))
+                .thenThrow(new SQLException("Erreur SQL"));
+
+        try (MockedStatic<DBConnection> dbConnection =
+                     mockStatic(DBConnection.class)) {
+
+            dbConnection.when(
+                    DBConnection::getConnection
+            ).thenReturn(connection);
+
+            assertThrows(
+                    AccesDonneesException.class,
+                    () -> medicamentDAO.rechercherParDebutNom("Do")
             );
         }
     }

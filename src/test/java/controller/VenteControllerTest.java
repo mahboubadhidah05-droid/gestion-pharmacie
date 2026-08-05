@@ -96,6 +96,17 @@ class VenteControllerTest {
                 .andExpect(jsonPath("$[0].idMedicament").value(2));
     }
 
+    @Test
+    void ventesParIdMedicament_doitRetournerLaListe() throws Exception {
+        when(venteService.ventesParMedicament(2)).thenReturn(
+                List.of(new VenteResponse(6, 1, 6, 2, 15,
+                        LocalDateTime.of(2026, 7, 15, 0, 0), 0.0, 75.0)));
+
+        mockMvc.perform(get("/api/ventes").param("idMedicament", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(6));
+    }
+
 
     @Test
     void ventesParClient_doitRetournerLaListe() throws Exception {

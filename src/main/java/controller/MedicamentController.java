@@ -49,7 +49,9 @@ public class MedicamentController {
                 request.datePeremption(),
                 request.conventionneCnam(),
                 request.tauxRemboursement(),
-                request.codeBarre()
+                request.codeBarre(),
+                request.forme(),
+                request.fabricant()
         );
 
         return ResponseEntity
@@ -201,6 +203,27 @@ public class MedicamentController {
     }
 
 
+    @PutMapping("/{id}/stock-perime")
+    public ResponseEntity<MessageResponse> retirerStockPerimeParId(
+            @PathVariable int id) {
+
+        int resultat = medicamentService.retirerStockPerimeParId(id);
+
+        if (resultat == -2) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new MessageResponse(
+                            "Ce médicament n'est pas encore périmé."));
+        }
+
+        return ResponseEntity.ok(
+                new MessageResponse(
+                        "Stock périmé retiré : " + resultat + " unité(s)."
+                )
+        );
+    }
+
+
     @GetMapping("/verifier")
     public ResponseEntity<dto.VerifierMedicamentResponse> verifierMedicament(
             @RequestParam String codeBarre) {
@@ -213,6 +236,31 @@ public class MedicamentController {
         }
 
         return ResponseEntity.ok(resultat);
+    }
+
+
+    @GetMapping("/{id}/verifier")
+    public ResponseEntity<dto.VerifierMedicamentResponse> verifierMedicamentParId(
+            @PathVariable int id) {
+
+        dto.VerifierMedicamentResponse resultat =
+                medicamentService.verifierParId(id);
+
+        if (resultat == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(resultat);
+    }
+
+
+    @GetMapping("/recherche")
+    public ResponseEntity<List<dto.MedicamentAutocompleteResponse>> rechercherParNom(
+            @RequestParam String debut) {
+
+        return ResponseEntity.ok(
+                medicamentService.rechercherParDebutNom(debut)
+        );
     }
 
 

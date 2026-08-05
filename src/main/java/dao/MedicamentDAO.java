@@ -42,14 +42,17 @@ public void ajouterMedicament(
         String datePeremption,
         boolean conventionneCnam,
         double tauxRemboursement,
-        String codeBarre) {
+        String codeBarre,
+        String forme,
+        String fabricant) {
 
     String sql =
             "INSERT INTO "
             + TABLE_MEDICAMENT
             + " (nom, dosage, stock, prix, seuil_critique, date_peremption,"
-            + " conventionne_cnam, taux_remboursement, code_barre)"
-            + " VALUES(?,?,?,?,?,?,?,?,?)";
+            + " conventionne_cnam, taux_remboursement, code_barre,"
+            + " forme, fabricant)"
+            + " VALUES(?,?,?,?,?,?,?,?,?,?,?)";
 
     try (Connection connection =
                  DBConnection.getConnection();
@@ -65,6 +68,8 @@ public void ajouterMedicament(
         statement.setBoolean(7, conventionneCnam);
         statement.setDouble(8, tauxRemboursement);
         statement.setString(9, codeBarre);
+        statement.setString(10, forme);
+        statement.setString(11, fabricant);
 
         statement.executeUpdate();
 
@@ -228,7 +233,9 @@ public List<MedicamentResponse> listerMedicaments() {
                             0,
                             result.getBoolean("conventionne_cnam"),
                             result.getDouble("taux_remboursement"),
-                            result.getString("code_barre")
+                            result.getString("code_barre"),
+                            result.getString("forme"),
+                            result.getString("fabricant")
                     )
             );
         }
@@ -243,6 +250,66 @@ public List<MedicamentResponse> listerMedicaments() {
     }
 
     return medicaments;
+}
+
+/**
+ * Recherche par autocomplétion : tous les médicaments dont le nom
+ * commence par {@code debut} (insensible à la casse), avec assez
+ * d'infos (dosage, forme, fabricant) pour les distinguer visuellement
+ * s'ils partagent le même nom.
+ */
+public List<dto.MedicamentAutocompleteResponse> rechercherParDebutNom(
+        String debut) {
+
+    String sql =
+            "SELECT "
+            + COL_ID
+            + ", "
+            + COL_NOM
+            + ", dosage, forme, fabricant FROM "
+            + TABLE_MEDICAMENT
+            + " WHERE LOWER("
+            + COL_NOM
+            + ") LIKE LOWER(?) ORDER BY "
+            + COL_NOM
+            + " LIMIT 10";
+
+    List<dto.MedicamentAutocompleteResponse> resultats =
+            new ArrayList<>();
+
+    try (Connection connection =
+                 DBConnection.getConnection();
+         PreparedStatement statement =
+                 connection.prepareStatement(sql)) {
+
+        statement.setString(1, debut + "%");
+
+        try (ResultSet result = statement.executeQuery()) {
+
+            while (result.next()) {
+
+                resultats.add(
+                        new dto.MedicamentAutocompleteResponse(
+                                result.getInt(COL_ID),
+                                result.getString(COL_NOM),
+                                result.getString("dosage"),
+                                result.getString("forme"),
+                                result.getString("fabricant")
+                        )
+                );
+            }
+        }
+
+    } catch (SQLException exception) {
+
+        throw new AccesDonneesException(
+                "Échec de la recherche par autocomplétion pour : "
+                        + debut,
+                exception
+        );
+    }
+
+    return resultats;
 }
 
 /**

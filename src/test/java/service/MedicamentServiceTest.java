@@ -77,6 +77,8 @@ class MedicamentServiceTest {
         ).thenReturn(-1, idMedicament);
 
         String codeBarre = "1234567890123";
+        String forme = "comprimé";
+        String fabricant = "Sanofi";
 
         service.ajouter(
                 nom,
@@ -87,7 +89,9 @@ class MedicamentServiceTest {
                 datePeremption,
                 conventionneCnam,
                 tauxRemboursement,
-                codeBarre
+                codeBarre,
+                forme,
+                fabricant
         );
 
         verify(dao).ajouterMedicament(
@@ -99,7 +103,9 @@ class MedicamentServiceTest {
                 datePeremption,
                 conventionneCnam,
                 tauxRemboursement,
-                codeBarre
+                codeBarre,
+                forme,
+                fabricant
         );
 
         verify(histDAO).ajouterHistorique(
@@ -146,6 +152,8 @@ class MedicamentServiceTest {
                 datePeremption,
                 false,
                 0.0,
+                null,
+                null,
                 null
         );
 
@@ -158,6 +166,8 @@ class MedicamentServiceTest {
                 any(),
                 org.mockito.ArgumentMatchers.anyBoolean(),
                 anyDouble(),
+                any(),
+                any(),
                 any()
         );
 
@@ -221,7 +231,8 @@ class MedicamentServiceTest {
 
         MedicamentResponse ancien = new MedicamentResponse(
                 4, "antafen", "100mg", 160, 8.0, 20,
-                "2026-02-24", 0, true, 0.7, "1234567890123"
+                "2026-02-24", 0, true, 0.7, "1234567890123",
+                "comprimé", "Sanofi"
         );
 
         when(dao.listerMedicaments()).thenReturn(List.of(ancien));
@@ -241,6 +252,8 @@ class MedicamentServiceTest {
         assertEquals("antafen", resultat.get(0).nom());
         assertEquals(true, resultat.get(0).conventionneCnam());
         assertEquals(0.7, resultat.get(0).tauxRemboursement());
+        assertEquals("comprimé", resultat.get(0).forme());
+        assertEquals("Sanofi", resultat.get(0).fabricant());
     }
 
     @Test
@@ -248,7 +261,8 @@ class MedicamentServiceTest {
 
         MedicamentResponse ancien = new MedicamentResponse(
                 4, "antafen", "100mg", 160, 8.0, 20,
-                "2026-02-24", 0, false, 0.0, null
+                "2026-02-24", 0, false, 0.0, null,
+                null, null
         );
 
         when(dao.listerMedicaments()).thenReturn(List.of(ancien));
@@ -567,5 +581,73 @@ class MedicamentServiceTest {
         when(dao.getResumeParId(4)).thenReturn(resume);
 
         assertEquals(resume, service.getResumeParId(4));
+    }
+
+    @Test
+    void rechercherParDebutNom_doitDeleguerAuDao() {
+
+        List<dto.MedicamentAutocompleteResponse> resultats = List.of(
+                new dto.MedicamentAutocompleteResponse(
+                        1, "Doliprane", "500mg", "comprimé", "Sanofi"
+                ),
+                new dto.MedicamentAutocompleteResponse(
+                        2, "Doliprane", "1g", "comprimé", "GenPharma"
+                )
+        );
+
+        when(dao.rechercherParDebutNom("Do")).thenReturn(resultats);
+
+        assertEquals(resultats, service.rechercherParDebutNom("Do"));
+    }
+
+    @Test
+    void verifierParId_doitFonctionnerSansCodeBarre() {
+
+        when(dao.getResumeParId(4)).thenReturn(
+                new dto.MedicamentScanResponse(4, "antafen", "100mg", 160)
+        );
+
+        when(dao.stockCritique(4)).thenReturn(null);
+        when(lotDAO.getQuantitePerimee(anyInt(), anyString())).thenReturn(0);
+        when(lotDAO.getDatePeremptionLaPlusProche(4)).thenReturn("2028-01-01");
+
+        dto.VerifierMedicamentResponse resultat = service.verifierParId(4);
+
+        assertEquals("antafen", resultat.nom());
+        assertEquals(160, resultat.stock());
+    }
+
+    @Test
+    void verifierParId_introuvable_doitRetournerNull() {
+
+        when(dao.getResumeParId(999)).thenReturn(null);
+
+        assertEquals(null, service.verifierParId(999));
+    }
+
+    @Test
+    void retirerStockPerimeParId_doitFonctionnerSansCodeBarre() {
+
+        when(lotDAO.getLotsExpires(org.mockito.ArgumentMatchers.eq(1), anyString()))
+                .thenReturn(List.of(
+                        new LotResponse(10, 1, 20, "2020-01-01")
+                ));
+
+        when(dao.getStock(1)).thenReturn(100);
+
+        int resultat = service.retirerStockPerimeParId(1);
+
+        assertEquals(20, resultat);
+
+        verify(dao).updateStock(1, 80);
+    }
+
+    @Test
+    void retirerStockPerimeParId_aucunLotPerime_doitRetournerMoinsDeux() {
+
+        when(lotDAO.getLotsExpires(org.mockito.ArgumentMatchers.eq(1), anyString()))
+                .thenReturn(List.of());
+
+        assertEquals(-2, service.retirerStockPerimeParId(1));
     }
 }

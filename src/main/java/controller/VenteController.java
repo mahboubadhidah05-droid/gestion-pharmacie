@@ -80,6 +80,16 @@ public class VenteController {
     }
 
 
+    @GetMapping(params = "idMedicament")
+    public ResponseEntity<List<VenteResponse>> ventesParIdMedicament(
+            @RequestParam int idMedicament) {
+
+        return ResponseEntity.ok(
+                venteService.ventesParMedicament(idMedicament)
+        );
+    }
+
+
     @GetMapping(params = "client")
     public ResponseEntity<List<VenteResponse>> ventesParClient(
             @RequestParam int client) {
