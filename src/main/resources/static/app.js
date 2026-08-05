@@ -3146,3 +3146,42 @@ if (formRapportCnam) {
         }
     );
 }
+
+
+/* ============================================================
+   TEST MANUEL DE L'ALERTE EMAIL
+   ============================================================ */
+
+const btnTesterEmail =
+    document.getElementById("btnTesterEmail");
+
+if (btnTesterEmail) {
+
+    btnTesterEmail.addEventListener("click", async () => {
+
+        definirChargement(btnTesterEmail, true);
+
+        const resultat = await appelerApi(
+            "POST",
+            "/api/alertes/tester-email"
+        );
+
+        definirChargement(btnTesterEmail, false);
+
+        const alerte =
+            document.getElementById("alerteTesterEmail");
+
+        alerte.hidden = false;
+
+        if (resultat.ok) {
+
+            alerte.textContent = resultat.donnees.message;
+            alerte.classList.add("ok");
+
+        } else {
+
+            alerte.textContent = traduire("erreurEnregistrement");
+            alerte.classList.remove("ok");
+        }
+    });
+}

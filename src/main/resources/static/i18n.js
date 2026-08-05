@@ -242,7 +242,13 @@ const TRADUCTIONS = {
     "modeNomDosage": { fr: "Nom + dosage", en: "Name + dosage" },
     "champNomDosageMedicament": { fr: "Nom + dosage du médicament", en: "Medicine name + dosage" },
     "champForme": { fr: "Forme (facultatif)", en: "Form (optional)" },
-    "champFabricant": { fr: "Fabricant (facultatif)", en: "Manufacturer (optional)" }
+    "champFabricant": { fr: "Fabricant (facultatif)", en: "Manufacturer (optional)" },
+    "testerEmailTitre": { fr: "Test de l'alerte email", en: "Email alert test" },
+    "testerEmailDescription": {
+        fr: "Normalement envoyée automatiquement chaque jour à 8h aux gestionnaires si un médicament est en stock critique. Ce bouton déclenche la même vérification immédiatement, pratique pour tester sans attendre l'horaire réel.",
+        en: "Normally sent automatically every day at 8am to managers if a medicine is in critical stock. This button triggers the same check immediately, handy for testing without waiting for the real schedule."
+    },
+    "btnTesterEmail": { fr: "Tester l'envoi maintenant", en: "Test sending now" }
 };
 
 

@@ -526,6 +526,8 @@ button.en-chargement::after {
     text-align: center;
 }
 
+/* ---------- Boutons mode recherche vente ---------- */
+
 .toggle-mode-recherche {
     display: flex;
     gap: 6px;
@@ -533,12 +535,13 @@ button.en-chargement::after {
 }
 
 .toggle-mode-recherche button {
-    background: var(--papier);
-    color: var(--gris-texte);
-    border: 1px solid var(--trait);
+    background: var(--blanc);
+    color: var(--vert);
+    border: 1px solid var(--vert);
     box-shadow: none;
     font-size: 0.76rem;
     padding: 7px 14px;
+    transform: none;
 }
 
 .toggle-mode-recherche button.actif {

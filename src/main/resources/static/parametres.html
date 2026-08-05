@@ -96,6 +96,19 @@
             <p class="alerte" id="alerteMotDePasse" hidden></p>
         </section>
 
+        <section class="carte carte-large" data-role="GESTIONNAIRE">
+            <p class="etiquette" data-i18n="etiquetteParametres">PARAMÈTRES</p>
+            <h2 data-i18n="testerEmailTitre">Test de l'alerte email</h2>
+            <p class="kpi-sous-texte" data-i18n="testerEmailDescription">
+                Normalement envoyée automatiquement chaque jour à 8h aux
+                gestionnaires si un médicament est en stock critique.
+                Ce bouton déclenche la même vérification immédiatement,
+                pratique pour tester sans attendre l'horaire réel.
+            </p>
+            <button type="button" id="btnTesterEmail" data-i18n="btnTesterEmail">Tester l'envoi maintenant</button>
+            <p class="alerte" id="alerteTesterEmail" hidden></p>
+        </section>
+
     </main>
 
     <script src="ui.js"></script>
