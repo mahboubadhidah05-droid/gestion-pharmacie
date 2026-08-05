@@ -1,48 +1,19 @@
 package config;
 
-import java.util.List;
-
 import org.springframework.scheduling.annotation.Scheduled;
 
-import dao.UserDAO;
-import dto.MedicamentResponse;
-import service.MailService;
-import service.MedicamentService;
+import service.AlerteStockService;
 
 public class StockAlertScheduler {
 
-    private final MedicamentService medicamentService;
-    private final MailService mailService;
-    private final UserDAO userDAO;
+    private final AlerteStockService alerteStockService;
 
-    public StockAlertScheduler(
-            MedicamentService medicamentService,
-            MailService mailService,
-            UserDAO userDAO) {
-
-        this.medicamentService = medicamentService;
-        this.mailService = mailService;
-        this.userDAO = userDAO;
+    public StockAlertScheduler(AlerteStockService alerteStockService) {
+        this.alerteStockService = alerteStockService;
     }
 
     @Scheduled(cron = "0 0 8 * * *")
     public void verifierStocksCritiques() {
-        executerVerification();
-    }
-
-    public int executerVerification() {
-
-        List<MedicamentResponse> critiques =
-                medicamentService.listerMedicaments()
-                        .stream()
-                        .filter(m -> m.stock() <= m.seuilCritique())
-                        .toList();
-
-        List<String> emails =
-                userDAO.getEmailsGestionnaires();
-
-        mailService.envoyerAlerteStockCritique(emails, critiques);
-
-        return critiques.size();
+        alerteStockService.verifierEtEnvoyer();
     }
 }

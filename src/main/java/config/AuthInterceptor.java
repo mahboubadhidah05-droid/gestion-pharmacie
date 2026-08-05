@@ -28,6 +28,7 @@ public class AuthInterceptor implements HandlerInterceptor {
                     "/api/fournisseurs", ROLE_GESTIONNAIRE,
                     "/api/comptes", ROLE_GESTIONNAIRE,
                     "/api/cnam", ROLE_GESTIONNAIRE,
+                    "/api/alertes", ROLE_GESTIONNAIRE,
                     VENTES_PREFIXE, ROLE_PHARMACIEN,
                     "/api/clients", ROLE_PHARMACIEN
             );

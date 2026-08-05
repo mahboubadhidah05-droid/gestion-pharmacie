@@ -140,8 +140,8 @@ class AppConfigTest {
 
         assertNotNull(mailService);
 
-        assertNotNull(
-                appConfig.stockAlertScheduler(
+        service.AlerteStockService alerteStockService =
+                appConfig.alerteStockService(
                         appConfig.medicamentService(
                                 appConfig.medicamentDAO(),
                                 appConfig.stockHistoriqueDAO(),
@@ -149,7 +149,12 @@ class AppConfigTest {
                         ),
                         mailService,
                         appConfig.userDAO()
-                )
+                );
+
+        assertNotNull(alerteStockService);
+
+        assertNotNull(
+                appConfig.stockAlertScheduler(alerteStockService)
         );
     }
 }

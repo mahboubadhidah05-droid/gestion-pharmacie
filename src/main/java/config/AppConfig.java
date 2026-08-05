@@ -21,6 +21,7 @@ import dao.UtilisateurDAO;
 import dao.UtilisateurGestionDAO;
 import dao.VenteDAO;
 
+import service.AlerteStockService;
 import service.AuthService;
 import service.ClientService;
 import service.CommandeService;
@@ -193,10 +194,16 @@ public class AppConfig {
     }
 
     @Bean
-    public StockAlertScheduler stockAlertScheduler(
+    public AlerteStockService alerteStockService(
             MedicamentService medicamentService,
             MailService mailService,
             UserDAO userDAO) {
-        return new StockAlertScheduler(medicamentService, mailService, userDAO);
+        return new AlerteStockService(medicamentService, mailService, userDAO);
+    }
+
+    @Bean
+    public StockAlertScheduler stockAlertScheduler(
+            AlerteStockService alerteStockService) {
+        return new StockAlertScheduler(alerteStockService);
     }
 }
