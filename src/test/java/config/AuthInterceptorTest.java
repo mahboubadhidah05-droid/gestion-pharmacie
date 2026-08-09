@@ -177,6 +177,41 @@ class AuthInterceptorTest {
                         "/api/medicaments/recherche",
                         "GET",
                         true
+                ),
+                Arguments.of(
+                        "gestionnaire",
+                        "GESTIONNAIRE",
+                        "/api/alertes/tester-email",
+                        "POST",
+                        true
+                ),
+                Arguments.of(
+                        "pharma",
+                        "PHARMACIEN",
+                        "/api/alertes/tester-email",
+                        "POST",
+                        false
+                ),
+                Arguments.of(
+                        "pharma",
+                        "PHARMACIEN",
+                        "/api/medicaments/stock",
+                        "GET",
+                        true
+                ),
+                Arguments.of(
+                        "pharma",
+                        "PHARMACIEN",
+                        "/api/medicaments/5/stock",
+                        "GET",
+                        true
+                ),
+                Arguments.of(
+                        "pharma",
+                        "PHARMACIEN",
+                        "/api/medicaments/stock",
+                        "PUT",
+                        false
                 )
         );
     }

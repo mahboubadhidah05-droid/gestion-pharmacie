@@ -62,6 +62,9 @@ public class AuthInterceptor implements HandlerInterceptor {
     private static final String RECHERCHE_PREFIXE =
             "/api/medicaments/recherche";
 
+    private static final String STOCK_SUFFIXE =
+            "/stock";
+
     private boolean roleAutorise(String uri, String methode, String role) {
 
         /*
@@ -91,6 +94,19 @@ public class AuthInterceptor implements HandlerInterceptor {
          * code-barres enregistré.
          */
         if (uri.startsWith(RECHERCHE_PREFIXE)) {
+            return true;
+        }
+
+        /*
+         * Consultation du stock (lecture seule) ouverte aux deux
+         * rôles : le Pharmacien doit pouvoir vérifier combien il
+         * reste d'un médicament, même si la gestion complète (mise
+         * à jour, ajout...) reste réservée au Gestionnaire. Couvre
+         * à la fois "/stock?codeBarre=..." et "/{id}/stock".
+         */
+        if (uri.startsWith("/api/medicaments")
+                && uri.endsWith(STOCK_SUFFIXE)
+                && METHODE_GET.equalsIgnoreCase(methode)) {
             return true;
         }
 

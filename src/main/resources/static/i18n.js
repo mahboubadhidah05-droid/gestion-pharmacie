@@ -14,6 +14,7 @@ const TRADUCTIONS = {
     "navMedicaments": { fr: "Médicaments", en: "Medicines" },
     "navVentes": { fr: "Ventes", en: "Sales" },
     "navClients": { fr: "Clients", en: "Customers" },
+    "navStockPharmacien": { fr: "Stock", en: "Stock" },
     "navCommandes": { fr: "Commandes", en: "Orders" },
     "navFournisseurs": { fr: "Fournisseurs", en: "Suppliers" },
     "navComptes": { fr: "Comptes", en: "Accounts" },
@@ -248,7 +249,10 @@ const TRADUCTIONS = {
         fr: "Normalement envoyée automatiquement chaque jour à 8h aux gestionnaires si un médicament est en stock critique. Ce bouton déclenche la même vérification immédiatement, pratique pour tester sans attendre l'horaire réel.",
         en: "Normally sent automatically every day at 8am to managers if a medicine is in critical stock. This button triggers the same check immediately, handy for testing without waiting for the real schedule."
     },
-    "btnTesterEmail": { fr: "Tester l'envoi maintenant", en: "Test sending now" }
+    "btnTesterEmail": { fr: "Tester l'envoi maintenant", en: "Test sending now" },
+    "stockPharmacienSousTitre": { fr: "Consultation du stock restant · API REST", en: "Remaining stock lookup · REST API" },
+    "stockPharmacienTitrePage": { fr: "Stock", en: "Stock" },
+    "stockPharmacienDescriptionPage": { fr: "Consultation du stock restant d'un médicament, en lecture seule.", en: "Read-only lookup of a medicine's remaining stock." }
 };
 
 

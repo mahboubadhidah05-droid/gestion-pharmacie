@@ -35,6 +35,7 @@
         { href: "index.html", label: "Tableau de bord", cle: "navTableauDeBord", icone: "tableau" },
         { href: "medicaments.html", label: "Médicaments", cle: "navMedicaments", icone: "medicaments", role: "GESTIONNAIRE" },
         { href: "ventes.html", label: "Ventes", cle: "navVentes", icone: "ventes", role: "PHARMACIEN" },
+        { href: "stock-pharmacien.html", label: "Stock", cle: "navStockPharmacien", icone: "medicaments", role: "PHARMACIEN" },
         { href: "clients.html", label: "Clients", cle: "navClients", icone: "clients", role: "PHARMACIEN" },
         { href: "commandes.html", label: "Commandes", cle: "navCommandes", icone: "commandes", role: "GESTIONNAIRE" },
         { href: "fournisseurs.html", label: "Fournisseurs", cle: "navFournisseurs", icone: "fournisseurs", role: "GESTIONNAIRE" },
