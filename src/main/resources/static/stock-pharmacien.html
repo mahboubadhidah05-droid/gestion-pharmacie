@@ -27,7 +27,7 @@
         </div>
         <div>
             <h1>Gestion Pharmacie</h1>
-            <p class="soustitre" data-i18n="stockPharmSousTitre">Consultation du stock · lecture seule</p>
+            <p class="soustitre" data-i18n="stockPharmacienSousTitre">Consultation du stock restant · API REST</p>
         </div>
         <div class="etat-api" id="etatApi">
             <span class="pastille"></span>
@@ -49,32 +49,38 @@
         <div class="page-header">
             <div>
                 <p class="etiquette" data-i18n="etiquetteStock">STOCK</p>
-                <h2 class="page-titre" data-i18n="stockPharmTitrePage">Stock des médicaments</h2>
-                <p class="page-description" data-i18n="stockPharmDescriptionPage">Consultation en lecture seule des quantités disponibles et des seuils critiques.</p>
+                <h2 class="page-titre" data-i18n="stockPharmacienTitrePage">Stock</h2>
+                <p class="page-description" data-i18n="stockPharmacienDescriptionPage">Consultation du stock restant d'un médicament, en lecture seule.</p>
             </div>
         </div>
 
-        <section class="carte carte-large" data-role="PHARMACIEN">
+<section class="carte carte-large" data-role="PHARMACIEN">
             <p class="etiquette" data-i18n="etiquetteStock">STOCK</p>
-            <h2 data-i18n="medListeTitre">Liste des médicaments</h2>
-            <button type="button" id="btnListeMedicaments" data-i18n="btnActualiserListe">Actualiser la liste</button>
-            <div class="tableau-conteneur">
-                <table class="tableau" id="tableMedicaments" hidden>
-                    <thead>
-                        <tr>
-                            <th data-i18n="colId">ID</th>
-                            <th data-i18n="colNom">Nom</th>
-                            <th data-i18n="colDosage">Dosage</th>
-                            <th data-i18n="colStock">Stock</th>
-                            <th data-i18n="colPrixDT">Prix (DT)</th>
-                            <th data-i18n="colSeuil">Seuil</th>
-                            <th data-i18n="colPeremption">Péremption</th>
-                        </tr>
-                    </thead>
-                    <tbody id="corpsTableMedicaments"></tbody>
-                </table>
+		            <h2 data-i18n="medConsulterTitre">Consulter un stock</h2>
+            <div class="toggle-mode-recherche" id="toggleConsulter">
+                <button type="button" class="actif" data-mode="codeBarre" data-i18n="modeCodeBarre">Code-barres</button>
+                <button type="button" data-mode="nomDosage" data-i18n="modeNomDosage">Nom + dosage</button>
+            </div>
+            <form id="formConsulter">
+                <div class="rangee" id="blocCodeBarreConsulter">
+                    <label data-i18n="champCodeBarreScan">Code-barres du médicament
+                        <input type="text" name="codeBarre" placeholder="Scanner ou taper le code">
+                    </label>
+                </div>
+                <div class="rangee" id="blocNomDosageConsulter" hidden>
+                    <label data-i18n="champNomDosageMedicament">Nom + dosage du médicament
+                        <input type="text" id="inputAutocompleteConsulter" placeholder="Tape 2 lettres...">
+                    </label>
+                    <input type="hidden" id="hiddenIdConsulter">
+                </div>
+                <button type="submit" data-i18n="btnConsulter">Consulter</button>
+            </form>
+            <div class="resultat-stock" id="resultatStock" hidden>
+                <span class="resultat-valeur" id="stockValeur">—</span>
+                <span class="resultat-libelle" data-i18n="uniteEnStock">unités en stock</span>
             </div>
         </section>
+
     </main>
 
     <script src="ui.js"></script>
